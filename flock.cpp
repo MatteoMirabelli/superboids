@@ -13,6 +13,6 @@ void Flock::erase(int n) {
   f_flock.erase(it);
 }
 
-void friend Flock::separation(double a);
-void friend Flock::alignement();
-void friend Flock::cohesion();
+void friend separation(double a);
+void friend alignement();
+void friend cohesion();
