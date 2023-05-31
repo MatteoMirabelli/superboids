@@ -1,19 +1,23 @@
-#include <vector>
+#include <cassert>
+#include <cmath>
+#include <valarray>
 
 class Boid {
-  std::vector<double> b_pos;
-  std::vector<double> b_vel;
+  std::valarray<double> b_pos;
+  std::valarray<double> b_vel;
   double b_angle;
 
  public:
-  std::vector<double>& get_pos();
-  std::vector<double> const& get_pos() const;
+  Boid(std::valarray<double> pos, std::valarray<double> vel);
 
-  std::vector<double>& get_vel();
-  std::vector<double> const& get_vel() const;
+  std::valarray<double>& get_pos();
+  std::valarray<double> const& get_pos() const;
+
+  std::valarray<double>& get_vel();
+  std::valarray<double> const& get_vel() const;
 
   double& get_angle();
   double const& get_angle() const;
 
-  void update_position(double delta_t);
+  void update_state(double delta_t, std::valarray<double> vel);
 };
