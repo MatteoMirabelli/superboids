@@ -7,10 +7,10 @@ class Flock {
 
  public:
   double size() const;
-  void push_back();
+  void push_back(Boid boid);
   Boid& get_boid(int n);
   Boid const& get_boid(int n) const;
-  void erase();
+  void erase(int n);
 
   void friend separation(double a);
   void friend alignement();
