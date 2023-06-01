@@ -23,6 +23,6 @@ class Boid {
 };
 
 template <typename T>
-double vec_norm(std::valarray<T> vec) {
-  return std::sqrt(std::pow(vec, {2, 2}).sum());
-}
+T vec_norm(std::valarray<T> vec);
+
+double boid_dist(Boid const& bd_1, Boid const& bd_2);
