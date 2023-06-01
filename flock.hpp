@@ -13,6 +13,10 @@ class Flock {
                  Boid const&);
   Flock() = default;
   double size() const;
+  auto begin();
+  auto begin() const;
+  auto end();
+  auto end() const;
   void push_back(Boid const&);
   Boid& get_boid(int);
   Boid const& get_boid(int) const;

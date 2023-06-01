@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(Boids VERSION 0.2.10)
+project(Boids VERSION 0.1.7)
 
 # abilita il supporto per i test, tra cui l'opzione BUILD_TESTING usata sotto
 include(CTest)

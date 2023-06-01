@@ -26,6 +26,11 @@ Flock::Flock(double const& d, std::valarray<double> const& params,
   (--f_flock.end())->get_vel() += bd_n * (com.get_vel());
 }
 
+auto Flock::begin() { return f_flock.begin(); }
+auto Flock::end() { return f_flock.end(); }
+auto Flock::begin() const { return f_flock.begin(); }
+auto Flock::end() const { return f_flock.end(); }
+
 double Flock::size() const { return f_flock.size(); }
 
 void Flock::push_back(Boid const& boid) { f_flock.push_back(boid); }
