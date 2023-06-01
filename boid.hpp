@@ -1,3 +1,6 @@
+#ifndef BOID_HPP
+#define BOID_HPP
+
 #include <cassert>
 #include <cmath>
 #include <valarray>
@@ -8,7 +11,8 @@ class Boid {
   double b_angle;
 
  public:
-  Boid(std::valarray<double> pos, std::valarray<double> vel);
+  explicit Boid(std::valarray<double> pos, std::valarray<double> vel);
+  Boid() = default;
 
   std::valarray<double>& get_pos();
   std::valarray<double> const& get_pos() const;
@@ -26,3 +30,5 @@ template <typename T>
 T vec_norm(std::valarray<T> vec);
 
 double boid_dist(Boid const& bd_1, Boid const& bd_2);
+
+#endif

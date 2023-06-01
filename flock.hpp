@@ -1,3 +1,6 @@
+#ifndef FLOCK_HPP
+#define FLOCK_HPP
+
 #include <vector>
 
 #include "boid.hpp"
@@ -13,10 +16,8 @@ class Flock {
                  Boid const&);
   Flock() = default;
   double size() const;
-  auto begin();
-  auto begin() const;
-  auto end();
-  auto end() const;
+  std::vector<Boid>::iterator begin();
+  std::vector<Boid>::iterator end();
   void push_back(Boid const&);
   Boid& get_boid(int);
   Boid const& get_boid(int) const;
@@ -29,10 +30,6 @@ class Flock {
   std::valarray<double> vel_correction(std::vector<Boid>::iterator);
 
   void update_flock_state(double const&);
-
-  /*
-  std::valarray<double> friend separation(double);
-  void friend alignment();
-  void friend cohesion();
-  */
 };
+
+#endif

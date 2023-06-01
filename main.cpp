@@ -11,23 +11,24 @@
 
 int main() {
   try {
-    Flock bd_flock{3, std::valarray<double>{1., 1., 1., 1.}, 4,
-                   Boid{{200, 200.}, {0., 0.}}};
+    Flock bd_flock{50., std::valarray<double>{12., 0.01, 0., 0.}, 50,
+                   Boid{{500., 300.}, {0., 0.}}};
     std::vector<sf::ConvexShape> tr_boids;
     std::transform(bd_flock.begin(), bd_flock.end(),
-                   std::back_inserter(tr_boids), [](Boid const& b) {
+                   std::back_inserter(tr_boids), [](Boid b) -> sf::ConvexShape {
                      sf::ConvexShape tr_boid;
                      tr_boid.setPointCount(3);
                      tr_boid.setPoint(0, sf::Vector2f(0.f, 0.f));
-                     tr_boid.setPoint(1, sf::Vector2f(10.f, 0.f));
-                     tr_boid.setPoint(2, sf::Vector2f(5.f, 10.f));
+                     tr_boid.setPoint(1, sf::Vector2f(8.f, 0.f));
+                     tr_boid.setPoint(2, sf::Vector2f(4.f, 8.f));
                      tr_boid.setFillColor(sf::Color::Black);
                      tr_boid.setOrigin(5.f, 5.f);
                      tr_boid.setPosition(b.get_pos()[0], b.get_pos()[1]);
+                     tr_boid.setRotation(b.get_angle());
                      return tr_boid;
                    });
     sf::RenderWindow window(sf::VideoMode(1000, 780), "First boid test");
-    window.setFramerateLimit(20);
+    window.setFramerateLimit(60);
     while (window.isOpen()) {
       // Process events
       sf::Event event;
@@ -36,8 +37,9 @@ int main() {
         if (event.type == sf::Event::Closed) window.close();
       }
       std::transform(bd_flock.begin(), bd_flock.end(), tr_boids.begin(),
-                     [](Boid const& b, auto& tr_boid) {
+                     tr_boids.begin(), [](Boid b, sf::ConvexShape& tr_boid) {
                        tr_boid.setPosition(b.get_pos()[0], b.get_pos()[1]);
+                       tr_boid.setRotation(-b.get_angle());
                        return tr_boid;
                      });
       window.clear(sf::Color::White);

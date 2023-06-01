@@ -1,11 +1,13 @@
 #include "boid.hpp"
+
 #include <type_traits>
 
 Boid::Boid(std::valarray<double> pos, std::valarray<double> vel) {
-  assert(pos.size() != 2 || vel.size() != 2);
+  assert(pos.size() == 2 || vel.size() == 2);
   b_pos = pos;
   b_vel = vel;
-  b_angle = std::atan(b_vel[1] / b_vel[0]);
+  b_angle = std::atan(b_vel[0] / b_vel[1]) / M_PI * 180;
+  (b_vel[1] < 0) ? b_angle += 180 : b_angle;
 }
 
 std::valarray<double>& Boid::get_pos() { return b_pos; }
@@ -23,7 +25,8 @@ double const& Boid::get_angle() const { return b_angle; }
 void Boid::update_state(double delta_t, std::valarray<double> delta_vel) {
   b_vel += delta_vel;
   b_pos += (b_vel * delta_t);
-  b_angle = std::atan(b_vel[1] / b_vel[0]);
+  b_angle = std::atan(b_vel[0] / b_vel[1]) / M_PI * 180;
+  (b_vel[1] < 0) ? b_angle += 180 : b_angle;
 }
 
 template <typename T>
