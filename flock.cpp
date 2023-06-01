@@ -28,6 +28,8 @@ void Flock::update_com() {
   f_com.get_vel() /= Flock::size();
 };
 
-void friend Flock::separation(double a);
-void friend Flock::alignement();
-void friend Flock::cohesion();
+std::valarray<double> separation(double s){
+  
+}
+void alignment();
+void cohesion();

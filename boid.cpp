@@ -22,4 +22,5 @@ double const& Boid::get_angle() const { return b_angle; }
 void Boid::update_state(double delta_t, std::valarray<double> delta_vel) {
   b_vel += delta_vel;
   b_pos += (b_vel * delta_t);
+  b_angle = std::atan(b_vel[1] / b_vel[0]);
 }

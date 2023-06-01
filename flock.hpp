@@ -15,7 +15,7 @@ class Flock {
   void erase(int n);
   void update_com();
 
-  void friend separation(double a);
-  void friend alignement();
+  std::valarray<double> friend separation(double a);
+  void friend alignment();
   void friend cohesion();
 };

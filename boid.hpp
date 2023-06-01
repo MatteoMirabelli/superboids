@@ -21,3 +21,8 @@ class Boid {
 
   void update_state(double delta_t, std::valarray<double> vel);
 };
+
+template <typename T>
+double vec_norm(std::valarray<T> vec) {
+  return std::sqrt(std::pow(vec, {2, 2}).sum());
+}
