@@ -27,6 +27,10 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel) {
   b_pos += (b_vel * delta_t);
   b_angle = std::atan(b_vel[0] / b_vel[1]) / M_PI * 180;
   (b_vel[1] < 0) ? b_angle += 180 : b_angle;
+  (b_pos[0] > 1900.) ? b_pos[0] = 0. : b_pos[0];
+  (b_pos[0] < 0.) ? b_pos[0] = 1900. : b_pos[0];
+  (b_pos[1] > 1000.) ? b_pos[1] = 0. : b_pos[1];
+  (b_pos[1] < 0.) ? b_pos[1] = 1000. : b_pos[1];
 }
 
 template <typename T>

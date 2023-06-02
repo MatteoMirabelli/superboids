@@ -6,25 +6,28 @@
 
 Flock::Flock(double const& d, std::valarray<double> const& params,
              int const& bd_n, Boid const& com)
-    : f_d{d}, f_com{com} {
+    : f_d{d}, f_com{com}, f_flock{} {
   assert(params.size() == 4);
   f_params = params;
   std::random_device rd;
-  std::uniform_real_distribution<double> dist_pos_x(com.get_pos()[0] - 250.,
-                                                    com.get_pos()[0] + 250.);
-  std::uniform_real_distribution<double> dist_vel_x(com.get_vel()[0] - 20.,
-                                                    com.get_vel()[0] + 20.);
-  std::uniform_real_distribution<double> dist_pos_y(com.get_pos()[1] - 250.,
-                                                    com.get_pos()[1] + 250.);
-  std::uniform_real_distribution<double> dist_vel_y(com.get_vel()[1] - 20.,
-                                                    com.get_vel()[1] + 20.);
-  for (auto n = 0; n < bd_n; ++n) {
-    Boid boid{{dist_pos_x(rd), dist_pos_y(rd)},
-              {dist_vel_x(rd), dist_vel_y(rd)}};
-    f_flock.push_back(boid);
+  std::uniform_real_distribution<> dist_pos_x(com.get_pos()[0] - 360.,
+                                                    com.get_pos()[0] + 360.1);
+  std::uniform_real_distribution<> dist_vel_x(com.get_vel()[0] - 100.,
+                                                    com.get_vel()[0] + 100.1);
+  std::uniform_real_distribution<> dist_pos_y(com.get_pos()[1] - 360.,
+                                                    com.get_pos()[1] + 360.1);
+  std::uniform_real_distribution<> dist_vel_y(com.get_vel()[1] - 100.,
+                                                    com.get_vel()[1] + 100.1);
+  std::valarray<double> final_pos{0., 0.};
+  std::valarray<double> final_vel{0., 0.};
+  for (auto n = 0; n < bd_n-1; ++n) {
+    f_flock.push_back(Boid{{dist_pos_x(rd), dist_pos_y(rd)},
+                           {dist_vel_x(rd), dist_vel_y(rd)}});
+    final_pos += f_flock[n].get_pos();
+    final_vel += f_flock[n].get_vel();
   }
-  (--f_flock.end())->get_pos() += bd_n * (com.get_pos());
-  (--f_flock.end())->get_vel() += bd_n * (com.get_vel());
+  f_flock.push_back(
+      Boid{bd_n * com.get_pos() - final_pos, bd_n * com.get_vel() - final_vel});
 }
 
 std::vector<Boid>::iterator Flock::begin() { return f_flock.begin(); }
@@ -54,7 +57,7 @@ void Flock::update_com() {
   }
   f_com.get_vel() /= f_flock.size();
   f_com.get_pos() /= f_flock.size();
-};
+}
 
 // implementato il get neighbour e la correzione con iteratore; alternativa con
 // i numeri per non avere problemi ma tanto la chiamata è fatta dentro update
@@ -74,7 +77,7 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
   auto neighbours = this->get_neighbours(it);
   std::valarray<double> delta_vel = {0., 0.};
   if (neighbours.size() > 0) {
-    auto n_minus = neighbours.size() - 1;
+    auto n_minus = neighbours.size();
     std::valarray<double> local_com = {0., 0.};
     for (Boid bd : neighbours) {
       // separation
@@ -92,8 +95,12 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
 }
 
 void Flock::update_flock_state(double const& delta_t) {
-  for (auto it = f_flock.begin(); it != f_flock.end(); ++it) {
-    it->update_state(delta_t, this->vel_correction(it));
-  }
+  std::vector<Boid> copy_flock = f_flock;
+  auto it = f_flock.begin();
+  std::for_each(copy_flock.begin(), copy_flock.end(), [&](Boid& bd) {
+    bd.update_state(delta_t, this->vel_correction(it));
+    ++it;
+  });
+  f_flock = copy_flock;
   this->update_com();
 }
