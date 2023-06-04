@@ -11,16 +11,16 @@ Flock::Flock(double const& d, std::valarray<double> const& params,
   f_params = params;
   std::random_device rd;
   std::uniform_real_distribution<> dist_pos_x(com.get_pos()[0] - 360.,
-                                                    com.get_pos()[0] + 360.1);
-  std::uniform_real_distribution<> dist_vel_x(com.get_vel()[0] - 100.,
-                                                    com.get_vel()[0] + 100.1);
+                                              com.get_pos()[0] + 360.1);
+  std::uniform_real_distribution<> dist_vel_x(com.get_vel()[0] - 150.,
+                                              com.get_vel()[0] + 150.1);
   std::uniform_real_distribution<> dist_pos_y(com.get_pos()[1] - 360.,
-                                                    com.get_pos()[1] + 360.1);
-  std::uniform_real_distribution<> dist_vel_y(com.get_vel()[1] - 100.,
-                                                    com.get_vel()[1] + 100.1);
+                                              com.get_pos()[1] + 360.1);
+  std::uniform_real_distribution<> dist_vel_y(com.get_vel()[1] - 150.,
+                                              com.get_vel()[1] + 150.1);
   std::valarray<double> final_pos{0., 0.};
   std::valarray<double> final_vel{0., 0.};
-  for (auto n = 0; n < bd_n-1; ++n) {
+  for (auto n = 0; n < bd_n - 1; ++n) {
     f_flock.push_back(Boid{{dist_pos_x(rd), dist_pos_y(rd)},
                            {dist_vel_x(rd), dist_vel_y(rd)}});
     final_pos += f_flock[n].get_pos();
@@ -67,6 +67,7 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
   // auto bd_2 = f_flock[n - 1];
   auto ev_dist = [&](Boid bd_1) {
     return boid_dist(bd_1, *it) < f_d && boid_dist(bd_1, *it) > 0.;
+    // && is_visible(bd_1, *it, 180.);
   };
   std::copy_if(f_flock.begin(), f_flock.end(), std::back_inserter(neighbours),
                ev_dist);

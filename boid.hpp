@@ -31,4 +31,9 @@ T vec_norm(std::valarray<T> vec);
 
 double boid_dist(Boid const& bd_1, Boid const& bd_2);
 
+template <typename T>
+T compute_angle(std::valarray<T> const&);
+
+bool is_visible(Boid const&, Boid const&, double const&);
+
 #endif

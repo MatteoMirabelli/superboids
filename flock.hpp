@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "boid.hpp"
-
 class Flock {
   double f_d;
   std::vector<Boid> f_flock;

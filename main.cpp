@@ -11,7 +11,7 @@
 
 int main() {
   try {
-    Flock bd_flock{70., std::valarray<double>{50., 0.8, 0., 0.}, 70,
+    Flock bd_flock{60., std::valarray<double>{25., 1., 0.07, 0.}, 70,
                    Boid{{800., 400.}, {3., 4.}}};
     std::vector<sf::ConvexShape> tr_boids;
     std::transform(bd_flock.begin(), bd_flock.end(),
