@@ -62,12 +62,15 @@ void Flock::update_com() {
 // implementato il get neighbour e la correzione con iteratore; alternativa con
 // i numeri per non avere problemi ma tanto la chiamata è fatta dentro update
 // state, quindi non c'è il rischio di passare iteratori di altri flock!
+
+// errata corrige: può essere anzi utile che non vi sia vincolo per utilizzare
+// flock di ostacoli!
 std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
   std::vector<Boid> neighbours;
   // auto bd_2 = f_flock[n - 1];
   auto ev_dist = [&](Boid bd_1) {
-    return boid_dist(bd_1, *it) < f_d && boid_dist(bd_1, *it) > 0.;
-    // && is_visible(bd_1, *it, 180.);
+    return boid_dist(bd_1, *it) < f_d && boid_dist(bd_1, *it) > 0. &&
+           is_visible(bd_1, *it, 120.);
   };
   std::copy_if(f_flock.begin(), f_flock.end(), std::back_inserter(neighbours),
                ev_dist);
