@@ -4,11 +4,14 @@
 #include <numeric>
 #include <random>
 
-Flock::Flock(double const& d, std::valarray<double> const& params,
-             int const& bd_n, Boid const& com)
+Flock::Flock(double const& d, Parameters const& params, int const& bd_n,
+             Boid const& com)
     : f_d{d}, f_com{com}, f_flock{} {
-  assert(params.size() == 4);
-  f_params = params;
+  f_params = params;  // In ordine d_s, s, a, c
+
+  // Genera casualmente, secondo distribuzioni uniformi attorno al centro di
+  // massa, lo stormo
+
   std::random_device rd;
   std::uniform_real_distribution<> dist_pos_x(com.get_pos()[0] - 360.,
                                               com.get_pos()[0] + 360.1);
@@ -41,7 +44,7 @@ Boid& Flock::get_boid(int n) { return f_flock[n - 1]; }
 
 Boid const& Flock::get_boid(int n) const { return f_flock[n - 1]; }
 
-std::valarray<double> Flock::get_params() const { return f_params; }
+Parameters const& Flock::get_params() const { return f_params; }
 
 void Flock::erase(int n) {
   auto it = f_flock.begin() + n - 1;
@@ -85,15 +88,16 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
     std::valarray<double> local_com = {0., 0.};
     for (Boid bd : neighbours) {
       // separation
-      (boid_dist(bd, *it) < f_params[0])
-          ? delta_vel -= f_params[1] * (bd.get_pos() - it->get_pos())
+      (boid_dist(bd, *it) < f_params.d_s)
+          ? delta_vel -= f_params.s * (bd.get_pos() - it->get_pos())
           : delta_vel;
       // alignment
-      delta_vel += f_params[2] * (bd.get_vel() - it->get_vel()) / n_minus;
+      delta_vel += f_params.a * (bd.get_vel() - it->get_vel()) / n_minus;
+
       local_com += bd.get_pos();
     }
     // cohesion
-    delta_vel += f_params[3] * (local_com / n_minus - it->get_pos());
+    delta_vel += f_params.c * (local_com / n_minus - it->get_pos());
   }
   return delta_vel;
 }
@@ -108,3 +112,5 @@ void Flock::update_flock_state(double const& delta_t) {
   f_flock = copy_flock;
   this->update_com();
 }
+
+Statistics Flock::get_statistics() {}
