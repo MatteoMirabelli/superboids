@@ -15,6 +15,14 @@ struct Parameters {
   double s;
   double a;
   double c;
+
+  Parameters(double p_ds, double p_s, double p_a, double p_c) {
+    assert(p_ds > 0 && p_s > 0 && p_a > 0 && p_c > 0);
+    d_s = p_ds;
+    s = p_s;
+    a = p_a;
+    c = p_c;
+  }
 };
 
 class Flock {
@@ -32,6 +40,7 @@ class Flock {
   void push_back(Boid const&);
   Boid& get_boid(int);
   Boid const& get_boid(int) const;
+  Boid const& get_com() const;
   Parameters const& get_params() const;
   void erase(int n);
   void update_com();

@@ -9,6 +9,17 @@ Boid::Boid(std::valarray<double> pos, std::valarray<double> vel) {
   b_angle = compute_angle<double>(vel);
 }
 
+Boid::Boid(double x, double y, double vx, double vy) {
+  assert(x >= 0 && y >= 0);
+  b_pos = std::valarray<double>(2);
+  b_vel = std::valarray<double>(2);
+  b_pos[0] = x;
+  b_pos[1] = y;
+  b_vel[0] = vx;
+  b_vel[1] = vy;
+  b_angle = compute_angle<double>(b_vel);
+}
+
 std::valarray<double>& Boid::get_pos() { return b_pos; }
 
 std::valarray<double> const& Boid::get_pos() const { return b_pos; }

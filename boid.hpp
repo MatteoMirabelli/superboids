@@ -12,6 +12,7 @@ class Boid {
 
  public:
   explicit Boid(std::valarray<double> pos, std::valarray<double> vel);
+  Boid(double x, double y, double vx, double vy);
   Boid() = default;
 
   std::valarray<double>& get_pos();

@@ -6,31 +6,34 @@
 
 Flock::Flock(double const& d, Parameters const& params, int const& bd_n,
              Boid const& com)
-    : f_d{d}, f_com{com}, f_flock{} {
-  f_params = params;  // In ordine d_s, s, a, c
-
+    : f_d{d}, f_com{com}, f_params{params}, f_flock{} {
   // Genera casualmente, secondo distribuzioni uniformi attorno al centro di
   // massa, lo stormo
+  assert(bd_n >= 0);
 
-  std::random_device rd;
-  std::uniform_real_distribution<> dist_pos_x(com.get_pos()[0] - 360.,
-                                              com.get_pos()[0] + 360.1);
-  std::uniform_real_distribution<> dist_vel_x(com.get_vel()[0] - 150.,
-                                              com.get_vel()[0] + 150.1);
-  std::uniform_real_distribution<> dist_pos_y(com.get_pos()[1] - 360.,
-                                              com.get_pos()[1] + 360.1);
-  std::uniform_real_distribution<> dist_vel_y(com.get_vel()[1] - 150.,
-                                              com.get_vel()[1] + 150.1);
-  std::valarray<double> final_pos{0., 0.};
-  std::valarray<double> final_vel{0., 0.};
-  for (auto n = 0; n < bd_n - 1; ++n) {
-    f_flock.push_back(Boid{{dist_pos_x(rd), dist_pos_y(rd)},
-                           {dist_vel_x(rd), dist_vel_y(rd)}});
-    final_pos += f_flock[n].get_pos();
-    final_vel += f_flock[n].get_vel();
+  if (bd_n == 0) {
+    f_flock = std::vector<Boid>(0);
+  } else {
+    std::random_device rd;
+    std::uniform_real_distribution<> dist_pos_x(com.get_pos()[0] - 360.,
+                                                com.get_pos()[0] + 360.1);
+    std::uniform_real_distribution<> dist_vel_x(com.get_vel()[0] - 150.,
+                                                com.get_vel()[0] + 150.1);
+    std::uniform_real_distribution<> dist_pos_y(com.get_pos()[1] - 360.,
+                                                com.get_pos()[1] + 360.1);
+    std::uniform_real_distribution<> dist_vel_y(com.get_vel()[1] - 150.,
+                                                com.get_vel()[1] + 150.1);
+    std::valarray<double> final_pos{0., 0.};
+    std::valarray<double> final_vel{0., 0.};
+    for (auto n = 0; n < bd_n - 1; ++n) {
+      f_flock.push_back(Boid{{dist_pos_x(rd), dist_pos_y(rd)},
+                             {dist_vel_x(rd), dist_vel_y(rd)}});
+      final_pos += f_flock[n].get_pos();
+      final_vel += f_flock[n].get_vel();
+    }
+    f_flock.push_back(Boid{bd_n * com.get_pos() - final_pos,
+                           bd_n * com.get_vel() - final_vel});
   }
-  f_flock.push_back(
-      Boid{bd_n * com.get_pos() - final_pos, bd_n * com.get_vel() - final_vel});
 }
 
 std::vector<Boid>::iterator Flock::begin() { return f_flock.begin(); }
@@ -45,6 +48,8 @@ Boid& Flock::get_boid(int n) { return f_flock[n - 1]; }
 Boid const& Flock::get_boid(int n) const { return f_flock[n - 1]; }
 
 Parameters const& Flock::get_params() const { return f_params; }
+
+Boid const& Flock::get_com() const { return f_com; }
 
 void Flock::erase(int n) {
   auto it = f_flock.begin() + n - 1;
