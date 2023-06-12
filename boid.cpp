@@ -37,16 +37,16 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel) {
   b_pos += (b_vel * delta_t);
   b_angle = compute_angle<double>(b_vel);
 
-  /*(b_pos[0] > 1880.) ? b_pos[0] = 0. : b_pos[0];
+  /* (b_pos[0] > 1880.) ? b_pos[0] = 0. : b_pos[0];
   (b_pos[0] < 20.) ? b_pos[0] = 1900. : b_pos[0];
   (b_pos[1] > 980.) ? b_pos[1] = 0. : b_pos[1];
   (b_pos[1] < 20.) ? b_pos[1] = 1000. : b_pos[1];*/
   // implementazione con periodiche
 
-  /* (b_pos[0] > 1510.) ? b_vel[0] = -b_vel[0] : b_vel[0];
+  /*(b_pos[0] > 1510.) ? b_vel[0] = -b_vel[0] : b_vel[0];
   (b_pos[0] < 20.) ? b_vel[0] = -b_vel[0] : b_vel[0];
   (b_pos[1] > 830.) ? b_vel[1] = -b_vel[1] : b_vel[1];
-  (b_pos[1] < 20.) ? b_vel[1] = -b_vel[1] : b_vel[1]; */
+  (b_pos[1] < 20.) ? b_vel[1] = -b_vel[1] : b_vel[1];*/
   // implementazione con bordi
 }
 
@@ -67,8 +67,14 @@ template <typename T>
 T compute_angle(std::valarray<T> const& vec) {
   // assert(vec.size() == 2);
   double angle{0.};
-  angle = std::atan(vec[0] / vec[1]) / M_PI * 180;
-  (vec[1] < 0) ? angle += 180 : angle;
+  if (vec[1] == 0 && vec[0] < 0) {
+    angle = 180.;
+  } else if (vec[1] == 0 && vec[0] > 0) {
+    angle = 0.;
+  } else {
+    angle = std::atan(vec[0] / vec[1]) / M_PI * 180;
+    (vec[1] < 0) ? angle += 180 : angle;
+  }
   return angle;
 }
 
