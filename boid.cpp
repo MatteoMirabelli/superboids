@@ -67,8 +67,14 @@ template <typename T>
 T compute_angle(std::valarray<T> const& vec) {
   // assert(vec.size() == 2);
   double angle{0.};
-  angle = std::atan(vec[0] / vec[1]) / M_PI * 180;
-  (vec[1] < 0) ? angle += 180 : angle;
+  if (vec[1] == 0 && vec[0] < 0) {
+    angle = 180.;
+  } else if (vec[1] == 0 && vec[0] > 0) {
+    angle = 0.;
+  } else {
+    angle = std::atan(vec[0] / vec[1]) / M_PI * 180;
+    (vec[1] < 0) ? angle += 180 : angle;
+  }
   return angle;
 }
 
