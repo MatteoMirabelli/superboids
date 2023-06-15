@@ -34,10 +34,10 @@ target_link_libraries(Boids_engine PRIVATE sfml-graphics)
 #   per disabilitare il testing, passare -DBUILD_TESTING=OFF a cmake durante la fase di configurazione
 if (BUILD_TESTING)
 
-  # aggiungi l'eseguibile statistics.t
-  # add_executable(statistics.t statistics.test.cpp statistics.cpp)
-  # aggiungi l'eseguibile statistics.t alla lista dei test
-  add_test(NAME statistics.t COMMAND statistics.t)
+  # aggiungi l'eseguibile Boids.t
+  add_executable(Boids.t boids_tests.cpp boid.cpp flock.cpp)
+  #aggiungi l'eseguibile Boids.t alla lista dei test
+  add_test(NAME Boids.t COMMAND Boids.t)
 
 endif()
 
