@@ -14,4 +14,5 @@ Cose da fare:
 + Aggiungere generazione di stormi con mouse
 + Passare bordi a UpdateState
 + Mangiare
-
++ Limiti alle velocità
++ Mangiare
