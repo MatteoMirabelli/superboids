@@ -27,16 +27,16 @@ find_package(SFML 2.5 COMPONENTS graphics REQUIRED)
 
 # link_directories(${X11_LIBRARIES})
 
-#add_executable(Boids_engine main.cpp)
-#target_link_libraries(Boids_engine PRIVATE sfml-graphics)
+add_executable(Boids_engine main.cpp boid.cpp flock.cpp)
+target_link_libraries(Boids_engine PRIVATE sfml-graphics)
 
 # se il testing e' abilitato...
 #   per disabilitare il testing, passare -DBUILD_TESTING=OFF a cmake durante la fase di configurazione
 if (BUILD_TESTING)
 
   # aggiungi l'eseguibile Boids.t
-   add_executable(Boids.t boids_tests.cpp boid.cpp flock.cpp)
-  # aggiungi l'eseguibile Boids.t alla lista dei test
+  add_executable(Boids.t boids_tests.cpp boid.cpp flock.cpp)
+  #aggiungi l'eseguibile Boids.t alla lista dei test
   add_test(NAME Boids.t COMMAND Boids.t)
 
 endif()
