@@ -65,9 +65,9 @@ int main() {
       window.display();
       init = std::chrono::steady_clock::now();
       bd_flock.update_flock_state(0.016);
-      /*for(auto it = bd_flock.begin(); it < bd_flock.end(); ++it){
-        auto dd = bd_flock.get_neighbours(it);
-      }*/
+      // for (auto it = bd_flock.begin(); it < bd_flock.end(); ++it) {
+      //  auto dd = bd_flock.neighbours();
+      //}
       step = std::chrono::steady_clock::now() - init;
     }
     return EXIT_SUCCESS;

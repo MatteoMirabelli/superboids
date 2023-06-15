@@ -1,7 +1,6 @@
 #include "flock.hpp"
 
 #include <algorithm>
-#include <execution>
 #include <numeric>
 #include <random>
 
@@ -96,50 +95,52 @@ void Flock::update_com() {
 
 // errata corrige: può essere anzi utile che non vi sia vincolo per utilizzare
 // flock di ostacoli!
-std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
-  std::vector<Boid> neighbours;
-  // auto bd_2 = f_flock[n - 1];
-  auto ev_dist = [&](Boid bd_1) {
-    return boid_dist(bd_1, *it) < f_d && boid_dist(bd_1, *it) > 0. &&
-           is_visible(bd_1, *it, 120.);
-  };
-  std::copy_if(f_flock.begin(), f_flock.end(), std::back_inserter(neighbours),
-               ev_dist);
+std::vector<std::vector<Boid>> Flock::neighbours() {
+  std::vector<std::vector<Boid>> neighbours;
+  for (int i = 0; i < f_flock.size(); ++i) {
+    for (auto j = i + 1; j < f_flock.size(); ++j) {
+      if (boid_dist(f_flock[i], f_flock[j]) < f_d &&
+          boid_dist(f_flock[i], f_flock[j]) > 0.) {
+        if (is_visible(f_flock[i], f_flock[j], 120.)) {
+          neighbours[i].push_back(f_flock[j]);
+        } else if (is_visible(f_flock[j], f_flock[i], 120.)) {
+          neighbours[j].push_back(f_flock[i]);
+        }
+      }
+    }
+  }
   return neighbours;
 }
 
-std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
-  auto neighbours = this->get_neighbours(it);
+std::valarray<double> Flock::vel_correction(
+    std::vector<std::vector<Boid>> neighbours, int i) {
   std::valarray<double> delta_vel = {0., 0.};
-  if (neighbours.size() > 0) {
-    auto n_minus = neighbours.size();
+  if (neighbours[i].size() > 0) {
+    auto n_minus = neighbours[i].size();
     std::valarray<double> local_com = {0., 0.};
-    for (Boid bd : neighbours) {
+    auto ev_b = this->get_boid(i);
+    for (Boid bd : neighbours[i]) {
       // separation
-      (boid_dist(bd, *it) < f_params.d_s)
-          ? delta_vel -= f_params.s * (bd.get_pos() - it->get_pos())
+      (boid_dist(bd, ev_b) < f_params.d_s)
+          ? delta_vel -= f_params.s * (bd.get_pos() - ev_b.get_pos())
           : delta_vel;
       // alignment
-      delta_vel += f_params.a * (bd.get_vel() - it->get_vel()) / n_minus;
+      delta_vel += f_params.a * (bd.get_vel() - ev_b.get_vel()) / n_minus;
 
       local_com += bd.get_pos();
     }
     // cohesion
-    delta_vel += f_params.c * (local_com / n_minus - it->get_pos());
+    delta_vel += f_params.c * (local_com / n_minus - ev_b.get_pos());
   }
   return delta_vel;
 }
 
 void Flock::update_flock_state(double const& delta_t) {
-  std::vector<Boid> copy_flock = f_flock;
-  auto it = f_flock.begin();
-  std::for_each(copy_flock.begin(), copy_flock.end(),
-                [&](Boid& bd) {
-                  bd.update_state(delta_t, this->vel_correction(it), 0,
-                                  f_params.d_s, f_params.s);
-                  ++it;
-                });
-  f_flock = copy_flock;
+  auto neighbours = this->neighbours();
+  for (int j = 0; j < f_flock.size(); ++j) {
+    this->get_boid(j).update_state(delta_t, this->vel_correction(neighbours, j),
+                                   0, f_params.d_s, f_params.s);
+  }
   this->update_com();
 }
 

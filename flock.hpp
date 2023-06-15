@@ -46,9 +46,9 @@ class Flock {
   void erase(int n);
   void update_com();
 
-  std::vector<Boid> get_neighbours(std::vector<Boid>::iterator);
+  std::vector<std::vector<Boid>> neighbours();
 
-  std::valarray<double> vel_correction(std::vector<Boid>::iterator);
+  std::valarray<double> vel_correction(std::vector<std::vector<Boid>> neighbours, int i);
 
   void update_flock_state(double const&);
 
