@@ -11,8 +11,8 @@
 
 int main() {
   try {
-    Flock bd_flock{60., Parameters{24., 0.9, 0.3, 0.1}, 150,
-                   Boid{{800., 400.}, {0., 0.}}};
+    Parameters params(50., 1, 0.3, 0.1);
+    Flock bd_flock{80., params, 150};
     std::vector<sf::ConvexShape> tr_boids;
     std::transform(bd_flock.begin(), bd_flock.end(),
                    std::back_inserter(tr_boids), [](Boid b) -> sf::ConvexShape {
@@ -30,9 +30,9 @@ int main() {
     sf::RenderWindow window(sf::VideoMode(1920, 1080), "First boid test");
     window.setFramerateLimit(60);
     sf::Font font;
-    /*if (!font.loadFromFile("Inter-Medium.otf")) {
+    if (!font.loadFromFile("Inter-Medium.otf")) {
       return 0;
-    }*/
+    }
     sf::Text mag_display;
     mag_display.setFillColor(sf::Color::Blue);
     mag_display.setFont(font);
@@ -54,16 +54,21 @@ int main() {
         // Close window: exit
         if (event.type == sf::Event::Closed) window.close();
       }
-      mag_display.setString("Draw time: " + std::to_string(step.count()));
+      mag_display.setString("Computation time: " +
+                            std::to_string(step.count()));
       window.clear(sf::Color::White);
       window.draw(mag_display);
-      init = std::chrono::steady_clock::now();
+
       for (sf::ConvexShape& tr_boid : tr_boids) {
         window.draw(tr_boid);
       }
-      step = std::chrono::steady_clock::now() - init;
       window.display();
+      init = std::chrono::steady_clock::now();
       bd_flock.update_flock_state(0.016);
+      /*for(auto it = bd_flock.begin(); it < bd_flock.end(); ++it){
+        auto dd = bd_flock.get_neighbours(it);
+      }*/
+      step = std::chrono::steady_clock::now() - init;
     }
     return EXIT_SUCCESS;
   } catch (std::exception& e) {

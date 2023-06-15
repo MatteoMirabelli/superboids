@@ -22,10 +22,10 @@ string(APPEND CMAKE_CXX_FLAGS
 string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=address,undefined -fno-omit-frame-pointer")
 string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " -fsanitize=address,undefined -fno-omit-frame-pointer")
 
- find_package(X11 REQUIRED)
+# find_package(X11 REQUIRED)
 find_package(SFML 2.5 COMPONENTS graphics REQUIRED)
 
- link_directories(${X11_LIBRARIES})
+# link_directories(${X11_LIBRARIES})
 
 add_executable(Boids_engine main.cpp boid.cpp flock.cpp)
 target_link_libraries(Boids_engine PRIVATE sfml-graphics)
@@ -35,9 +35,8 @@ target_link_libraries(Boids_engine PRIVATE sfml-graphics)
 if (BUILD_TESTING)
 
   # aggiungi l'eseguibile Boids.t
-   add_executable(Boids.t boids_tests.cpp boid.cpp flock.cpp)
-  # aggiungi l'eseguibile Boids.t alla lista dei test
+  add_executable(Boids.t boids_tests.cpp boid.cpp flock.cpp)
+  #aggiungi l'eseguibile Boids.t alla lista dei test
   add_test(NAME Boids.t COMMAND Boids.t)
 
 endif()
-

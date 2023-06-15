@@ -1,6 +1,7 @@
 #include "flock.hpp"
 
 #include <algorithm>
+#include <execution>
 #include <numeric>
 #include <random>
 
@@ -34,6 +35,28 @@ Flock::Flock(double const& d, Parameters const& params, int const& bd_n,
     f_flock.push_back(Boid{bd_n * com.get_pos() - final_pos,
                            bd_n * com.get_vel() - final_vel});
   }
+}
+
+Flock::Flock(double const& d, Parameters const& params, int const& bd_n)
+    : f_d{d}, f_params{params}, f_flock{} {
+  // Genera casualmente, secondo distribuzioni uniformi, i boids
+  assert(bd_n >= 0);
+  std::random_device rd;
+  std::uniform_real_distribution<> dist_pos_x(20., 1880.);
+  std::uniform_real_distribution<> dist_vel_x(-150., 150.);
+  std::uniform_real_distribution<> dist_pos_y(20., 980.);
+  std::uniform_real_distribution<> dist_vel_y(-150., 150.);
+
+  f_com = Boid{{0., 0.}, {0., 0.}};
+  for (auto n = 0; n < bd_n; ++n) {
+    std::valarray<double> pos = {dist_pos_x(rd), dist_pos_y(rd)};
+    std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
+    f_flock.push_back(Boid{pos, vel});
+    f_com.get_vel() += vel;
+    f_com.get_pos() += pos;
+  }
+  f_com.get_vel() /= f_flock.size();
+  f_com.get_pos() /= f_flock.size();
 }
 
 std::vector<Boid>::iterator Flock::begin() { return f_flock.begin(); }
@@ -110,10 +133,12 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
 void Flock::update_flock_state(double const& delta_t) {
   std::vector<Boid> copy_flock = f_flock;
   auto it = f_flock.begin();
-  std::for_each(copy_flock.begin(), copy_flock.end(), [&](Boid& bd) {
-    bd.update_state(delta_t, this->vel_correction(it));
-    ++it;
-  });
+  std::for_each(copy_flock.begin(), copy_flock.end(),
+                [&](Boid& bd) {
+                  bd.update_state(delta_t, this->vel_correction(it), 0,
+                                  f_params.d_s, f_params.s);
+                  ++it;
+                });
   f_flock = copy_flock;
   this->update_com();
 }

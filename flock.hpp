@@ -17,7 +17,7 @@ struct Parameters {
   double c;
 
   Parameters(double p_ds, double p_s, double p_a, double p_c) {
-    assert(p_ds > 0 && p_s > 0 && p_a > 0 && p_c > 0);
+    assert(p_ds >= 0 && p_s >= 0 && p_a >= 0 && p_c >= 0);
     d_s = p_ds;
     s = p_s;
     a = p_a;
@@ -33,6 +33,7 @@ class Flock {
 
  public:
   explicit Flock(double const&, Parameters const&, int const&, Boid const&);
+  Flock(double const& d, Parameters const& params, int const& bd_n);
   Flock() = default;
   double size() const;
   std::vector<Boid>::iterator begin();
