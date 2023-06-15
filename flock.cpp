@@ -5,9 +5,9 @@
 #include <numeric>
 #include <random>
 
-Flock::Flock(double const& d, Parameters const& params, int const& bd_n,
+Flock::Flock(Parameters const& params, int const& bd_n,
              Boid const& com)
-    : f_d{d}, f_com{com}, f_params{params}, f_flock{} {
+    : f_com{com}, f_params{params}, f_flock{} {
   // Genera casualmente, secondo distribuzioni uniformi attorno al centro di
   // massa, lo stormo
   assert(bd_n >= 0);
@@ -37,8 +37,8 @@ Flock::Flock(double const& d, Parameters const& params, int const& bd_n,
   }
 }
 
-Flock::Flock(double const& d, Parameters const& params, int const& bd_n)
-    : f_d{d}, f_params{params}, f_flock{} {
+Flock::Flock(Parameters const& params, int const& bd_n)
+    : f_params{params}, f_flock{} {
   // Genera casualmente, secondo distribuzioni uniformi, i boids
   assert(bd_n >= 0);
   std::random_device rd;
@@ -100,7 +100,7 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
   std::vector<Boid> neighbours;
   // auto bd_2 = f_flock[n - 1];
   auto ev_dist = [&](Boid bd_1) {
-    return boid_dist(bd_1, *it) < f_d && boid_dist(bd_1, *it) > 0. &&
+    return boid_dist(bd_1, *it) < f_params.d && boid_dist(bd_1, *it) > 0. &&
            is_visible(bd_1, *it, 120.);
   };
   std::copy_if(f_flock.begin(), f_flock.end(), std::back_inserter(neighbours),
@@ -135,7 +135,7 @@ void Flock::update_flock_state(double const& delta_t) {
   auto it = f_flock.begin();
   std::for_each(std::execution::par_unseq, copy_flock.begin(), copy_flock.end(),
                 [&](Boid& bd) {
-                  bd.update_state(delta_t, this->vel_correction(it), 0,
+                  bd.update_state(delta_t, this->vel_correction(it), 1,
                                   f_params.d_s, f_params.s);
                   ++it;
                 });

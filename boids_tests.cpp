@@ -118,10 +118,10 @@ TEST_CASE("Testing the Flock class and functions") {
     Boid bd_3(6, 8, 4, 3);
     Boid bd_4(10, 12, -4, 8);
 
-    Parameters params(4, 1, 2, 3);
+    Parameters params(4, 4, 1, 2, 3);
     Boid com(0, 0, 0, 0);
 
-    Flock flock(4, params, 0, com);
+    Flock flock(params, 0, com);
 
     flock.push_back(bd_1);
     flock.push_back(bd_2);
@@ -139,10 +139,10 @@ TEST_CASE("Testing the Flock class and functions") {
   SUBCASE("Testing the Flock::update_com method with just one boid") {
     Boid bd_1(2, 2, 5, 4);
 
-    Parameters params(4, 1, 2, 3);
+    Parameters params(4, 4, 1, 2, 3);
     Boid com(0, 0, 0, 0);
 
-    Flock flock(4, params, 0, com);
+    Flock flock(params, 0, com);
 
     flock.push_back(bd_1);
     flock.update_com();
@@ -157,10 +157,10 @@ TEST_CASE("Testing the Flock class and functions") {
     Boid bd_1(0, 0, 0, 0);
     Boid bd_2(0, 0, 0, 0);
 
-    Parameters params(4, 1, 2, 3);
+    Parameters params(4, 4, 1, 2, 3);
     Boid com(0, 0, 0, 0);
 
-    Flock flock(4, params, 0, com);
+    Flock flock(params, 0, com);
 
     flock.push_back(bd_1);
     flock.push_back(bd_2);

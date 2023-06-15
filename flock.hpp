@@ -11,13 +11,15 @@ struct Statistics {
 };
 
 struct Parameters {
+  double d;
   double d_s;
   double s;
   double a;
   double c;
 
-  Parameters(double p_ds, double p_s, double p_a, double p_c) {
-    assert(p_ds >= 0 && p_s >= 0 && p_a >= 0 && p_c >= 0);
+  Parameters(double p_d, double p_ds, double p_s, double p_a, double p_c) {
+    assert(p_d >= 0 && p_ds >= 0 && p_s >= 0 && p_a >= 0 && p_c >= 0);
+    d = p_d;
     d_s = p_ds;
     s = p_s;
     a = p_a;
@@ -26,14 +28,13 @@ struct Parameters {
 };
 
 class Flock {
-  double f_d;
   std::vector<Boid> f_flock;
   Boid f_com;
   Parameters f_params;
 
  public:
-  explicit Flock(double const&, Parameters const&, int const&, Boid const&);
-  Flock(double const& d, Parameters const& params, int const& bd_n);
+  explicit Flock(Parameters const&, int const&, Boid const&);
+  Flock(Parameters const& params, int const& bd_n);
   Flock() = default;
   double size() const;
   std::vector<Boid>::iterator begin();
