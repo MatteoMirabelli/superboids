@@ -100,11 +100,10 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
 
 void Flock::update_flock_state(double const& delta_t) {
   std::vector<Boid> copy_flock = f_flock;
-  auto it = f_flock.begin();
-  std::for_each(copy_flock.begin(), copy_flock.end(), [&](Boid& bd) {
+  auto it = copy_flock.begin();
+  std::for_each(f_flock.begin(), f_flock.end(), [&](Boid& bd) {
     bd.update_state(delta_t, this->vel_correction(it));
     ++it;
   });
-  f_flock = copy_flock;
   this->update_com();
 }
