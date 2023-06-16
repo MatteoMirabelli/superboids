@@ -5,8 +5,7 @@
 #include <numeric>
 #include <random>
 
-Flock::Flock(Parameters const& params, int const& bd_n,
-             Boid const& com)
+Flock::Flock(Parameters const& params, int const& bd_n, Boid const& com)
     : f_com{com}, f_params{params}, f_flock{} {
   // Genera casualmente, secondo distribuzioni uniformi attorno al centro di
   // massa, lo stormo
@@ -35,6 +34,8 @@ Flock::Flock(Parameters const& params, int const& bd_n,
     f_flock.push_back(Boid{bd_n * com.get_pos() - final_pos,
                            bd_n * com.get_vel() - final_vel});
   }
+
+  this->sort();
 }
 
 Flock::Flock(Parameters const& params, int const& bd_n)
@@ -57,6 +58,8 @@ Flock::Flock(Parameters const& params, int const& bd_n)
   }
   f_com.get_vel() /= f_flock.size();
   f_com.get_pos() /= f_flock.size();
+
+  this->sort();
 }
 
 std::vector<Boid>::iterator Flock::begin() { return f_flock.begin(); }
@@ -98,13 +101,41 @@ void Flock::update_com() {
 // flock di ostacoli!
 std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
   std::vector<Boid> neighbours;
-  // auto bd_2 = f_flock[n - 1];
-  auto ev_dist = [&](Boid bd_1) {
-    return boid_dist(bd_1, *it) < f_params.d && boid_dist(bd_1, *it) > 0. &&
-           is_visible(bd_1, *it, 120.);
+
+  auto ev_dist = [&](std::vector<Boid>::iterator& it, std::vector<Boid>::iterator& ut) {
+    return boid_dist(*ut, *it) < f_params.d && boid_dist(*ut, *it) > 0. &&
+           is_visible(*ut, *it, 120.);
   };
-  std::copy_if(f_flock.begin(), f_flock.end(), std::back_inserter(neighbours),
-               ev_dist);
+
+  auto ut = it;
+  auto et = it;
+
+  while (ut != f_flock.begin()) {
+    if (ev_dist(it, ut) == true) {
+      neighbours.push_back(*ut);
+      --ut;
+    } else {
+      break;
+    }
+  }
+
+  while (et != f_flock.end()) {
+    if (ev_dist(it, et) == true) {
+      neighbours.push_back(*et);
+      ++et;
+    } else {
+      break;
+    }
+  }
+
+  /* std::vector<Boid> neighbours;
+    // auto bd_2 = f_flock[n - 1];
+    auto ev_dist = [&](Boid bd_1) {
+      return boid_dist(bd_1, *it) < f_params.d && boid_dist(bd_1, *it) >
+    0. && is_visible(bd_1, *it, 120.);
+    };
+    std::copy_if(f_flock.begin(), f_flock.end(),
+    std::back_inserter(neighbours), ev_dist); */
   return neighbours;
 }
 
@@ -141,6 +172,21 @@ void Flock::update_flock_state(double const& delta_t) {
                 });
   f_flock = copy_flock;
   this->update_com();
+  this->sort();
 }
 
-Statistics Flock::get_statistics() {}
+void Flock::sort() {
+  // Ordina i boids del vettore f_flock in ordine crescente secondo la
+  // posizione in x. Se le posizioni in x sono uguali, allora ordina secondo
+  // le posizioni in y
+
+  auto is_less = [&](Boid& bd1, Boid& bd2) {
+    if (bd1.get_pos()[0] != bd2.get_pos()[0]) {
+      return bd1.get_pos()[0] < bd2.get_pos()[0];
+    } else {
+      return bd1.get_pos()[1] < bd2.get_pos()[1];
+    }
+  };
+
+  std::sort(f_flock.begin(), f_flock.end(), is_less);
+}

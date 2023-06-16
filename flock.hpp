@@ -53,7 +53,8 @@ class Flock {
 
   void update_flock_state(double const&);
 
-  Statistics get_statistics();
+  void sort();
+
 };
 
 #endif
