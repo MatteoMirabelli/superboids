@@ -240,4 +240,92 @@ TEST_CASE("Testing the Flock class and functions") {
     CHECK(flock.get_boid(3).get_pos()[1] == 3);
     CHECK(flock.get_boid(4).get_pos()[1] == 4);
   }
+
+  SUBCASE("Testing the Flock::get_neighbours method with boids") {
+    Boid bd_1(1, 4, 5, 0);
+    Boid bd_2(3, 3, -2, 9);
+    Boid bd_3(10, 4, 5, 0);
+    Boid bd_4(10, 3, -2, 9);
+
+    Parameters params(2.5, 4, 1, 2, 3);
+    Boid com(0, 0, 0, 0);
+
+    Flock flock(params, 0, com);
+
+    flock.push_back(bd_1);
+    flock.push_back(bd_2);
+    flock.push_back(bd_3);
+    flock.push_back(bd_4);
+
+    auto it = flock.begin();
+    ++it;
+    auto neighbours = flock.get_neighbours(it);
+
+    CHECK(neighbours.size() == 1);
+    CHECK(neighbours[0].get_pos()[0] == 1);
+    CHECK(neighbours[0].get_pos()[1] == 4);
+  }
+
+  SUBCASE("Testing the Flock::get_neighbours method with boids") {
+    Boid bd_1(1, 4, 5, 0);
+    Boid bd_2(3, 3, -2, 9);
+    Boid bd_3(4, 4, 5, 0);
+    Boid bd_4(6, 7, -2, 9);
+
+    Parameters params(5, 4, 1, 2, 3);
+
+    Flock flock(params, 0);
+
+    flock.push_back(bd_1);
+    flock.push_back(bd_2);
+    flock.push_back(bd_3);
+    flock.push_back(bd_4);
+
+    auto it = flock.begin();
+    ++it;
+    auto neighbours = flock.get_neighbours(it);
+
+    CHECK(neighbours.size() == 2);
+    CHECK(neighbours[0].get_pos()[0] == 1);
+    CHECK(neighbours[0].get_pos()[1] == 4);
+    CHECK(neighbours[1].get_pos()[0] == 4);
+    CHECK(neighbours[1].get_pos()[1] == 4);
+  }
+
+  SUBCASE("Testing the Flock::get_neighbours method with just one boids") {
+    Boid bd_1(1, 4, 5, 0);
+
+    Parameters params(2.5, 4, 1, 2, 3);
+    Boid com(0, 0, 0, 0);
+
+    Flock flock(params, 0, com);
+
+    flock.push_back(bd_1);
+
+    auto it = flock.begin();
+    auto neighbours = flock.get_neighbours(it);
+
+    CHECK(neighbours.size() == 0);
+  }
+
+  SUBCASE("Testing the Flock::get_neighbours method with end") {
+    Boid bd_1(1, 4, 5, 0);
+    Boid bd_2(3, 3, -2, 9);
+    Boid bd_3(4, 4, 5, 0);
+    Boid bd_4(6, 7, -2, 9);
+
+    Parameters params(5, 4, 1, 2, 3);
+
+    Flock flock(params, 0);
+
+    flock.push_back(bd_1);
+    flock.push_back(bd_2);
+    flock.push_back(bd_3);
+    flock.push_back(bd_4);
+
+    auto it = flock.end();
+    auto neighbours = flock.get_neighbours(it);
+    
+    CHECK(neighbours.size() == 0);
+  }
 }

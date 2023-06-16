@@ -102,41 +102,48 @@ void Flock::update_com() {
 std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
   std::vector<Boid> neighbours;
 
-  auto ev_dist = [&](std::vector<Boid>::iterator& it, std::vector<Boid>::iterator& ut) {
-    return boid_dist(*ut, *it) < f_params.d && boid_dist(*ut, *it) > 0. &&
-           is_visible(*ut, *it, 120.);
-  };
-
-  auto ut = it;
-  auto et = it;
-
-  while (ut != f_flock.begin()) {
-    if (ev_dist(it, ut) == true) {
-      neighbours.push_back(*ut);
-      --ut;
-    } else {
-      break;
-    }
-  }
-
-  while (et != f_flock.end()) {
-    if (ev_dist(it, et) == true) {
-      neighbours.push_back(*et);
-      ++et;
-    } else {
-      break;
-    }
-  }
-
-  /* std::vector<Boid> neighbours;
-    // auto bd_2 = f_flock[n - 1];
-    auto ev_dist = [&](Boid bd_1) {
-      return boid_dist(bd_1, *it) < f_params.d && boid_dist(bd_1, *it) >
-    0. && is_visible(bd_1, *it, 120.);
+  /*  auto ev_dist = [&](std::vector<Boid>::iterator& it,
+                       std::vector<Boid>::iterator& ut) {
+      return boid_dist(*ut, *it) < f_params.d && boid_dist(*ut, *it) > 0. &&
+             is_visible(*ut, *it, 120.);
     };
-    std::copy_if(f_flock.begin(), f_flock.end(),
-    std::back_inserter(neighbours), ev_dist); */
-  return neighbours;
+
+    auto ut = it;
+    auto et = it;
+
+    while (ut != f_flock.begin()) {
+      if (ev_dist(it, ut) == true) {
+        neighbours.push_back(*ut);
+        --ut;
+      } else {
+        break;
+      }
+    }
+
+    while (et != f_flock.end()) {
+      if (ev_dist(it, et) == true) {
+        neighbours.push_back(*et);
+        ++et;
+      } else {
+        break;
+      }
+    } */
+
+  // auto bd_2 = f_flock[n - 1];
+
+  if (it != this->end()) {
+    auto ev_dist = [&](Boid bd_1) {
+      return boid_dist(bd_1, *it) < f_params.d && boid_dist(bd_1, *it) > 0. &&
+             is_visible(bd_1, *it, 120.);
+    };
+    std::copy_if(f_flock.begin(), f_flock.end(), std::back_inserter(neighbours),
+                 ev_dist);
+    return neighbours;
+  } else {
+    neighbours = std::vector<Boid>(0);
+    return neighbours;
+  }
+  
 }
 
 std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
