@@ -12,7 +12,7 @@
 int main() {
   try {
     Parameters params(50., 1, 0.3, 0.1);
-    Flock bd_flock{80., params, 150};
+    Flock bd_flock{80., params, 300};
     std::vector<sf::ConvexShape> tr_boids;
     std::transform(bd_flock.begin(), bd_flock.end(),
                    std::back_inserter(tr_boids), [](Boid b) -> sf::ConvexShape {
