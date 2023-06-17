@@ -1,13 +1,11 @@
 #include "flock.hpp"
 
 #include <algorithm>
-// #include <execution>
 #include <numeric>
 #include <random>
 
-Flock::Flock(double const& d, Parameters const& params, int const& bd_n,
-             Boid const& com)
-    : f_d{d}, f_com{com}, f_params{params}, f_flock{} {
+Flock::Flock(Parameters const& params, int const& bd_n, Boid const& com)
+    : f_com{com}, f_params{params}, f_flock{} {
   // Genera casualmente, secondo distribuzioni uniformi attorno al centro di
   // massa, lo stormo
   assert(bd_n >= 0);
@@ -37,8 +35,8 @@ Flock::Flock(double const& d, Parameters const& params, int const& bd_n,
   }
 }
 
-Flock::Flock(double const& d, Parameters const& params, int const& bd_n)
-    : f_d{d}, f_params{params}, f_flock{} {
+Flock::Flock(Parameters const& params, int const& bd_n)
+    : f_params{params}, f_flock{} {
   // Genera casualmente, secondo distribuzioni uniformi, i boids
   assert(bd_n >= 0);
   std::random_device rd;
@@ -55,8 +53,8 @@ Flock::Flock(double const& d, Parameters const& params, int const& bd_n)
     f_com.get_vel() += vel;
     f_com.get_pos() += pos;
   }
-  f_com.get_vel() /= f_flock.size();
-  f_com.get_pos() /= f_flock.size();
+  f_com.get_vel() /= this->size();
+  f_com.get_pos() /= this->size();
 }
 
 std::vector<Boid>::iterator Flock::begin() { return f_flock.begin(); }
@@ -86,8 +84,8 @@ void Flock::update_com() {
     f_com.get_vel() += bd.get_vel();
     f_com.get_pos() += bd.get_pos();
   }
-  f_com.get_vel() /= f_flock.size();
-  f_com.get_pos() /= f_flock.size();
+  f_com.get_vel() /= this->size();
+  f_com.get_pos() /= this->size();
 }
 
 // implementato il get neighbour e la correzione con iteratore; alternativa con
@@ -103,7 +101,8 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
 
   for (const Boid& bd_1 : f_flock) {
     double dist = boid_dist(bd_1, *it);
-    if (dist > 0. && dist < f_d && is_visible(bd_1, *it, visibility_angle)) {
+    if (dist > 0. && dist < this->get_params().d &&
+        is_visible(bd_1, *it, visibility_angle)) {
       neighbours.push_back(bd_1);
     }
   }
@@ -144,5 +143,3 @@ void Flock::update_flock_state(double const& delta_t) {
   f_flock = copy_flock;
   this->update_com();
 }
-
-Statistics Flock::get_statistics() {}
