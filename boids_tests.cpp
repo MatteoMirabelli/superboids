@@ -281,8 +281,8 @@ TEST_CASE("Testing the Flock class and functions") {
     flock.push_back(bd_3);
     flock.push_back(bd_4);
 
-    auto it = flock.begin();
-    ++it;
+    auto it = flock.begin() + 1;
+
     auto neighbours = flock.get_neighbours(it);
 
     CHECK(neighbours.size() == 2);
@@ -325,7 +325,7 @@ TEST_CASE("Testing the Flock class and functions") {
 
     auto it = flock.end();
     auto neighbours = flock.get_neighbours(it);
-    
+
     CHECK(neighbours.size() == 0);
   }
 }

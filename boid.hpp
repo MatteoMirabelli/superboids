@@ -25,7 +25,8 @@ class Boid {
   double const& get_angle() const;
 
   void update_state(double delta_t, std::valarray<double> vel);
-  void update_state(double delta_t, std::valarray<double> delta_vel, bool const& b, double d, double k);
+  void update_state(double delta_t, std::valarray<double> delta_vel,
+                    bool const& b, double d, double k);
 };
 
 template <typename T>

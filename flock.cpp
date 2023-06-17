@@ -100,50 +100,71 @@ void Flock::update_com() {
 // errata corrige: può essere anzi utile che non vi sia vincolo per utilizzare
 // flock di ostacoli!
 std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
-  std::vector<Boid> neighbours;
+  /* auto ev_dist = [&](std::vector<Boid>::iterator ut) {
+     return boid_dist(*ut, *it) < f_params.d && boid_dist(*ut, *it) > 0. &&
+            is_visible(*ut, *it, 120.);
+   }; */
 
-  /*  auto ev_dist = [&](std::vector<Boid>::iterator& it,
-                       std::vector<Boid>::iterator& ut) {
-      return boid_dist(*ut, *it) < f_params.d && boid_dist(*ut, *it) > 0. &&
-             is_visible(*ut, *it, 120.);
-    };
+  // Versione Matteo (Con la condizione che il vettore sia ordinato per distanza
+  // dall'origine, controllo solo i boid vicini a *it)
 
+  /* std::vector<Boid> neighbours(0);
+
+  if (it == f_flock.end()) {
+    return neighbours;
+  } else {
     auto ut = it;
     auto et = it;
 
-    while (ut != f_flock.begin()) {
-      if (ev_dist(it, ut) == true) {
+    for (; ut >= f_flock.begin(); --ut) {
+      if (boid_dist(*ut, *it) < f_params.d && boid_dist(*ut, *it) > 0. &&
+          is_visible(*ut, *it, 120.) == true) {
         neighbours.push_back(*ut);
-        --ut;
       } else {
         break;
       }
     }
 
-    while (et != f_flock.end()) {
-      if (ev_dist(it, et) == true) {
+    for (; et < f_flock.end(); ++et) {
+      if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+          is_visible(*et, *it, 120.) == true) {
         neighbours.push_back(*et);
-        ++et;
       } else {
         break;
       }
-    } */
+    }
 
-  // auto bd_2 = f_flock[n - 1];
+    return neighbours;
+  } */
 
-  if (it != this->end()) {
-    auto ev_dist = [&](Boid bd_1) {
-      return boid_dist(bd_1, *it) < f_params.d && boid_dist(bd_1, *it) > 0. &&
-             is_visible(bd_1, *it, 120.);
-    };
-    std::copy_if(f_flock.begin(), f_flock.end(), std::back_inserter(neighbours),
-                 ev_dist);
-    return neighbours;
-  } else {
-    neighbours = std::vector<Boid>(0);
-    return neighbours;
+  // Versione Alberto (copy_if)
+
+  /* if (it != this->end()) {
+     auto ev_dist = [&](Boid bd_1) {
+       return boid_dist(bd_1, *it) < f_params.d && boid_dist(bd_1, *it) > 0. &&
+              is_visible(bd_1, *it, 120.);
+     };
+     std::copy_if(f_flock.begin(), f_flock.end(),
+   std::back_inserter(neighbours), ev_dist); return neighbours; } else {
+     neighbours = std::vector<Boid>(0);
+     return neighbours;
+   } */
+
+  // Versione Andrea (For Loop su tutti il flock)
+
+  std::vector<Boid> neighbours;
+
+  double visibility_angle = 120.0;
+
+  for (const Boid& bd_1 : f_flock) {
+    double dist = boid_dist(bd_1, *it);
+    if (dist > 0. && dist < f_params.d &&
+        is_visible(bd_1, *it, visibility_angle)) {
+      neighbours.push_back(bd_1);
+    }
   }
-  
+
+  return neighbours;
 }
 
 std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
