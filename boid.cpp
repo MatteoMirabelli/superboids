@@ -53,12 +53,10 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
   } else {
     // implementazione con bordi
 
-    (b_pos[0] > 1800 - 1.7 * d) ? b_vel[0] -= 2 * k * (1800 - b_pos[0])
-                                : b_vel[0];
-    (b_pos[0] < 1.7 * d) ? b_vel[0] += 2 * k * b_pos[0] : b_vel[0];
-    (b_pos[1] > 1000 - 1.7 * d) ? b_vel[1] -= 2 * k * (1000 - b_pos[1])
-                                : b_vel[1];
-    (b_pos[1] < 1.7 * d) ? b_vel[1] += 2 * k * b_pos[1] : b_vel[1];
+    (b_pos[0] > 1800 - d) ? b_vel[0] -= 2 * k * (1800 - b_pos[0]) : b_vel[0];
+    (b_pos[0] < 2 * d) ? b_vel[0] += 8 * k * b_pos[0] : b_vel[0];
+    (b_pos[1] > 1000 - d) ? b_vel[1] -= 2 * k * (1000 - b_pos[1]) : b_vel[1];
+    (b_pos[1] < d) ? b_vel[1] += 2 * k * b_pos[1] : b_vel[1];
   }
 }
 

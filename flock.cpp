@@ -1,7 +1,7 @@
 #include "flock.hpp"
 
 #include <algorithm>
-#include <execution>
+// #include <execution>
 #include <numeric>
 #include <random>
 
@@ -98,13 +98,16 @@ void Flock::update_com() {
 // flock di ostacoli!
 std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
   std::vector<Boid> neighbours;
-  // auto bd_2 = f_flock[n - 1];
-  auto ev_dist = [&](Boid bd_1) {
-    return boid_dist(bd_1, *it) < f_d && boid_dist(bd_1, *it) > 0. &&
-           is_visible(bd_1, *it, 120.);
-  };
-  std::copy_if(f_flock.begin(), f_flock.end(), std::back_inserter(neighbours),
-               ev_dist);
+
+  double visibility_angle = 120.0;
+
+  for (const Boid& bd_1 : f_flock) {
+    double dist = boid_dist(bd_1, *it);
+    if (dist > 0. && dist < f_d && is_visible(bd_1, *it, visibility_angle)) {
+      neighbours.push_back(bd_1);
+    }
+  }
+
   return neighbours;
 }
 
@@ -133,12 +136,11 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
 void Flock::update_flock_state(double const& delta_t) {
   std::vector<Boid> copy_flock = f_flock;
   auto it = f_flock.begin();
-  std::for_each(copy_flock.begin(), copy_flock.end(),
-                [&](Boid& bd) {
-                  bd.update_state(delta_t, this->vel_correction(it), 0,
-                                  f_params.d_s, f_params.s);
-                  ++it;
-                });
+  std::for_each(copy_flock.begin(), copy_flock.end(), [&](Boid& bd) {
+    bd.update_state(delta_t, this->vel_correction(it), 0, f_params.d_s,
+                    f_params.s);
+    ++it;
+  });
   f_flock = copy_flock;
   this->update_com();
 }
