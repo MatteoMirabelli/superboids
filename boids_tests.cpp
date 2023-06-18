@@ -372,6 +372,8 @@ TEST_CASE("Testing the Flock class and functions") {
 
     CHECK(flock.get_stats().av_dist == 0);
     CHECK(flock.get_stats().dist_RMS == 0);
+    CHECK(flock.get_stats().av_vel == 3.5);
+    CHECK(flock.get_stats().vel_RMS == 1.5);
   }
 
   SUBCASE("Testing the Flock::update_stats method with boids") {
@@ -390,16 +392,12 @@ TEST_CASE("Testing the Flock class and functions") {
     flock.push_back(bd_4);
 
     flock.update_stats();
-    CHECK(boid_dist(bd_1, bd_2) == doctest::Approx(1.414213562));
-    CHECK(boid_dist(bd_1, bd_3) == doctest::Approx(2.828427125));
-    CHECK(boid_dist(bd_1, bd_4) == doctest::Approx(4.24264069));
-    CHECK(boid_dist(bd_2, bd_3) == doctest::Approx(1.414213562));
-    CHECK(boid_dist(bd_2, bd_4) == doctest::Approx(2.828427125));
-    CHECK(boid_dist(bd_3, bd_4) == doctest::Approx(1.414213562));
 
     CHECK(flock.size() == 4);
     CHECK(flock.get_stats().av_dist == doctest::Approx(2.3570226));
     CHECK(flock.get_stats().dist_RMS == doctest::Approx(1.054092562));
+    CHECK(flock.get_stats().av_vel == doctest::Approx(7.10977223));
+    CHECK(flock.get_stats().vel_RMS == doctest::Approx(2.10977224));
   }
 
   SUBCASE("Testing the Flock::update_stats method with boids") {
@@ -407,9 +405,9 @@ TEST_CASE("Testing the Flock class and functions") {
     Boid bd_2(2, 2, -2, 9);
     Boid bd_3(3, 3, 5, 0);
 
-    Boid bd_4(1, 1, 5, 0);
-    Boid bd_5(4, 1, -2, 9);
-    Boid bd_6(2, 3, 5, 0);
+    Boid bd_4(1, 1, 0, 0);
+    Boid bd_5(4, 1, 0, 0);
+    Boid bd_6(2, 3, 0, 0);
 
     Parameters params(10, 4, 1, 2, 3);
 
@@ -429,7 +427,14 @@ TEST_CASE("Testing the Flock class and functions") {
 
     CHECK(flock_1.size() == 3);
     CHECK(flock_1.get_stats().av_dist == doctest::Approx(1.885618));
+    CHECK(flock_1.get_stats().dist_RMS == doctest::Approx(0.666666));
+    CHECK(flock_1.get_stats().av_vel == doctest::Approx(6.4065148));
+    CHECK(flock_1.get_stats().vel_RMS == doctest::Approx(1.98911239));
+
     CHECK(flock_2.size() == 3);
     CHECK(flock_2.get_stats().av_dist == doctest::Approx(2.688165));
+    CHECK(flock_2.get_stats().dist_RMS == doctest::Approx(0.3272645));
+    CHECK(flock_2.get_stats().av_vel == 0);
+    CHECK(flock_2.get_stats().vel_RMS == 0);
   }
 }

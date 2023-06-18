@@ -8,11 +8,18 @@
 struct Statistics {
   double av_dist;
   double dist_RMS;
+  double av_vel;
+  double vel_RMS;
 
-  Statistics(double mean, double rms) {
-    assert(mean >= 0 && rms >= 0);
-    av_dist = mean;
-    dist_RMS = rms;
+  Statistics() = default;
+
+  Statistics(double mean_dist, double rms_dist, double mean_vel,
+             double rms_vel) {
+    assert(mean_dist >= 0 && rms_dist >= 0 && mean_vel > 0 && rms_vel > 0);
+    av_dist = mean_dist;
+    dist_RMS = rms_dist;
+    av_vel = mean_vel;
+    vel_RMS = rms_vel;
   }
 };
 

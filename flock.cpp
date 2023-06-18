@@ -6,7 +6,7 @@
 #include <random>
 
 Flock::Flock(Parameters const& params, int const& bd_n, Boid const& com)
-    : f_com{com}, f_params{params}, f_stats(0, 0), f_flock{} {
+    : f_com{com}, f_params{params}, f_stats{}, f_flock{} {
   // Genera casualmente, secondo distribuzioni uniformi attorno al centro di
   // massa, lo stormo
   assert(bd_n >= 0);
@@ -39,7 +39,7 @@ Flock::Flock(Parameters const& params, int const& bd_n, Boid const& com)
 }
 
 Flock::Flock(Parameters const& params, int const& bd_n)
-    : f_params{params}, f_stats(0, 0), f_flock{} {
+    : f_params{params}, f_stats{}, f_flock{} {
   // Genera casualmente, secondo distribuzioni uniformi, i boids
   assert(bd_n >= 0);
   std::random_device rd;
@@ -222,10 +222,15 @@ void Flock::sort() {
 void Flock::update_stats() {
   double mean_dist{0};
   double square_mean_dist{0};
+  double mean_vel{0};
+  double square_mean_vel{0};
   int number_of_couples{0};
 
-  for (auto it = f_flock.begin(); it < f_flock.end() - 1; ++it) {
-    for (auto ut = it + 1; ut < f_flock.end(); ++ut) {
+  for (auto it = f_flock.begin(); it < f_flock.end(); ++it) {
+    mean_vel += vec_norm(it->get_vel());
+    square_mean_vel += (vec_norm(it->get_vel()) * vec_norm(it->get_vel()));
+
+    for (auto ut = it; ut < f_flock.end(); ++ut) {
       if (boid_dist(*it, *ut) <= f_params.d && boid_dist(*it, *ut) > 0) {
         mean_dist += boid_dist(*it, *ut);
         square_mean_dist += (boid_dist(*it, *ut) * boid_dist(*it, *ut));
@@ -234,16 +239,30 @@ void Flock::update_stats() {
     }
   }
 
-  if (number_of_couples == 0) {
-    f_stats.av_dist = 0;
-    f_stats.dist_RMS = 0;
+  if (this->size() == 0) {
+    f_stats.av_dist = 0.;
+    f_stats.dist_RMS = 0.;
+    f_stats.av_dist = 0.;
+    f_stats.vel_RMS = 0.;
   } else {
-    mean_dist /= number_of_couples;
-    square_mean_dist /= number_of_couples;
-    double RMS = sqrt(square_mean_dist - mean_dist * mean_dist);
+    mean_vel /= this->size();
+    square_mean_vel /= this->size();
+    double vel_RMS = sqrt(square_mean_vel - mean_vel * mean_vel);
 
-    f_stats.av_dist = mean_dist;
-    f_stats.dist_RMS = RMS;
+    f_stats.av_vel = mean_vel;
+    f_stats.vel_RMS = vel_RMS;
+
+    if (number_of_couples == 0) {
+      f_stats.av_dist = 0;
+      f_stats.dist_RMS = 0;
+    } else {
+      mean_dist /= number_of_couples;
+      square_mean_dist /= number_of_couples;
+      double dist_RMS = sqrt(square_mean_dist - mean_dist * mean_dist);
+
+      f_stats.av_dist = mean_dist;
+      f_stats.dist_RMS = dist_RMS;
+    }
   }
 }
 
