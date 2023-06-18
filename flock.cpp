@@ -6,7 +6,7 @@
 #include <random>
 
 Flock::Flock(Parameters const& params, int const& bd_n, Boid const& com)
-    : f_com{com}, f_params{params}, f_flock{} {
+    : f_com{com}, f_params{params}, f_stats(0, 0), f_flock{} {
   // Genera casualmente, secondo distribuzioni uniformi attorno al centro di
   // massa, lo stormo
   assert(bd_n >= 0);
@@ -39,7 +39,7 @@ Flock::Flock(Parameters const& params, int const& bd_n, Boid const& com)
 }
 
 Flock::Flock(Parameters const& params, int const& bd_n)
-    : f_params{params}, f_flock{} {
+    : f_params{params}, f_stats(0, 0), f_flock{} {
   // Genera casualmente, secondo distribuzioni uniformi, i boids
   assert(bd_n >= 0);
   std::random_device rd;
@@ -100,6 +100,8 @@ void Flock::update_com() {
 // errata corrige: può essere anzi utile che non vi sia vincolo per utilizzare
 // flock di ostacoli!
 std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
+  std::vector<Boid> neighbours;
+
   /* auto ev_dist = [&](std::vector<Boid>::iterator ut) {
      return boid_dist(*ut, *it) < f_params.d && boid_dist(*ut, *it) > 0. &&
             is_visible(*ut, *it, 120.);
@@ -108,9 +110,7 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
   // Versione Matteo (Con la condizione che il vettore sia ordinato per distanza
   // dall'origine, controllo solo i boid vicini a *it)
 
-  /* std::vector<Boid> neighbours(0);
-
-  if (it == f_flock.end()) {
+  /* if (it == f_flock.end()) {
     return neighbours;
   } else {
     auto ut = it;
@@ -139,32 +139,32 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
 
   // Versione Alberto (copy_if)
 
-  /* if (it != this->end()) {
-     auto ev_dist = [&](Boid bd_1) {
-       return boid_dist(bd_1, *it) < f_params.d && boid_dist(bd_1, *it) > 0. &&
-              is_visible(bd_1, *it, 120.);
-     };
-     std::copy_if(f_flock.begin(), f_flock.end(),
-   std::back_inserter(neighbours), ev_dist); return neighbours; } else {
-     neighbours = std::vector<Boid>(0);
-     return neighbours;
-   } */
+  if (it != this->end()) {
+    auto ev_dist = [&](Boid bd_1) {
+      return boid_dist(bd_1, *it) < f_params.d && boid_dist(bd_1, *it) > 0. &&
+             is_visible(bd_1, *it, 120.);
+    };
+    std::copy_if(f_flock.begin(), f_flock.end(), std::back_inserter(neighbours),
+                 ev_dist);
+    return neighbours;
+  } else {
+    neighbours = std::vector<Boid>(0);
+    return neighbours;
+  }
 
   // Versione Andrea (For Loop su tutti il flock)
 
-  std::vector<Boid> neighbours;
-
-  double visibility_angle = 120.0;
+  /* double visibility_angle = 120.0;
 
   for (const Boid& bd_1 : f_flock) {
     double dist = boid_dist(bd_1, *it);
-    if (dist > 0. && dist < f_params.d &&
+    if (dist > 0. && dist < this->get_params().d &&
         is_visible(bd_1, *it, visibility_angle)) {
       neighbours.push_back(bd_1);
     }
   }
 
-  return neighbours;
+  return neighbours; */
 }
 
 std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
@@ -218,3 +218,33 @@ void Flock::sort() {
 
   std::sort(f_flock.begin(), f_flock.end(), is_less);
 }
+
+void Flock::update_stats() {
+  double mean_dist{0};
+  double square_mean_dist{0};
+  int number_of_couples{0};
+
+  for (auto it = f_flock.begin(); it < f_flock.end() - 1; ++it) {
+    for (auto ut = it + 1; ut < f_flock.end(); ++ut) {
+      if (boid_dist(*it, *ut) <= f_params.d && boid_dist(*it, *ut) > 0) {
+        mean_dist += boid_dist(*it, *ut);
+        square_mean_dist += (boid_dist(*it, *ut) * boid_dist(*it, *ut));
+        ++number_of_couples;
+      }
+    }
+  }
+
+  if (number_of_couples == 0) {
+    f_stats.av_dist = 0;
+    f_stats.dist_RMS = 0;
+  } else {
+    mean_dist /= number_of_couples;
+    square_mean_dist /= number_of_couples;
+    double RMS = sqrt(square_mean_dist - mean_dist * mean_dist);
+
+    f_stats.av_dist = mean_dist;
+    f_stats.dist_RMS = RMS;
+  }
+}
+
+Statistics const& Flock::get_stats() const { return f_stats; }

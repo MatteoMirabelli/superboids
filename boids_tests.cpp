@@ -84,6 +84,34 @@ TEST_CASE("Testing the Boid class and functions") {
     CHECK(d15 == doctest::Approx(6.082762));
   }
 
+  SUBCASE("Testing the boid_dist function") {
+    Boid bd_1(2, 2, 5, 4);
+    Boid bd_2(4, 4, 1, -3);
+    Boid bd_3(0, 0, 3, 5);
+    Boid bd_4(0, 0, 6, -1);
+
+    double d12 = boid_dist(bd_1, bd_2);
+    double d21 = boid_dist(bd_2, bd_1);
+    double d13 = boid_dist(bd_1, bd_3);
+    double d31 = boid_dist(bd_3, bd_1);
+    double d34 = boid_dist(bd_3, bd_4);
+    double d43 = boid_dist(bd_4, bd_3);
+
+    CHECK(d12 == doctest::Approx(2.828427));
+    CHECK(d21 == doctest::Approx(2.828427));
+    CHECK(d13 == doctest::Approx(2.828427));
+    CHECK(d31 == doctest::Approx(2.828427));
+    CHECK(d34 == 0);
+    CHECK(d43 == 0);
+  }
+
+  SUBCASE("Testing the boid_dist function") {
+    Boid bd_1(2, 2, 5, 4);
+    double d11 = boid_dist(bd_1, bd_1);
+
+    CHECK(d11 == 0);
+  }
+
   SUBCASE("Testing the compute_angle function") {
     std::valarray<double> vec_1{1, 4};
     std::valarray<double> vec_2{1, -4};
@@ -241,7 +269,7 @@ TEST_CASE("Testing the Flock class and functions") {
     CHECK(flock.get_boid(4).get_pos()[1] == 4);
   }
 
-  SUBCASE("Testing the Flock::get_neighbours method with boids") {
+  SUBCASE("Testing the Flock::get_neighbours method with four boids") {
     Boid bd_1(1, 4, 5, 0);
     Boid bd_2(3, 3, -2, 9);
     Boid bd_3(10, 4, 5, 0);
@@ -266,7 +294,7 @@ TEST_CASE("Testing the Flock class and functions") {
     CHECK(neighbours[0].get_pos()[1] == 4);
   }
 
-  SUBCASE("Testing the Flock::get_neighbours method with boids") {
+  SUBCASE("Testing the Flock::get_neighbours method with four boids") {
     Boid bd_1(1, 4, 5, 0);
     Boid bd_2(3, 3, -2, 9);
     Boid bd_3(4, 4, 5, 0);
@@ -308,7 +336,7 @@ TEST_CASE("Testing the Flock class and functions") {
     CHECK(neighbours.size() == 0);
   }
 
-  SUBCASE("Testing the Flock::get_neighbours method with end") {
+  SUBCASE("Testing the Flock::get_neighbours method with Flock::end") {
     Boid bd_1(1, 4, 5, 0);
     Boid bd_2(3, 3, -2, 9);
     Boid bd_3(4, 4, 5, 0);
@@ -327,5 +355,81 @@ TEST_CASE("Testing the Flock class and functions") {
     auto neighbours = flock.get_neighbours(it);
 
     CHECK(neighbours.size() == 0);
+  }
+
+  SUBCASE("Testing the Flock::update_statistics method with no neighbours") {
+    Boid bd_1(1, 4, 5, 0);
+    Boid bd_2(10, 6, 2, 0);
+
+    Parameters params(3, 4, 1, 2, 3);
+
+    Flock flock(params, 0);
+
+    flock.push_back(bd_1);
+    flock.push_back(bd_2);
+
+    flock.update_stats();
+
+    CHECK(flock.get_stats().av_dist == 0);
+    CHECK(flock.get_stats().dist_RMS == 0);
+  }
+
+  SUBCASE("Testing the Flock::update_stats method with boids") {
+    Boid bd_1(1, 1, 5, 0);
+    Boid bd_2(2, 2, -2, 9);
+    Boid bd_3(3, 3, 5, 0);
+    Boid bd_4(4, 4, -2, 9);
+
+    Parameters params(10, 4, 1, 2, 3);
+
+    Flock flock(params, 0);
+
+    flock.push_back(bd_1);
+    flock.push_back(bd_2);
+    flock.push_back(bd_3);
+    flock.push_back(bd_4);
+
+    flock.update_stats();
+    CHECK(boid_dist(bd_1, bd_2) == doctest::Approx(1.414213562));
+    CHECK(boid_dist(bd_1, bd_3) == doctest::Approx(2.828427125));
+    CHECK(boid_dist(bd_1, bd_4) == doctest::Approx(4.24264069));
+    CHECK(boid_dist(bd_2, bd_3) == doctest::Approx(1.414213562));
+    CHECK(boid_dist(bd_2, bd_4) == doctest::Approx(2.828427125));
+    CHECK(boid_dist(bd_3, bd_4) == doctest::Approx(1.414213562));
+
+    CHECK(flock.size() == 4);
+    CHECK(flock.get_stats().av_dist == doctest::Approx(2.3570226));
+    CHECK(flock.get_stats().dist_RMS == doctest::Approx(1.054092562));
+  }
+
+  SUBCASE("Testing the Flock::update_stats method with boids") {
+    Boid bd_1(1, 1, 5, 0);
+    Boid bd_2(2, 2, -2, 9);
+    Boid bd_3(3, 3, 5, 0);
+
+    Boid bd_4(1, 1, 5, 0);
+    Boid bd_5(4, 1, -2, 9);
+    Boid bd_6(2, 3, 5, 0);
+
+    Parameters params(10, 4, 1, 2, 3);
+
+    Flock flock_1(params, 0);
+    Flock flock_2(params, 0);
+
+    flock_1.push_back(bd_1);
+    flock_1.push_back(bd_2);
+    flock_1.push_back(bd_3);
+
+    flock_2.push_back(bd_4);
+    flock_2.push_back(bd_5);
+    flock_2.push_back(bd_6);
+
+    flock_1.update_stats();
+    flock_2.update_stats();
+
+    CHECK(flock_1.size() == 3);
+    CHECK(flock_1.get_stats().av_dist == doctest::Approx(1.885618));
+    CHECK(flock_2.size() == 3);
+    CHECK(flock_2.get_stats().av_dist == doctest::Approx(2.688165));
   }
 }
