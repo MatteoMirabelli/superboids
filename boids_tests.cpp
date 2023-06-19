@@ -232,7 +232,7 @@ TEST_CASE("Testing the Flock class and functions") {
 
     flock.push_back(bd_1);
 
-    auto it = flock.begin();
+    auto it = flock.begin() + 1;
     auto neighbours = flock.get_neighbours(it);
 
     CHECK(neighbours.size() == 0);

@@ -97,17 +97,39 @@ void Flock::update_com() {
 // errata corrige: può essere anzi utile che non vi sia vincolo per utilizzare
 // flock di ostacoli!
 std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
-  std::vector<Boid> neighbours(0);
+  std::vector<Boid> neighbours;
 
-  double visibility_angle = 120.0;
+  if (it != f_flock.end()) {
+    const auto b2 = *it;
+    const double dist = f_params.d;
+    for (auto ut = it; ut > f_flock.begin(); --ut) {
+      const auto b1 = *(ut - 1);
+      if (std::abs(b1.get_pos()[0] - b2.get_pos()[0]) > dist) {
+        break;
+      }
 
-  for (const Boid& bd_1 : f_flock) {
-    double dist = boid_dist(bd_1, *it);
-    if (dist > 0. && dist < this->get_params().d &&
-        is_visible(bd_1, *it, visibility_angle)) {
-      neighbours.push_back(bd_1);
+      if (boid_dist(b1, b2) < dist && boid_dist(b1, b2) > 0. &&
+          is_visible(b1, b2, 120.)) {
+        neighbours.push_back(b1);
+      } else {
+        break;
+      }
+    }
+    for (auto et = it + 1; et < f_flock.end(); ++et) {
+      const auto b1 = *et;
+      if (std::abs(b1.get_pos()[0] - b2.get_pos()[0]) > dist) {
+        break;
+      }
+
+      if (boid_dist(b1, b2) < dist && boid_dist(b1, b2) > 0. &&
+          is_visible(b1, b2, 120.)) {
+        neighbours.push_back(b1);
+      } else {
+        break;
+      }
     }
   }
+
   return neighbours;
 }
 
@@ -136,7 +158,7 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
 void Flock::update_flock_state(double const& delta_t) {
   std::vector<Boid> copy_flock = f_flock;
   auto it = f_flock.begin();
-  std::for_each(copy_flock.begin(), copy_flock.end(), [&](Boid& bd) {
+  std::for_each(copy_flock.begin(), copy_flock.end() - 1, [&](Boid& bd) {
     bd.update_state(delta_t, this->vel_correction(it), 0, f_params.d_s,
                     f_params.s);
     ++it;
