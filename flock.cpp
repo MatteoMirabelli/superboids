@@ -33,6 +33,7 @@ Flock::Flock(Parameters const& params, int const& bd_n, Boid const& com)
     f_flock.push_back(Boid{bd_n * com.get_pos() - final_pos,
                            bd_n * com.get_vel() - final_vel});
   }
+  this->sort();
 }
 
 Flock::Flock(Parameters const& params, int const& bd_n)
@@ -55,6 +56,7 @@ Flock::Flock(Parameters const& params, int const& bd_n)
   }
   f_com.get_vel() /= this->size();
   f_com.get_pos() /= this->size();
+  this->sort();
 }
 
 std::vector<Boid>::iterator Flock::begin() { return f_flock.begin(); }
@@ -95,7 +97,7 @@ void Flock::update_com() {
 // errata corrige: può essere anzi utile che non vi sia vincolo per utilizzare
 // flock di ostacoli!
 std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
-  std::vector<Boid> neighbours;
+  std::vector<Boid> neighbours(0);
 
   double visibility_angle = 120.0;
 
@@ -106,7 +108,6 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
       neighbours.push_back(bd_1);
     }
   }
-
   return neighbours;
 }
 
@@ -142,4 +143,21 @@ void Flock::update_flock_state(double const& delta_t) {
   });
   f_flock = copy_flock;
   this->update_com();
+  this->sort();
+}
+
+void Flock::sort() {
+  // Ordina i boids del vettore f_flock in ordine crescente secondo la
+  // posizione in x. Se le posizioni in x sono uguali, allora ordina secondo
+  // le posizioni in y
+
+  auto is_less = [&](Boid& bd1, Boid& bd2) {
+    if (bd1.get_pos()[0] != bd2.get_pos()[0]) {
+      return bd1.get_pos()[0] < bd2.get_pos()[0];
+    } else {
+      return bd1.get_pos()[1] < bd2.get_pos()[1];
+    }
+  };
+
+  std::sort(f_flock.begin(), f_flock.end(), is_less);
 }

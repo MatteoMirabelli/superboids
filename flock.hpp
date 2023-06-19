@@ -52,6 +52,8 @@ class Flock {
   std::valarray<double> vel_correction(std::vector<Boid>::iterator);
 
   void update_flock_state(double const&);
+
+  void sort();
 };
 
 #endif

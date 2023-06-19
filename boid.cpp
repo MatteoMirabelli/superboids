@@ -74,16 +74,17 @@ double boid_dist(Boid const& bd_1, Boid const& bd_2) {
 }
 
 template <typename T>
-T compute_angle(std::valarray<T> const& vec) {
-  // assert(vec.size() == 2);
-  double angle{0.};
+T compute_angle(const std::valarray<T>& vec) {
+  T angle = 0;
   if (vec[1] == 0 && vec[0] < 0) {
-    angle = 270.;
+    angle = 270;
   } else if (vec[1] == 0 && vec[0] > 0) {
-    angle = 90.;
+    angle = 90;
   } else {
     angle = std::atan(vec[0] / vec[1]) / M_PI * 180;
-    (vec[1] < 0) ? angle += 180 : angle;
+    if (vec[1] < 0) {
+      angle += 180;
+    }
   }
   return angle;
 }
