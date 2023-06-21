@@ -11,8 +11,8 @@
 
 int main() {
   try {
-    Parameters params(100, 50., 10, 100, 30);
-    Flock bd_flock{params, 80};
+    Parameters params(80., 50., 1.5, 0.2, 0.3);
+    Flock bd_flock{params, 100};
     std::vector<sf::ConvexShape> tr_boids;
     std::transform(bd_flock.begin(), bd_flock.end(),
                    std::back_inserter(tr_boids), [](Boid b) -> sf::ConvexShape {
@@ -54,7 +54,8 @@ int main() {
         // Close window: exit
         if (event.type == sf::Event::Closed) window.close();
       }
-      mag_display.setString("Computation time: " + std::to_string(step.count()));
+      mag_display.setString("Computation time: " +
+                            std::to_string(step.count()));
       window.clear(sf::Color::White);
       window.draw(mag_display);
 
