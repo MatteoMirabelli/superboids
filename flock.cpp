@@ -108,7 +108,7 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
         break;
       }
 
-      if (boid_dist(b1, b2) < dist && is_visible(b2, b1, 120.)) {
+      if (boid_dist(b1, b2) < dist && is_visible(b1, b2, 120.)) {
         neighbours.push_back(b1);
       } else {
         break;
@@ -120,7 +120,7 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
         break;
       }
 
-      if (boid_dist(b1, b2) < dist && is_visible(b2, b1, 120.)) {
+      if (boid_dist(b1, b2) < dist && is_visible(b1, b2, 120.)) {
         neighbours.push_back(b1);
       } else {
         break;

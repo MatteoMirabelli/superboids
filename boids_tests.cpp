@@ -222,6 +222,30 @@ TEST_CASE("Testing the Flock class and functions") {
     CHECK(neighbours[1].get_pos()[1] == 4);
   }
 
+  SUBCASE("Testing the Flock::get_neighbours method with boids") {
+    Boid bd_1(1, 4, 5, 0);
+    Boid bd_2(3, 3, -2, 9);
+    Boid bd_3(4, 2, 3, 3);
+    Boid bd_4(6, 7, -2, 9);
+
+    Parameters params(5, 4, 1, 2, 3);
+
+    Flock flock(params, 0);
+
+    flock.push_back(bd_1);
+    flock.push_back(bd_2);
+    flock.push_back(bd_3);
+    flock.push_back(bd_4);
+
+    auto it = flock.begin() + 1;
+
+    auto neighbours = flock.get_neighbours(it);
+
+    CHECK(neighbours.size() == 1);
+    CHECK(neighbours[0].get_pos()[0] == 1);
+    CHECK(neighbours[0].get_pos()[1] == 4);
+  }
+
   SUBCASE("Testing the Flock::get_neighbours method with just one boids") {
     Boid bd_1(1, 4, 5, 0);
 

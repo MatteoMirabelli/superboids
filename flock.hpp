@@ -34,7 +34,7 @@ class Flock {
 
  public:
   explicit Flock(Parameters const&, int const&, Boid const&);
-  Flock(Parameters const& params, int const& bd_n);
+  Flock(Parameters const&, int const&);
   Flock() = default;
   double size() const;
   std::vector<Boid>::iterator begin();
@@ -44,10 +44,10 @@ class Flock {
   Boid const& get_boid(int) const;
   Boid const& get_com() const;
   Parameters const& get_params() const;
-  void erase(int n);
+  void erase(int);
   void update_com();
 
-  std::vector<Boid> get_neighbours(std::vector<Boid>::iterator it);
+  std::vector<Boid> get_neighbours(std::vector<Boid>::iterator);
 
   std::valarray<double> vel_correction(std::vector<Boid>::iterator);
 
