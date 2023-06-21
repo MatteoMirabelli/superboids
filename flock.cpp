@@ -1,13 +1,13 @@
 #include "flock.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <execution>
 #include <numeric>
 #include <random>
 
-Flock::Flock(double const& d, Parameters const& params, int const& bd_n,
-             Boid const& com)
-    : f_d{d}, f_com{com}, f_params{params}, f_flock{} {
+Flock::Flock(Parameters const& params, int const& bd_n, Boid const& com)
+    : f_com{com}, f_params{params}, f_stats{}, f_flock{} {
   // Genera casualmente, secondo distribuzioni uniformi attorno al centro di
   // massa, lo stormo
   assert(bd_n >= 0);
@@ -35,10 +35,12 @@ Flock::Flock(double const& d, Parameters const& params, int const& bd_n,
     f_flock.push_back(Boid{bd_n * com.get_pos() - final_pos,
                            bd_n * com.get_vel() - final_vel});
   }
+
+  this->sort();
 }
 
-Flock::Flock(double const& d, Parameters const& params, int const& bd_n)
-    : f_d{d}, f_params{params}, f_flock{} {
+Flock::Flock(Parameters const& params, int const& bd_n)
+    : f_params{params}, f_stats{}, f_flock{} {
   // Genera casualmente, secondo distribuzioni uniformi, i boids
   assert(bd_n >= 0);
   std::random_device rd;
@@ -57,6 +59,8 @@ Flock::Flock(double const& d, Parameters const& params, int const& bd_n)
   }
   f_com.get_vel() /= f_flock.size();
   f_com.get_pos() /= f_flock.size();
+
+  this->sort();
 }
 
 std::vector<Boid>::iterator Flock::begin() { return f_flock.begin(); }
@@ -98,13 +102,110 @@ void Flock::update_com() {
 // flock di ostacoli!
 std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
   std::vector<Boid> neighbours;
-  // auto bd_2 = f_flock[n - 1];
-  auto ev_dist = [&](Boid bd_1) {
-    return boid_dist(bd_1, *it) < f_d && boid_dist(bd_1, *it) > 0. &&
-           is_visible(bd_1, *it, 120.);
-  };
-  std::copy_if(f_flock.begin(), f_flock.end(), std::back_inserter(neighbours),
-               ev_dist);
+
+  // Versione Matteo (Con la condizione che il vettore sia ordinato per distanza
+  // dall'origine, controllo solo i boid vicini a *it)
+
+   if (it == f_flock.end()) {
+   } else if (it == f_flock.begin()) {
+     auto et = it;
+     for (; et < --f_flock.end() &&
+            std::abs(it->get_pos()[0] - et->get_pos()[0]) < f_params.d;
+          ++et) {
+       if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+           is_visible(*et, *it, 120.) == true) {
+         neighbours.push_back(*et);
+       }
+     }
+     if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+         is_visible(*et, *it, 120.) == true) {
+       neighbours.push_back(*et);
+     }
+   } else if (it == --f_flock.end()) {
+     auto et = it;
+     for (; et > f_flock.begin() &&
+            std::abs(it->get_pos()[0] - et->get_pos()[0]) < f_params.d;
+          --et) {
+       if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+           is_visible(*et, *it, 120.) == true) {
+         neighbours.push_back(*et);
+       }
+     }
+     if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+         is_visible(*et, *it, 120.) == true) {
+       neighbours.push_back(*et);
+     }
+   } else {
+     auto et = it;
+     for (; et < --f_flock.end() &&
+            std::abs(it->get_pos()[0] - et->get_pos()[0]) < f_params.d;
+          ++et) {
+       if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+           is_visible(*et, *it, 120.) == true) {
+         neighbours.push_back(*et);
+       }
+     }
+     if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+         is_visible(*et, *it, 120.) == true) {
+       neighbours.push_back(*et);
+     }
+     et = it;
+     for (; et > f_flock.begin() &&
+            std::abs(it->get_pos()[0] - et->get_pos()[0]) < f_params.d;
+          --et) {
+       if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+           is_visible(*et, *it, 120.) == true) {
+         neighbours.push_back(*et);
+       }
+     }
+     if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+         is_visible(*et, *it, 120.) == true) {
+       neighbours.push_back(*et);
+     }
+   } 
+
+  // Versione Alberto (copy_if)
+
+ /* if (it != this->end()) {
+    auto ev_dist = [&](Boid bd_1) {
+      return boid_dist(bd_1, *it) < f_params.d && boid_dist(bd_1, *it) > 0. &&
+             is_visible(bd_1, *it, 120.);
+    };
+    std::copy_if(f_flock.begin(), f_flock.end(), std::back_inserter(neighbours),
+                 ev_dist);
+    return neighbours;
+  } else {
+    neighbours = std::vector<Boid>(0);
+    return neighbours;
+  } */
+
+  // Versione Andrea (For Loop su tutti il flock)
+
+  /* if (it != f_flock.end()) {
+    const auto b2 = *it;
+    const double dist = f_params.d;
+    for (auto ut = it; ut > f_flock.begin() &&
+                       std::abs(ut->get_pos()[0] - b2.get_pos()[0]) > dist;
+         --ut) {
+      const auto b1 = *(ut - 1);
+
+      if (boid_dist(b1, b2) < dist && is_visible(b1, b2, 120.)) {
+        neighbours.push_back(b1);
+      }
+    }
+
+    for (auto et = it + 1; et < f_flock.end() &&
+                           std::abs(et->get_pos()[0] - b2.get_pos()[0]) >
+  dist;
+         ++et) {
+      const auto b1 = *et;
+
+      if (boid_dist(b1, b2) < dist && is_visible(b1, b2, 120.)) {
+        neighbours.push_back(b1);
+      }
+    }
+  }
+*/
   return neighbours;
 }
 
@@ -135,12 +236,79 @@ void Flock::update_flock_state(double const& delta_t) {
   auto it = f_flock.begin();
   std::for_each(std::execution::par_unseq, copy_flock.begin(), copy_flock.end(),
                 [&](Boid& bd) {
-                  bd.update_state(delta_t, this->vel_correction(it), 0,
+                  bd.update_state(delta_t, this->vel_correction(it), true,
                                   f_params.d_s, f_params.s);
                   ++it;
                 });
   f_flock = copy_flock;
   this->update_com();
+  this->sort();
 }
 
-Statistics Flock::get_statistics() {}
+void Flock::sort() {
+  // Ordina i boids del vettore f_flock in ordine crescente secondo la
+  // posizione in x. Se le posizioni in x sono uguali, allora ordina secondo
+  // le posizioni in y
+
+  auto is_less = [&](Boid& bd1, Boid& bd2) {
+    if (bd1.get_pos()[0] != bd2.get_pos()[0]) {
+      return bd1.get_pos()[0] < bd2.get_pos()[0];
+    } else {
+      return bd1.get_pos()[1] < bd2.get_pos()[1];
+    }
+  };
+
+  std::sort(f_flock.begin(), f_flock.end(), is_less);
+}
+
+void Flock::update_stats() {
+  double mean_dist{0};
+  double square_mean_dist{0};
+  double mean_vel{0};
+  double square_mean_vel{0};
+  int number_of_couples{0};
+
+  for (auto it = f_flock.begin(); it < f_flock.end(); ++it) {
+    mean_vel += vec_norm(it->get_vel());
+    square_mean_vel += (vec_norm(it->get_vel()) * vec_norm(it->get_vel()));
+
+    for (auto ut = it; ut < f_flock.end();
+         ++ut) {  // se f_flock è ordinato si potrebbe pensare di usare come
+                  // condizione
+                  // std::abs(it->get_pos()[0]-ut->get_pos()[0])<f_params.d;
+      if (boid_dist(*it, *ut) <= f_params.d && boid_dist(*it, *ut) > 0) {
+        mean_dist += boid_dist(*it, *ut);
+        square_mean_dist += (boid_dist(*it, *ut) * boid_dist(*it, *ut));
+        ++number_of_couples;
+      }
+    }
+  }
+
+  if (this->size() == 0) {
+    f_stats.av_dist = 0.;
+    f_stats.dist_RMS = 0.;
+    f_stats.av_dist = 0.;
+    f_stats.vel_RMS = 0.;
+  } else {
+    mean_vel /= this->size();
+    square_mean_vel /= this->size();
+    double vel_RMS = sqrt(square_mean_vel - mean_vel * mean_vel);
+
+    f_stats.av_vel = mean_vel;
+    f_stats.vel_RMS = vel_RMS;
+
+    if (number_of_couples == 0) {
+      f_stats.av_dist = 0;
+      f_stats.dist_RMS = 0;
+    } else {
+      mean_dist /= number_of_couples;
+      square_mean_dist /= number_of_couples;
+      double dist_RMS = sqrt(square_mean_dist - mean_dist * mean_dist);
+
+      f_stats.av_dist = mean_dist;
+      f_stats.dist_RMS = dist_RMS;
+    }
+  }
+}
+
+Statistics const& Flock::get_stats() const { return f_stats; }

@@ -8,16 +8,31 @@
 struct Statistics {
   double av_dist;
   double dist_RMS;
+  double av_vel;
+  double vel_RMS;
+
+  Statistics() = default;
+
+  Statistics(double mean_dist, double rms_dist, double mean_vel,
+             double rms_vel) {
+    assert(mean_dist >= 0 && rms_dist >= 0 && mean_vel > 0 && rms_vel > 0);
+    av_dist = mean_dist;
+    dist_RMS = rms_dist;
+    av_vel = mean_vel;
+    vel_RMS = rms_vel;
+  }
 };
 
 struct Parameters {
+  double d;
   double d_s;
   double s;
   double a;
   double c;
 
-  Parameters(double p_ds, double p_s, double p_a, double p_c) {
-    assert(p_ds >= 0 && p_s >= 0 && p_a >= 0 && p_c >= 0);
+  Parameters(double p_d, double p_ds, double p_s, double p_a, double p_c) {
+    assert(p_d >= 0 && p_ds >= 0 && p_s >= 0 && p_a >= 0 && p_c >= 0);
+    d = p_d;
     d_s = p_ds;
     s = p_s;
     a = p_a;
@@ -26,14 +41,14 @@ struct Parameters {
 };
 
 class Flock {
-  double f_d;
   std::vector<Boid> f_flock;
   Boid f_com;
   Parameters f_params;
+  Statistics f_stats;
 
  public:
-  explicit Flock(double const&, Parameters const&, int const&, Boid const&);
-  Flock(double const& d, Parameters const& params, int const& bd_n);
+  explicit Flock(Parameters const&, int const&, Boid const&);
+  Flock(Parameters const&, int const&);
   Flock() = default;
   double size() const;
   std::vector<Boid>::iterator begin();
@@ -43,7 +58,7 @@ class Flock {
   Boid const& get_boid(int) const;
   Boid const& get_com() const;
   Parameters const& get_params() const;
-  void erase(int n);
+  void erase(int);
   void update_com();
 
   std::vector<Boid> get_neighbours(std::vector<Boid>::iterator);
@@ -52,7 +67,10 @@ class Flock {
 
   void update_flock_state(double const&);
 
-  Statistics get_statistics();
+  void sort();
+
+  void update_stats();
+  Statistics const& get_stats() const;
 };
 
 #endif
