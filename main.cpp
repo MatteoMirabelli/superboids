@@ -64,7 +64,7 @@ int main() {
       }
       window.display();
       init = std::chrono::steady_clock::now();
-      bd_flock.update_flock_state(0.016);
+      bd_flock.update_flock_state(0.016, 120.);
       /*for(auto it = bd_flock.begin(); it < bd_flock.end(); ++it){
         auto dd = bd_flock.get_neighbours(it);
       }*/
