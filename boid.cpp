@@ -95,7 +95,7 @@ T compute_angle(const std::valarray<T>& vec) {
 bool is_visible(Boid const& bd_1, Boid const& bd_2, double const& angle) {
   assert(angle >= 0. && angle <= 180.);
   return std::abs(compute_angle<double>(bd_1.get_pos() - bd_2.get_pos()) -
-                  bd_2.get_angle()) < angle;
+                  bd_2.get_angle()) <= angle;
 }
 
 // bd_1 boid da vedere e bd_2 boid che vede

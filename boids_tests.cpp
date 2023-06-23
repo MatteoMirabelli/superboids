@@ -126,6 +126,17 @@ TEST_CASE("Testing the Boid class and functions") {
     CHECK(angle_3 == doctest::Approx(194.036243));
   }
 
+  SUBCASE("Testing the is_visible function with view_angle 0") {
+    Boid b1(1., 2., 2., 1.);
+    Boid b2(3., 3., 2., 1.);
+
+    double view_angle{0.};
+    bool iv12 = is_visible(b2, b1, view_angle);
+    bool iv21 = is_visible(b1, b2, view_angle);
+    CHECK(iv12 == true);
+    CHECK(iv21 == false);
+  }
+
   SUBCASE("Testing the is_visible function") {
     Boid b1(1., 2., 3., 4.);
     Boid b2(4., 3., 2., 1.);
@@ -272,6 +283,7 @@ TEST_CASE("Testing the Flock class and functions") {
   // Ordina i boids del vettore f_flock in ordine crescente secondo la
   // posizione in x. Se le posizioni in x sono uguali, allora ordina secondo
   // le posizioni in y
+  // Per semplificare i test sul get_neighbours
   auto is_less = [&](Boid& bd1, Boid& bd2) {
     if (bd1.get_pos()[0] != bd2.get_pos()[0]) {
       return bd1.get_pos()[0] < bd2.get_pos()[0];
@@ -279,6 +291,9 @@ TEST_CASE("Testing the Flock class and functions") {
       return bd1.get_pos()[1] < bd2.get_pos()[1];
     }
   };
+
+  // Angolo di vista usato nei successivi test
+  double view_angle = 120.;
 
   SUBCASE("Testing the Flock::get_neighbours method with four boids 1") {
     Boid bd_1(1, 4, 5, 0);
@@ -297,7 +312,7 @@ TEST_CASE("Testing the Flock class and functions") {
     flock.push_back(bd_3);
 
     auto it = flock.begin();
-    std::vector<Boid> neighbours = flock.get_neighbours(it);
+    std::vector<Boid> neighbours = flock.get_neighbours(it, view_angle);
     std::sort(neighbours.begin(), neighbours.end(), is_less);
 
     CHECK(neighbours.size() == 1);
@@ -322,7 +337,7 @@ TEST_CASE("Testing the Flock class and functions") {
 
     auto it = flock.begin() + 1;
 
-    std::vector<Boid> neighbours = flock.get_neighbours(it);
+    std::vector<Boid> neighbours = flock.get_neighbours(it, view_angle);
     std::sort(neighbours.begin(), neighbours.end(), is_less);
     CHECK(neighbours.size() == 2);
 
@@ -347,7 +362,7 @@ TEST_CASE("Testing the Flock class and functions") {
 
     auto it = flock.begin() + 1;
 
-    std::vector<Boid> neighbours = flock.get_neighbours(it);
+    std::vector<Boid> neighbours = flock.get_neighbours(it, view_angle);
 
     CHECK(neighbours.size() == 0);
   }
@@ -372,8 +387,8 @@ TEST_CASE("Testing the Flock class and functions") {
     auto it = flock.begin() + 1;
     auto ut = flock.end() - 1;
 
-    std::vector<Boid> neighbours_1 = flock.get_neighbours(it);
-    std::vector<Boid> neighbours_2 = flock.get_neighbours(ut);
+    std::vector<Boid> neighbours_1 = flock.get_neighbours(it, view_angle);
+    std::vector<Boid> neighbours_2 = flock.get_neighbours(ut, view_angle);
     std::sort(neighbours_1.begin(), neighbours_1.end(), is_less);
     CHECK(neighbours_1.size() == 2);
     CHECK(neighbours_1[0].get_pos()[0] == 1);
@@ -395,7 +410,7 @@ TEST_CASE("Testing the Flock class and functions") {
     flock.push_back(bd_1);
 
     auto it = flock.begin();
-    auto neighbours = flock.get_neighbours(it);
+    auto neighbours = flock.get_neighbours(it, view_angle);
 
     CHECK(neighbours.size() == 0);
   }
@@ -416,7 +431,7 @@ TEST_CASE("Testing the Flock class and functions") {
     flock.push_back(bd_4);
 
     auto it = flock.end();
-    auto neighbours = flock.get_neighbours(it);
+    auto neighbours = flock.get_neighbours(it, view_angle);
 
     CHECK(neighbours.size() == 0);
   }

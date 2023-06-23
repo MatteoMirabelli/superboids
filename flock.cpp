@@ -91,7 +91,8 @@ void Flock::update_com() {
   f_com.get_pos() /= f_flock.size();
 }
 
-std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator const& it) {
+std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator const& it,
+                                        double const& view_angle) {
   std::vector<Boid> neighbours;
 
   if (it != f_flock.end()) {
@@ -101,7 +102,7 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator const& it) {
     while (et != f_flock.end() &&
            (et->get_pos()[0] - it->get_pos()[0]) < dist) {
       if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
-          is_visible(*et, *it, 120.)) {
+          is_visible(*et, *it, view_angle)) {
         neighbours.push_back(*et);
       }
       ++et;
@@ -111,7 +112,7 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator const& it) {
            (it->get_pos()[0] - et->get_pos()[0]) < dist) {
       --et;
       if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
-          is_visible(*et, *it, 120.)) {
+          is_visible(*et, *it, view_angle)) {
         neighbours.push_back(*et);
       }
     }
@@ -120,8 +121,8 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator const& it) {
 }
 
 std::valarray<double> Flock::vel_correction(
-    std::vector<Boid>::iterator const& it) {
-  auto neighbours = this->get_neighbours(it);
+    std::vector<Boid>::iterator const& it, double const& view_angle) {
+  auto neighbours = this->get_neighbours(it, view_angle);
   std::valarray<double> delta_vel = {0., 0.};
   auto const& n_minus = neighbours.size();
   if (n_minus > 0) {
@@ -142,12 +143,13 @@ std::valarray<double> Flock::vel_correction(
   return delta_vel;
 }
 
-void Flock::update_flock_state(double const& delta_t) {
+void Flock::update_flock_state(double const& delta_t,
+                               double const& view_angle) {
   std::vector<Boid> copy_flock = f_flock;
   auto it = f_flock.begin();
   std::for_each(copy_flock.begin(), copy_flock.end(), [&](Boid& bd) {
-    bd.update_state(delta_t, this->vel_correction(it), true, f_params.d_s,
-                    f_params.s);
+    bd.update_state(delta_t, this->vel_correction(it, view_angle), true,
+                    f_params.d_s, f_params.s);
     ++it;
   });
   f_flock = copy_flock;
