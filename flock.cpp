@@ -102,32 +102,27 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
   if (it != f_flock.end()) {
     const auto b2 = *it;
     const double dist = f_params.d;
-    for (auto ut = it; ut > f_flock.begin(); --ut) {
-      const auto b1 = *(ut - 1);
-      if (std::abs(b1.get_pos()[0] - b2.get_pos()[0]) > dist) {
+    for (auto ut = it - 1; ut >= f_flock.begin(); --ut) {
+      // const auto b1 = *(ut - 1);
+      if (std::abs(ut->get_pos()[0] - b2.get_pos()[0]) >= dist) {
         break;
       }
 
-      if (boid_dist(b1, b2) < dist && is_visible(b1, b2, 120.)) {
-        neighbours.push_back(b1);
-      } else {
-        break;
+      if (boid_dist(*ut, b2) < dist && is_visible(*ut, b2, 120.)) {
+        neighbours.push_back(*ut);
       }
     }
     for (auto et = it + 1; et < f_flock.end(); ++et) {
-      const auto b1 = *et;
-      if (std::abs(b1.get_pos()[0] - b2.get_pos()[0]) > dist) {
+      // const auto b1 = *et;
+      if (std::abs(et->get_pos()[0] - b2.get_pos()[0]) >= dist) {
         break;
       }
 
-      if (boid_dist(b1, b2) < dist && is_visible(b1, b2, 120.)) {
-        neighbours.push_back(b1);
-      } else {
-        break;
+      if (boid_dist(*et, b2) < dist && is_visible(*et, b2, 120.)) {
+        neighbours.push_back(*et);
       }
     }
   }
-
   return neighbours;
 }
 
@@ -157,7 +152,7 @@ void Flock::update_flock_state(double const& delta_t) {
   std::vector<Boid> copy_flock = f_flock;
   auto it = f_flock.begin();
   std::for_each(copy_flock.begin(), copy_flock.end() - 1, [&](Boid& bd) {
-    bd.update_state(delta_t, this->vel_correction(it), 1, f_params.d_s,
+    bd.update_state(delta_t, this->vel_correction(it), 0, f_params.d_s,
                     f_params.s);
     ++it;
   });
