@@ -61,11 +61,11 @@ class Flock {
   void erase(int);
   void update_com();
 
-  std::vector<Boid> get_neighbours(std::vector<Boid>::iterator);
+  std::vector<Boid> get_neighbours(std::vector<Boid>::iterator, double const&);
 
-  std::valarray<double> vel_correction(std::vector<Boid>::iterator);
+  std::valarray<double> vel_correction(std::vector<Boid>::iterator, double const&);
 
-  void update_flock_state(double const&);
+  void update_flock_state(double const&, double const&);
 
   void sort();
 
