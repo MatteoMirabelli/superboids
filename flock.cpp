@@ -183,10 +183,10 @@ void Flock::update_stats() {
     mean_vel += vec_norm(it->get_vel());
     square_mean_vel += (vec_norm(it->get_vel()) * vec_norm(it->get_vel()));
 
-    for (auto ut = it; ut < f_flock.end();
-         ++ut) {  // se f_flock è ordinato si potrebbe pensare di usare come
-                  // condizione
-                  // std::abs(it->get_pos()[0]-ut->get_pos()[0])<f_params.d;
+    for (auto ut = it;
+         ut < f_flock.end() &&
+         std::abs(it->get_pos()[0] - ut->get_pos()[0]) < f_params.d;
+         ++ut) {
       if (boid_dist(*it, *ut) <= f_params.d && boid_dist(*it, *ut) > 0) {
         mean_dist += boid_dist(*it, *ut);
         square_mean_dist += (boid_dist(*it, *ut) * boid_dist(*it, *ut));
