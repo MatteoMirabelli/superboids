@@ -11,8 +11,8 @@ class Boid {
   double b_angle;
 
  public:
-  explicit Boid(std::valarray<double> pos, std::valarray<double> vel);
-  Boid(double, double, double, double);
+  explicit Boid(std::valarray<double> const&, std::valarray<double> const&);
+  Boid(double const&, double const&, double const&, double const&);
   Boid() = default;
 
   std::valarray<double>& get_pos();
@@ -24,12 +24,13 @@ class Boid {
   double& get_angle();
   double const& get_angle() const;
 
-  void update_state(double, std::valarray<double>);
-  void update_state(double, std::valarray<double>, bool const&, double, double);
+  void update_state(double const&, std::valarray<double> const&);
+  void update_state(double const&, std::valarray<double> const&, bool const&,
+                    double const&, double const&);
 };
 
 template <typename T>
-T vec_norm(std::valarray<T>);
+T vec_norm(std::valarray<T> const&);
 
 double boid_dist(Boid const&, Boid const&);
 

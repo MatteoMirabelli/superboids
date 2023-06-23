@@ -2,14 +2,15 @@
 
 #include <type_traits>
 
-Boid::Boid(std::valarray<double> pos, std::valarray<double> vel) {
+Boid::Boid(std::valarray<double> const& pos, std::valarray<double> const& vel) {
   assert(pos.size() == 2 || vel.size() == 2);
   b_pos = pos;
   b_vel = vel;
   b_angle = compute_angle<double>(vel);
 }
 
-Boid::Boid(double x, double y, double vx, double vy) {
+Boid::Boid(double const& x, double const& y, double const& vx,
+           double const& vy) {
   assert(x >= 0 && y >= 0);
   b_pos = std::valarray<double>(2);
   b_vel = std::valarray<double>(2);
@@ -32,14 +33,16 @@ double& Boid::get_angle() { return b_angle; }
 
 double const& Boid::get_angle() const { return b_angle; }
 
-void Boid::update_state(double delta_t, std::valarray<double> delta_vel) {
+void Boid::update_state(double const& delta_t,
+                        std::valarray<double> const& delta_vel) {
   b_vel += delta_vel;
   b_pos += (b_vel * delta_t);
   b_angle = compute_angle<double>(b_vel);
 }
 
-void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
-                        bool const& b, double d, double k) {
+void Boid::update_state(double const& delta_t,
+                        std::valarray<double> const& delta_vel, bool const& b,
+                        double const& d, double const& k) {
   b_vel += delta_vel;
   b_pos += (b_vel * delta_t);
   b_angle = compute_angle<double>(b_vel);
@@ -64,7 +67,7 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
 // problemi di portabilità
 
 template <typename T>
-T vec_norm(std::valarray<T> vec) {
+T vec_norm(std::valarray<T> const& vec) {
   assert(std::is_arithmetic_v<T>);
   return std::sqrt(std::pow(vec, {2, 2}).sum());
 }

@@ -54,16 +54,16 @@ class Flock {
   std::vector<Boid>::iterator begin();
   std::vector<Boid>::iterator end();
   void push_back(Boid const&);
-  Boid& get_boid(int);
-  Boid const& get_boid(int) const;
+  Boid& get_boid(int const&);
+  Boid const& get_boid(int const&) const;
   Boid const& get_com() const;
   Parameters const& get_params() const;
-  void erase(int);
+  void erase(int const&);
   void update_com();
 
-  std::vector<Boid> get_neighbours(std::vector<Boid>::iterator);
+  std::vector<Boid> get_neighbours(std::vector<Boid>::iterator const&);
 
-  std::valarray<double> vel_correction(std::vector<Boid>::iterator);
+  std::valarray<double> vel_correction(std::vector<Boid>::iterator const&);
 
   void update_flock_state(double const&);
 

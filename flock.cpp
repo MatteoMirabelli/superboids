@@ -68,31 +68,30 @@ double Flock::size() const { return f_flock.size(); }
 
 void Flock::push_back(Boid const& boid) { f_flock.push_back(boid); }
 
-Boid& Flock::get_boid(int n) { return f_flock[n - 1]; }
+Boid& Flock::get_boid(int const& n) { return f_flock[n - 1]; }
 
-Boid const& Flock::get_boid(int n) const { return f_flock[n - 1]; }
+Boid const& Flock::get_boid(int const& n) const { return f_flock[n - 1]; }
 
 Parameters const& Flock::get_params() const { return f_params; }
 
 Boid const& Flock::get_com() const { return f_com; }
 
-void Flock::erase(int n) {
+void Flock::erase(int const& n) {
   auto it = f_flock.begin() + n - 1;
   f_flock.erase(it);
 }
 
 void Flock::update_com() {
-  f_com.get_vel() = {0., 0.};
-  f_com.get_pos() = {0., 0.};
-  for (auto bd : f_flock) {
-    f_com.get_vel() += bd.get_vel();
-    f_com.get_pos() += bd.get_pos();
-  }
-  f_com.get_vel() /= this->size();
-  f_com.get_pos() /= this->size();
+  f_com = std::accumulate(
+      f_flock.begin(), f_flock.end(), Boid{{0., 0.}, {0., 0.}},
+      [](const Boid& acc, const Boid& bd) {
+        return Boid{acc.get_pos() + bd.get_pos(), acc.get_vel() + bd.get_vel()};
+      });
+  f_com.get_vel() /= f_flock.size();
+  f_com.get_pos() /= f_flock.size();
 }
 
-std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
+std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator const& it) {
   std::vector<Boid> neighbours;
 
   if (it != f_flock.end()) {
@@ -100,7 +99,7 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
     const double dist = f_params.d;
     auto et = it;
     while (et != f_flock.end() &&
-           std::abs(it->get_pos()[0] - et->get_pos()[0]) < dist) {
+           (et->get_pos()[0] - it->get_pos()[0]) < dist) {
       if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
           is_visible(*et, *it, 120.)) {
         neighbours.push_back(*et);
@@ -109,7 +108,7 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
     }
     et = it;
     while (et != f_flock.begin() &&
-           std::abs(it->get_pos()[0] - et->get_pos()[0]) < dist) {
+           (it->get_pos()[0] - et->get_pos()[0]) < dist) {
       --et;
       if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
           is_visible(*et, *it, 120.)) {
@@ -120,11 +119,12 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
   return neighbours;
 }
 
-std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
+std::valarray<double> Flock::vel_correction(
+    std::vector<Boid>::iterator const& it) {
   auto neighbours = this->get_neighbours(it);
   std::valarray<double> delta_vel = {0., 0.};
-  if (neighbours.size() > 0) {
-    auto n_minus = neighbours.size();
+  auto const& n_minus = neighbours.size();
+  if (n_minus > 0) {
     std::valarray<double> local_com = {0., 0.};
     for (Boid bd : neighbours) {
       // separation
