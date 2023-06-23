@@ -11,7 +11,7 @@ class Boid {
   double b_angle;
 
  public:
-  explicit Boid(std::valarray<double>, std::valarray<double>);
+  explicit Boid(std::valarray<double> pos, std::valarray<double> vel);
   Boid(double, double, double, double);
   Boid() = default;
 

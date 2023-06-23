@@ -8,6 +8,19 @@
 struct Statistics {
   double av_dist;
   double dist_RMS;
+  double av_vel;
+  double vel_RMS;
+
+  Statistics() = default;
+
+  Statistics(double mean_dist, double rms_dist, double mean_vel,
+             double rms_vel) {
+    assert(mean_dist >= 0 && rms_dist >= 0 && mean_vel > 0 && rms_vel > 0);
+    av_dist = mean_dist;
+    dist_RMS = rms_dist;
+    av_vel = mean_vel;
+    vel_RMS = rms_vel;
+  }
 };
 
 struct Parameters {
@@ -31,6 +44,7 @@ class Flock {
   std::vector<Boid> f_flock;
   Boid f_com;
   Parameters f_params;
+  Statistics f_stats;
 
  public:
   explicit Flock(Parameters const&, int const&, Boid const&);
@@ -54,6 +68,8 @@ class Flock {
   void update_flock_state(double const&);
 
   void sort();
-};
 
+  void update_stats();
+  Statistics const& get_stats() const;
+};
 #endif
