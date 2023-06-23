@@ -11,8 +11,8 @@
 
 int main() {
   try {
-    Parameters params(50., 1, 0.3, 0.1);
-    Flock bd_flock{80., params, 300};
+    Parameters params(80., 50., 1.5, 0.2, 0.3);
+    Flock bd_flock{params, 100};
     std::vector<sf::ConvexShape> tr_boids;
     std::transform(bd_flock.begin(), bd_flock.end(),
                    std::back_inserter(tr_boids), [](Boid b) -> sf::ConvexShape {
@@ -65,9 +65,9 @@ int main() {
       window.display();
       init = std::chrono::steady_clock::now();
       bd_flock.update_flock_state(0.016);
-      // for (auto it = bd_flock.begin(); it < bd_flock.end(); ++it) {
-      //  auto dd = bd_flock.neighbours();
-      //}
+      /*for(auto it = bd_flock.begin(); it < bd_flock.end(); ++it){
+        auto dd = bd_flock.get_neighbours(it);
+      }*/
       step = std::chrono::steady_clock::now() - init;
     }
     return EXIT_SUCCESS;

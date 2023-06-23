@@ -46,10 +46,10 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
 
   if (b == true) {
     // implementazione con periodiche
-    (b_pos[0] > 1300.) ? b_pos[0] = 21. : b_pos[0];
-    (b_pos[0] < 20.) ? b_pos[0] = 1299. : b_pos[0];
-    (b_pos[1] > 980.) ? b_pos[1] = 21. : b_pos[1];
-    (b_pos[1] < 20.) ? b_pos[1] = 979. : b_pos[1];
+    (b_pos[0] > 1800.) ? b_pos[0] = 21. : b_pos[0];
+    (b_pos[0] < 20.) ? b_pos[0] = 1799. : b_pos[0];
+    (b_pos[1] > 1000.) ? b_pos[1] = 21. : b_pos[1];
+    (b_pos[1] < 20.) ? b_pos[1] = 999. : b_pos[1];
   } else {
     // implementazione con bordi
 
