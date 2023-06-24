@@ -54,16 +54,22 @@ TEST_CASE("Testing the Boid class and functions") {
     std::valarray<double> vec_2{2, 5};
     std::valarray<double> vec_3{0, 0};
     std::valarray<double> vec_4{-1, -4};
+    std::valarray<double> vec_5{1, -4};
+    std::valarray<double> vec_6{-1, 4};
 
     double norm1 = vec_norm(vec_1);
     double norm2 = vec_norm(vec_2);
     double norm3 = vec_norm(vec_3);
     double norm4 = vec_norm(vec_4);
+    double norm5 = vec_norm(vec_5);
+    double norm6 = vec_norm(vec_6);
 
     CHECK(norm1 == doctest::Approx(4.1231056));
     CHECK(norm2 == doctest::Approx(5.385164807));
     CHECK(norm3 == 0);
     CHECK(norm4 == doctest::Approx(4.1231056));
+    CHECK(norm5 == doctest::Approx(4.1231056));
+    CHECK(norm6 == doctest::Approx(4.1231056));
   }
 
   SUBCASE("Testing the boid_dist function") {
@@ -75,13 +81,17 @@ TEST_CASE("Testing the Boid class and functions") {
 
     double d12 = boid_dist(bd_1, bd_2);
     double d13 = boid_dist(bd_1, bd_3);
-    double d34 = boid_dist(bd_3, bd_4);
     double d15 = boid_dist(bd_1, bd_5);
+    double d21 = boid_dist(bd_2, bd_1);
+    double d34 = boid_dist(bd_3, bd_4);
+    double d51 = boid_dist(bd_5, bd_1);
 
     CHECK(d12 == doctest::Approx(2.828427));
     CHECK(d13 == doctest::Approx(2.828427));
-    CHECK(d34 == 0);
     CHECK(d15 == doctest::Approx(6.082762));
+    CHECK(d21 == doctest::Approx(2.828427));
+    CHECK(d34 == 0);
+    CHECK(d51 == doctest::Approx(6.082762));
   }
 
   SUBCASE("Testing the boid_dist function") {
@@ -214,7 +224,7 @@ TEST_CASE("Testing the Flock class and functions") {
 
   SUBCASE("Testing the Flock::sort method with two boids") {
     Boid bd_1(1, 4, 5, 0);
-    Boid bd_2(4, 3, -2, 9);
+    Boid bd_2(5, 3, -2, 9);
 
     Parameters params(4, 4, 1, 2, 3);
     Boid com(0, 0, 0, 0);
@@ -227,7 +237,7 @@ TEST_CASE("Testing the Flock class and functions") {
     flock.sort();
 
     CHECK(flock.get_boid(1).get_pos()[0] == 1);
-    CHECK(flock.get_boid(2).get_pos()[0] == 4);
+    CHECK(flock.get_boid(2).get_pos()[0] == 5);
   }
 
   SUBCASE("Testing the Flock::sort method with five boids boids") {
@@ -275,8 +285,8 @@ TEST_CASE("Testing the Flock class and functions") {
     CHECK(flock.get_boid(1).get_pos()[0] == 1);
     CHECK(flock.get_boid(2).get_pos()[0] == 4);
     CHECK(flock.get_boid(3).get_pos()[0] == 10);
-    CHECK(flock.get_boid(4).get_pos()[0] == 10);
     CHECK(flock.get_boid(3).get_pos()[1] == 3);
+    CHECK(flock.get_boid(4).get_pos()[0] == 10);
     CHECK(flock.get_boid(4).get_pos()[1] == 4);
   }
 
