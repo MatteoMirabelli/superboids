@@ -436,7 +436,7 @@ TEST_CASE("Testing the Flock class and functions") {
     CHECK(neighbours.size() == 0);
   }
 
-  SUBCASE("Testing the Flock::update_statistics method with no neighbours") {
+  SUBCASE("Testing the Flock::update_stats method with no neighbours") {
     Boid bd_1(1, 4, 5, 0);
     Boid bd_2(10, 6, 2, 0);
 

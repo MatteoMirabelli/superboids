@@ -6,15 +6,15 @@
 #include "boid.hpp"
 
 struct Statistics {
-  double av_dist;
-  double dist_RMS;
-  double av_vel;
-  double vel_RMS;
+  double av_dist{};
+  double dist_RMS{};
+  double av_vel{};
+  double vel_RMS{};
 
   Statistics() = default;
 
-  Statistics(double mean_dist, double rms_dist, double mean_vel,
-             double rms_vel) {
+  Statistics(double const& mean_dist, double const& rms_dist,
+             double const& mean_vel, double const& rms_vel) {
     assert(mean_dist >= 0 && rms_dist >= 0 && mean_vel > 0 && rms_vel > 0);
     av_dist = mean_dist;
     dist_RMS = rms_dist;
@@ -30,7 +30,8 @@ struct Parameters {
   double a;
   double c;
 
-  Parameters(double p_d, double p_ds, double p_s, double p_a, double p_c) {
+  Parameters(double const& p_d, double const& p_ds, double const& p_s,
+             double const& p_a, double const& p_c) {
     assert(p_d >= 0 && p_ds >= 0 && p_s >= 0 && p_a >= 0 && p_c >= 0);
     d = p_d;
     d_s = p_ds;

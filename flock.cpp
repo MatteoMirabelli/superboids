@@ -173,34 +173,32 @@ void Flock::sort() {
 }
 
 void Flock::update_stats() {
-  double mean_dist{0};
-  double square_mean_dist{0};
-  double mean_vel{0};
-  double square_mean_vel{0};
-  int number_of_couples{0};
+  f_stats = Statistics();
+  if (this->size() != 0) {
+    double mean_dist{0};
+    double square_mean_dist{0};
+    double mean_vel{0};
+    double square_mean_vel{0};
+    int number_of_couples{0};
 
-  for (auto it = f_flock.begin(); it < f_flock.end(); ++it) {
-    mean_vel += vec_norm(it->get_vel());
-    square_mean_vel += (vec_norm(it->get_vel()) * vec_norm(it->get_vel()));
+    for (auto it = f_flock.begin(); it < f_flock.end(); ++it) {
+      auto v_norm = vec_norm(it->get_vel());
+      mean_vel += v_norm;
+      square_mean_vel += (v_norm * v_norm);
 
-    for (auto ut = it;
-         ut < f_flock.end() &&
-         std::abs(it->get_pos()[0] - ut->get_pos()[0]) < f_params.d;
-         ++ut) {
-      if (boid_dist(*it, *ut) <= f_params.d && boid_dist(*it, *ut) > 0) {
-        mean_dist += boid_dist(*it, *ut);
-        square_mean_dist += (boid_dist(*it, *ut) * boid_dist(*it, *ut));
-        ++number_of_couples;
+      const double dist = f_params.d;
+
+      for (auto et = it;
+           et != f_flock.end() && (et->get_pos()[0] - it->get_pos()[0]) < dist;
+           ++et) {
+        auto b_dist = boid_dist(*et, *it);
+        if (b_dist < dist && b_dist > 0.) {
+          mean_dist += b_dist;
+          square_mean_dist += (b_dist * b_dist);
+          ++number_of_couples;
+        }
       }
     }
-  }
-
-  if (this->size() == 0) {
-    f_stats.av_dist = 0.;
-    f_stats.dist_RMS = 0.;
-    f_stats.av_dist = 0.;
-    f_stats.vel_RMS = 0.;
-  } else {
     mean_vel /= this->size();
     square_mean_vel /= this->size();
     double vel_RMS = sqrt(square_mean_vel - mean_vel * mean_vel);
@@ -208,10 +206,7 @@ void Flock::update_stats() {
     f_stats.av_vel = mean_vel;
     f_stats.vel_RMS = vel_RMS;
 
-    if (number_of_couples == 0) {
-      f_stats.av_dist = 0;
-      f_stats.dist_RMS = 0;
-    } else {
+    if (number_of_couples != 0) {
       mean_dist /= number_of_couples;
       square_mean_dist /= number_of_couples;
       double dist_RMS = sqrt(square_mean_dist - mean_dist * mean_dist);

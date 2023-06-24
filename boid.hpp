@@ -1,6 +1,5 @@
 #ifndef BOID_HPP
 #define BOID_HPP
-
 #include <cassert>
 #include <cmath>
 #include <valarray>
