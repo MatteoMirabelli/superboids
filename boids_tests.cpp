@@ -323,7 +323,6 @@ TEST_CASE("Testing the Flock class and functions") {
 
     auto it = flock.begin();
     std::vector<Boid> neighbours = flock.get_neighbours(it, view_angle);
-    std::sort(neighbours.begin(), neighbours.end(), is_less);
 
     CHECK(neighbours.size() == 1);
     CHECK(neighbours[0].get_pos()[0] == 3);
@@ -379,7 +378,7 @@ TEST_CASE("Testing the Flock class and functions") {
 
   SUBCASE(
       "Testing the Flock::get_neighbours method with four boids, the last one "
-      "does'mnt see the others") {
+      "doesn't see the others") {
     Boid bd_1(1, 4, 5, 0);
     Boid bd_2(3, 3, 5, 9);
     Boid bd_3(4, 4, 5, 0);
@@ -444,6 +443,147 @@ TEST_CASE("Testing the Flock class and functions") {
     auto neighbours = flock.get_neighbours(it, view_angle);
 
     CHECK(neighbours.size() == 0);
+  }
+
+  SUBCASE("Testing the Flock::vel_correction method with four boids 1") {
+    Boid bd_1(1, 4, 5, 0);
+    Boid bd_2(3, 3, -2, 9);
+    Boid bd_3(10, 4, 5, 0);
+    Boid bd_4(10, 3, -2, 9);
+
+    Parameters params(2.5, 4, 1, 2, 3);
+    Boid com(0, 0, 0, 0);
+
+    Flock flock(params, 0, com);
+
+    flock.push_back(bd_1);
+    flock.push_back(bd_2);
+    flock.push_back(bd_4);
+    flock.push_back(bd_3);
+
+    const auto it = flock.begin();
+    const auto neighbours = flock.get_neighbours(it, view_angle);
+    CHECK(neighbours.size() == 1);
+    const auto dv1 = flock.vel_correction(it, view_angle);
+    CHECK(dv1[0] == -10.);
+    CHECK(dv1[1] == 16.);
+  }
+
+  SUBCASE("Testing the Flock::vel_correction method with four boids 2") {
+    Boid bd_1(1, 4, 5, 0);
+    Boid bd_2(3, 3, -2, 9);
+    Boid bd_3(4, 4, 5, 0);
+    Boid bd_4(6, 7, -2, 9);
+
+    Parameters params(5, 4, 1, 2, 3);
+
+    Flock flock(params, 0);
+
+    flock.push_back(bd_1);
+    flock.push_back(bd_2);
+    flock.push_back(bd_3);
+    flock.push_back(bd_4);
+
+    const auto it = flock.begin() + 1;
+    const auto neighbours = flock.get_neighbours(it, view_angle);
+    CHECK(neighbours.size() == 2);
+    const auto dv2 = flock.vel_correction(it, view_angle);
+    CHECK(dv2[0] == 13.5);
+    CHECK(dv2[1] == -17.);
+  }
+
+  SUBCASE(
+      "Testing the Flock::vel_correction method with two boids that don't see "
+      "each other") {
+    Boid bd_1(7, 4, 5, 0);
+    Boid bd_2(4, 3, -5, 0);
+
+    Parameters params(5, 4, 1, 2, 3);
+
+    Flock flock(params, 0);
+
+    flock.push_back(bd_2);
+    flock.push_back(bd_1);
+
+    const auto it = flock.begin() + 1;
+    const auto neighbours = flock.get_neighbours(it, view_angle);
+    CHECK(neighbours.size() == 0);
+    const auto dv2 = flock.vel_correction(it, view_angle);
+    CHECK(dv2[0] == 0.);
+    CHECK(dv2[1] == 0.);
+  }
+
+  SUBCASE(
+      "Testing the Flock::vel_correction method with four boids, the last one "
+      "doesn't see the others") {
+    Boid bd_1(1, 4, 5, 0);
+    Boid bd_2(3, 3, 5, 9);
+    Boid bd_3(4, 4, 5, 0);
+    Boid bd_4(6, 7, 5, 0);
+
+    Parameters params(5, 4, 1, 2, 3);
+
+    Flock flock(params, 0);
+
+    flock.push_back(bd_1);
+    flock.push_back(bd_2);
+    flock.push_back(bd_3);
+    flock.push_back(bd_4);
+
+    const auto it = flock.begin() + 1;
+    const auto ut = flock.end() - 1;
+
+    const auto neighbours_1 = flock.get_neighbours(it, view_angle);
+    const auto neighbours_2 = flock.get_neighbours(ut, view_angle);
+    CHECK(neighbours_1.size() == 2);
+    CHECK(neighbours_2.size() == 0);
+    const auto dv1 = flock.vel_correction(it, view_angle);
+    const auto dv2 = flock.vel_correction(ut, view_angle);
+    CHECK(dv1[0] == -0.5);
+    CHECK(dv1[1] == -17.);
+    CHECK(dv2[0] == 0.);
+    CHECK(dv2[1] == 0.);
+  }
+
+  SUBCASE("Testing the Flock::vel_correction method with just one boids") {
+    Boid bd_1(1, 4, 5, 0);
+
+    Parameters params(2.5, 4, 1, 2, 3);
+    Boid com(0, 0, 0, 0);
+
+    Flock flock(params, 0, com);
+
+    flock.push_back(bd_1);
+
+    const auto it = flock.begin();
+    const auto neighbours = flock.get_neighbours(it, view_angle);
+    CHECK(neighbours.size() == 0);
+    const auto dv = flock.vel_correction(it, view_angle);
+    CHECK(dv[0] == 0.);
+    CHECK(dv[1] == 0.);
+  }
+
+  SUBCASE("Testing the Flock::vel_correction method with Flock::end") {
+    Boid bd_1(1, 4, 5, 0);
+    Boid bd_2(3, 3, -2, 9);
+    Boid bd_3(4, 4, 5, 0);
+    Boid bd_4(6, 7, -2, 9);
+
+    Parameters params(5, 4, 1, 2, 3);
+
+    Flock flock(params, 0);
+
+    flock.push_back(bd_1);
+    flock.push_back(bd_2);
+    flock.push_back(bd_3);
+    flock.push_back(bd_4);
+
+    const auto it = flock.end();
+    const auto neighbours = flock.get_neighbours(it, view_angle);
+    CHECK(neighbours.size() == 0);
+    const auto dv = flock.vel_correction(it, view_angle);
+    CHECK(dv[0] == 0.);
+    CHECK(dv[1] == 0.);
   }
 
   SUBCASE("Testing the Flock::update_stats method with no neighbours") {
