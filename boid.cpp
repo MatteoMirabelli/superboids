@@ -62,66 +62,6 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
   }
 }
 
-Predator::Predator(std::valarray<double> pos, std::valarray<double> vel) {
-  assert(pos.size() == 2 || vel.size() == 2);
-  p_pos = pos;
-  p_vel = vel;
-  p_angle = compute_angle<double>(vel);
-}
-
-Predator::Predator(double x, double y, double vx, double vy) {
-  assert(x >= 0 && y >= 0);
-  p_pos = std::valarray<double>(2);
-  p_vel = std::valarray<double>(2);
-  p_pos[0] = x;
-  p_pos[1] = y;
-  p_vel[0] = vx;
-  p_vel[1] = vy;
-  p_angle = compute_angle<double>(p_vel);
-}
-
-std::valarray<double>& Predator::get_pos() { return p_pos; }
-
-std::valarray<double> const& Predator::get_pos() const { return p_pos; }
-
-std::valarray<double>& Predator::get_vel() { return p_vel; }
-
-std::valarray<double> const& Predator::get_vel() const { return p_vel; }
-
-double& Predator::get_angle() { return p_angle; }
-
-double const& Predator::get_angle() const { return p_angle; }
-
-void Predator::update_state(double delta_t, std::valarray<double> delta_vel) {
-  p_vel += delta_vel;
-  p_pos += (p_vel * delta_t);
-  p_angle = compute_angle<double>(p_vel);
-}
-
-void Predator::update_state(double delta_t, std::valarray<double> delta_vel,
-                            bool const& b, double d, double k) {
-  p_vel += delta_vel;
-  p_pos += (p_vel * delta_t);
-  p_angle = compute_angle<double>(p_vel);
-
-  if (b == true) {
-    // implementazione con periodiche
-    (p_pos[0] > 1800.) ? p_pos[0] = 21. : p_pos[0];
-    (p_pos[0] < 20.) ? p_pos[0] = 1799. : p_pos[0];
-    (p_pos[1] > 1000.) ? p_pos[1] = 21. : p_pos[1];
-    (p_pos[1] < 20.) ? p_pos[1] = 999. : p_pos[1];
-  } else {
-    // implementazione con bordi
-
-    (p_pos[0] > 1800 - 1.7 * d) ? p_vel[0] -= 2 * k * (1800 - p_pos[0])
-                                : p_vel[0];
-    (p_pos[0] < 1.7 * d) ? p_vel[0] += 2 * k * p_pos[0] : p_vel[0];
-    (p_pos[1] > 1000 - 1.7 * d) ? p_vel[1] -= 2 * k * (1000 - p_pos[1])
-                                : p_vel[1];
-    (p_pos[1] < 1.7 * d) ? p_vel[1] += 2 * k * p_pos[1] : p_vel[1];
-  }
-}
-
 template <typename T>
 T vec_norm(std::valarray<T> vec) {
   assert(std::is_arithmetic_v<T>);

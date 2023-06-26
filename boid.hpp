@@ -28,28 +28,6 @@ class Boid {
   void update_state(double, std::valarray<double>, bool const&, double, double);
 };
 
-class Predator {
-  std::valarray<double> p_pos;
-  std::valarray<double> p_vel;
-  double p_angle;
-
- public:
-  explicit Predator(std::valarray<double> pos, std::valarray<double> vel);
-  Predator(double, double, double, double);
-  Predator() = default;
-
-  std::valarray<double>& get_pos();
-  std::valarray<double> const& get_pos() const;
-
-  std::valarray<double>& get_vel();
-  std::valarray<double> const& get_vel() const;
-
-  double& get_angle();
-  double const& get_angle() const;
-
-  void update_state(double, std::valarray<double>);
-  void update_state(double, std::valarray<double>, bool const&, double, double);
-};
 
 template <typename T>
 T vec_norm(std::valarray<T> vec);
