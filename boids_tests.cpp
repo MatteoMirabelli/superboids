@@ -3,8 +3,8 @@
 #include "doctest.h"
 #include "flock.hpp"
 
-TEST_CASE("Testing the Boid class and functions") {
-  SUBCASE("Testing the Boid::update_state method") {
+TEST_CASE("Testing the Boid::update_state method") {
+  SUBCASE("Testing the Boid::update_state method with positive values") {
     std::valarray<double> pos{2., 2.};
     std::valarray<double> vel{2., 2.};
     std::valarray<double> delta_vel{1., 1.};
@@ -19,7 +19,7 @@ TEST_CASE("Testing the Boid class and functions") {
     CHECK(boid.get_angle() == doctest::Approx(45.));
   }
 
-  SUBCASE("Testing the Boid::update_state method") {
+  SUBCASE("Testing the Boid::update_state method with null values") {
     std::valarray<double> pos{2., 2.};
     std::valarray<double> vel{1., 1.};
     std::valarray<double> delta_vel{0., 0.};
@@ -34,7 +34,7 @@ TEST_CASE("Testing the Boid class and functions") {
     CHECK(boid.get_angle() == doctest::Approx(45.));
   }
 
-  SUBCASE("Testing the Boid::update_state method") {
+  SUBCASE("Testing the Boid::update_state method with negative values") {
     std::valarray<double> pos{-3., 2.};
     std::valarray<double> vel{5., -4.};
     std::valarray<double> delta_vel{0., -1.};
@@ -48,28 +48,24 @@ TEST_CASE("Testing the Boid class and functions") {
     CHECK(boid.get_pos()[1] == doctest::Approx(-3.));
     CHECK(boid.get_angle() == doctest::Approx(135.));
   }
+}
 
+TEST_CASE("Testing auxiliary functions") {
   SUBCASE("Testing the vec_norm function") {
     std::valarray<double> vec_1{1, 4};
     std::valarray<double> vec_2{2, 5};
     std::valarray<double> vec_3{0, 0};
     std::valarray<double> vec_4{-1, -4};
-    std::valarray<double> vec_5{1, -4};
-    std::valarray<double> vec_6{-1, 4};
 
     double norm1 = vec_norm(vec_1);
     double norm2 = vec_norm(vec_2);
     double norm3 = vec_norm(vec_3);
     double norm4 = vec_norm(vec_4);
-    double norm5 = vec_norm(vec_5);
-    double norm6 = vec_norm(vec_6);
 
     CHECK(norm1 == doctest::Approx(4.1231056));
     CHECK(norm2 == doctest::Approx(5.385164807));
     CHECK(norm3 == 0);
     CHECK(norm4 == doctest::Approx(4.1231056));
-    CHECK(norm5 == doctest::Approx(4.1231056));
-    CHECK(norm6 == doctest::Approx(4.1231056));
   }
 
   SUBCASE("Testing the boid_dist function") {
@@ -81,20 +77,16 @@ TEST_CASE("Testing the Boid class and functions") {
 
     double d12 = boid_dist(bd_1, bd_2);
     double d13 = boid_dist(bd_1, bd_3);
-    double d15 = boid_dist(bd_1, bd_5);
-    double d21 = boid_dist(bd_2, bd_1);
     double d34 = boid_dist(bd_3, bd_4);
-    double d51 = boid_dist(bd_5, bd_1);
+    double d15 = boid_dist(bd_1, bd_5);
 
     CHECK(d12 == doctest::Approx(2.828427));
     CHECK(d13 == doctest::Approx(2.828427));
-    CHECK(d15 == doctest::Approx(6.082762));
-    CHECK(d21 == doctest::Approx(2.828427));
     CHECK(d34 == 0);
-    CHECK(d51 == doctest::Approx(6.082762));
+    CHECK(d15 == doctest::Approx(6.082762));
   }
 
-  SUBCASE("Testing the boid_dist function") {
+  SUBCASE("Testing the boid_dist function with boids with other boids") {
     Boid bd_1(2, 2, 5, 4);
     Boid bd_2(4, 4, 1, -3);
     Boid bd_3(0, 0, 3, 5);
@@ -115,7 +107,7 @@ TEST_CASE("Testing the Boid class and functions") {
     CHECK(d43 == 0);
   }
 
-  SUBCASE("Testing the boid_dist function") {
+  SUBCASE("Testing the boid_dist function with just one boid") {
     Boid bd_1(2, 2, 5, 4);
     double d11 = boid_dist(bd_1, bd_1);
 
@@ -160,8 +152,137 @@ TEST_CASE("Testing the Boid class and functions") {
   }
 }
 
-TEST_CASE("Testing the Flock class and functions") {
-  SUBCASE("Testing the Flock::update_com method") {
+TEST_CASE("Testing Flock basics") {
+  Boid bd_1(2, 2, 5, 4);
+  Boid bd_2(5, 7, 1, -3);
+  Boid bd_3(6, 8, 4, 3);
+  Boid bd_4(10, 12, -4, 8);
+  Parameters params(4, 4, 1, 2, 3);
+  Flock flock(params, 0);
+
+  CHECK(flock.size() == 0);
+
+  flock.push_back(bd_1);
+  flock.push_back(bd_2);
+  flock.push_back(bd_3);
+  flock.push_back(bd_4);
+
+  CHECK(flock.get_boid(1).get_pos()[0] == 2);
+  CHECK(flock.get_boid(1).get_pos()[1] == 2);
+  CHECK(flock.get_boid(1).get_vel()[0] == 5);
+  CHECK(flock.get_boid(1).get_vel()[1] == 4);
+  CHECK(flock.get_boid(2).get_pos()[0] == 5);
+  CHECK(flock.get_boid(2).get_pos()[1] == 7);
+  CHECK(flock.get_boid(2).get_vel()[0] == 1);
+  CHECK(flock.get_boid(2).get_vel()[1] == -3);
+  CHECK(flock.get_boid(3).get_pos()[0] == 6);
+  CHECK(flock.get_boid(3).get_pos()[1] == 8);
+  CHECK(flock.get_boid(3).get_vel()[0] == 4);
+  CHECK(flock.get_boid(3).get_vel()[1] == 3);
+  CHECK(flock.get_boid(4).get_pos()[0] == 10);
+  CHECK(flock.get_boid(4).get_pos()[1] == 12);
+  CHECK(flock.get_boid(4).get_vel()[0] == -4);
+  CHECK(flock.get_boid(4).get_vel()[1] == 8);
+
+  CHECK(flock.size() == 4);
+
+  CHECK(flock.get_params().d == 4);
+  CHECK(flock.get_params().d_s == 4);
+  CHECK(flock.get_params().s == 1);
+  CHECK(flock.get_params().a == 2);
+  CHECK(flock.get_params().c == 3);
+
+  auto last = flock.end() - 1;
+  flock.erase(last);
+  CHECK(flock.size() == 3);
+
+  last = flock.end() - 1;
+  CHECK(last->get_pos()[0] == 6);
+  CHECK(last->get_pos()[1] == 8);
+  CHECK(last->get_vel()[0] == 4);
+  CHECK(last->get_vel()[1] == 3);
+
+  auto first = flock.begin();
+  flock.erase(first);
+  CHECK(flock.size() == 2);
+
+  first = flock.begin();
+  CHECK(first->get_pos()[0] == 5);
+  CHECK(first->get_pos()[1] == 7);
+  CHECK(first->get_vel()[0] == 1);
+  CHECK(first->get_vel()[1] == -3);
+}
+
+TEST_CASE("Testing the Flock::sort method") {
+  SUBCASE("Testing the Flock::sort method with five boids boids") {
+    Boid bd_1(1, 4, 5, 0);
+    Boid bd_2(4, 3, -2, 9);
+    Boid bd_3(0, 4, 5, 0);
+    Boid bd_4(54, 3, -2, 9);
+
+    Parameters params(4, 4, 1, 2, 3);
+    Boid com(0, 0, 0, 0);
+
+    Flock flock(params, 0, com);
+
+    flock.push_back(bd_2);
+    flock.push_back(bd_1);
+    flock.push_back(bd_4);
+    flock.push_back(bd_3);
+
+    flock.sort();
+
+    CHECK(flock.get_boid(1).get_pos()[0] == 0);
+    CHECK(flock.get_boid(2).get_pos()[0] == 1);
+    CHECK(flock.get_boid(3).get_pos()[0] == 4);
+    CHECK(flock.get_boid(4).get_pos()[0] == 54);
+  }
+
+  SUBCASE("Testing the Flock::sort method with boids with same x_position") {
+    Boid bd_1(1, 4, 5, 0);
+    Boid bd_2(4, 3, -2, 9);
+    Boid bd_3(10, 4, 5, 0);
+    Boid bd_4(10, 3, -2, 9);
+
+    Parameters params(4, 4, 1, 2, 3);
+    Boid com(0, 0, 0, 0);
+
+    Flock flock(params, 0, com);
+
+    flock.push_back(bd_2);
+    flock.push_back(bd_4);
+    flock.push_back(bd_3);
+    flock.push_back(bd_1);
+
+    flock.sort();
+
+    CHECK(flock.get_boid(1).get_pos()[0] == 1);
+    CHECK(flock.get_boid(2).get_pos()[0] == 4);
+    CHECK(flock.get_boid(3).get_pos()[0] == 10);
+    CHECK(flock.get_boid(4).get_pos()[0] == 10);
+    CHECK(flock.get_boid(3).get_pos()[1] == 3);
+    CHECK(flock.get_boid(4).get_pos()[1] == 4);
+  }
+
+  SUBCASE("Testing the Flock::sort method with just one boids") {
+    Boid bd_1(1, 4, 5, 0);
+
+    Parameters params(4, 4, 1, 2, 3);
+    Boid com(0, 0, 0, 0);
+
+    Flock flock(params, 0, com);
+
+    flock.push_back(bd_1);
+
+    flock.sort();
+
+    CHECK(flock.get_boid(1).get_pos()[0] == 1);
+    CHECK(flock.get_boid(1).get_pos()[1] == 4);
+  }
+}
+
+TEST_CASE("Testing the Flock::update_com method") {
+  SUBCASE("Testing the Flock::update_com method with four boids") {
     Boid bd_1(2, 2, 5, 4);
     Boid bd_2(5, 7, 1, -3);
     Boid bd_3(6, 8, 4, 3);
@@ -224,27 +345,7 @@ TEST_CASE("Testing the Flock class and functions") {
 
   SUBCASE("Testing the Flock::sort method with two boids") {
     Boid bd_1(1, 4, 5, 0);
-    Boid bd_2(5, 3, -2, 9);
-
-    Parameters params(4, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0);
-
-    Flock flock(params, 0, com);
-
-    flock.push_back(bd_2);
-    flock.push_back(bd_1);
-
-    flock.sort();
-
-    CHECK(flock.get_boid(1).get_pos()[0] == 1);
-    CHECK(flock.get_boid(2).get_pos()[0] == 5);
-  }
-
-  SUBCASE("Testing the Flock::sort method with five boids boids") {
-    Boid bd_1(1, 4, 5, 0);
     Boid bd_2(4, 3, -2, 9);
-    Boid bd_3(0, 4, 5, 0);
-    Boid bd_4(54, 3, -2, 9);
 
     Parameters params(4, 4, 1, 2, 3);
     Boid com(0, 0, 0, 0);
@@ -252,60 +353,17 @@ TEST_CASE("Testing the Flock class and functions") {
     Flock flock(params, 0, com);
 
     flock.push_back(bd_2);
-    flock.push_back(bd_1);
-    flock.push_back(bd_4);
-    flock.push_back(bd_3);
-
-    flock.sort();
-
-    CHECK(flock.get_boid(1).get_pos()[0] == 0);
-    CHECK(flock.get_boid(2).get_pos()[0] == 1);
-    CHECK(flock.get_boid(3).get_pos()[0] == 4);
-    CHECK(flock.get_boid(4).get_pos()[0] == 54);
-  }
-
-  SUBCASE("Testing the Flock::sort method with boids with same x_position") {
-    Boid bd_1(1, 4, 5, 0);
-    Boid bd_2(4, 3, -2, 9);
-    Boid bd_3(10, 4, 5, 0);
-    Boid bd_4(10, 3, -2, 9);
-
-    Parameters params(4, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0);
-
-    Flock flock(params, 0, com);
-
-    flock.push_back(bd_2);
-    flock.push_back(bd_4);
-    flock.push_back(bd_3);
     flock.push_back(bd_1);
 
     flock.sort();
 
     CHECK(flock.get_boid(1).get_pos()[0] == 1);
     CHECK(flock.get_boid(2).get_pos()[0] == 4);
-    CHECK(flock.get_boid(3).get_pos()[0] == 10);
-    CHECK(flock.get_boid(3).get_pos()[1] == 3);
-    CHECK(flock.get_boid(4).get_pos()[0] == 10);
-    CHECK(flock.get_boid(4).get_pos()[1] == 4);
   }
+}
 
-  // Ordina i boids del vettore f_flock in ordine crescente secondo la
-  // posizione in x. Se le posizioni in x sono uguali, allora ordina secondo
-  // le posizioni in y
-  // Per semplificare i test sul get_neighbours
-  auto is_less = [&](Boid& bd1, Boid& bd2) {
-    if (bd1.get_pos()[0] != bd2.get_pos()[0]) {
-      return bd1.get_pos()[0] < bd2.get_pos()[0];
-    } else {
-      return bd1.get_pos()[1] < bd2.get_pos()[1];
-    }
-  };
-
-  // Angolo di vista usato nei successivi test
-  double view_angle = 120.;
-
-  SUBCASE("Testing the Flock::get_neighbours method with four boids 1") {
+TEST_CASE("Testinf the Flock::get_neighbours method") {
+  SUBCASE("Testing the Flock::get_neighbours method with four boids") {
     Boid bd_1(1, 4, 5, 0);
     Boid bd_2(3, 3, -2, 9);
     Boid bd_3(10, 4, 5, 0);
@@ -315,6 +373,7 @@ TEST_CASE("Testing the Flock class and functions") {
     Boid com(0, 0, 0, 0);
 
     Flock flock(params, 0, com);
+    double view_angle = 120.;
 
     flock.push_back(bd_1);
     flock.push_back(bd_2);
@@ -322,14 +381,15 @@ TEST_CASE("Testing the Flock class and functions") {
     flock.push_back(bd_3);
 
     auto it = flock.begin();
+    ++it;
     std::vector<Boid> neighbours = flock.get_neighbours(it, view_angle);
 
     CHECK(neighbours.size() == 1);
-    CHECK(neighbours[0].get_pos()[0] == 3);
-    CHECK(neighbours[0].get_pos()[1] == 3);
+    CHECK(neighbours[0].get_pos()[0] == 1);
+    CHECK(neighbours[0].get_pos()[1] == 4);
   }
 
-  SUBCASE("Testing the Flock::get_neighbours method with four boids 2") {
+  SUBCASE("Testing the Flock::get_neighbours method again with four boids ") {
     Boid bd_1(1, 4, 5, 0);
     Boid bd_2(3, 3, -2, 9);
     Boid bd_3(4, 4, 5, 0);
@@ -338,6 +398,7 @@ TEST_CASE("Testing the Flock class and functions") {
     Parameters params(5, 4, 1, 2, 3);
 
     Flock flock(params, 0);
+    double view_angle = 120.;
 
     flock.push_back(bd_1);
     flock.push_back(bd_2);
@@ -347,12 +408,12 @@ TEST_CASE("Testing the Flock class and functions") {
     auto it = flock.begin() + 1;
 
     std::vector<Boid> neighbours = flock.get_neighbours(it, view_angle);
-    std::sort(neighbours.begin(), neighbours.end(), is_less);
+
     CHECK(neighbours.size() == 2);
 
-    CHECK(neighbours[0].get_pos()[0] == 1);
+    CHECK(neighbours[0].get_pos()[0] == 4);
     CHECK(neighbours[0].get_pos()[1] == 4);
-    CHECK(neighbours[1].get_pos()[0] == 4);
+    CHECK(neighbours[1].get_pos()[0] == 1);
     CHECK(neighbours[1].get_pos()[1] == 4);
   }
 
@@ -365,6 +426,7 @@ TEST_CASE("Testing the Flock class and functions") {
     Parameters params(5, 4, 1, 2, 3);
 
     Flock flock(params, 0);
+    double view_angle = 120.;
 
     flock.push_back(bd_2);
     flock.push_back(bd_1);
@@ -379,14 +441,15 @@ TEST_CASE("Testing the Flock class and functions") {
   SUBCASE(
       "Testing the Flock::get_neighbours method with four boids, the last one "
       "doesn't see the others") {
-    Boid bd_1(1, 4, 5, 0);
-    Boid bd_2(3, 3, 5, 9);
-    Boid bd_3(4, 4, 5, 0);
-    Boid bd_4(6, 7, 5, 0);
+    Boid bd_1(1, 1, 1, 1);
+    Boid bd_2(3, 3, 1, 1);
+    Boid bd_3(4, 4, 1, 1);
+    Boid bd_4(6, 7, 1, 1);
 
     Parameters params(5, 4, 1, 2, 3);
 
     Flock flock(params, 0);
+    double view_angle = 120.;
 
     flock.push_back(bd_1);
     flock.push_back(bd_2);
@@ -398,12 +461,10 @@ TEST_CASE("Testing the Flock class and functions") {
 
     std::vector<Boid> neighbours_1 = flock.get_neighbours(it, view_angle);
     std::vector<Boid> neighbours_2 = flock.get_neighbours(ut, view_angle);
-    std::sort(neighbours_1.begin(), neighbours_1.end(), is_less);
-    CHECK(neighbours_1.size() == 2);
-    CHECK(neighbours_1[0].get_pos()[0] == 1);
+
+    CHECK(neighbours_1.size() == 1);
+    CHECK(neighbours_1[0].get_pos()[0] == 4);
     CHECK(neighbours_1[0].get_pos()[1] == 4);
-    CHECK(neighbours_1[1].get_pos()[0] == 4);
-    CHECK(neighbours_1[1].get_pos()[1] == 4);
 
     CHECK(neighbours_2.size() == 0);
   }
@@ -415,6 +476,7 @@ TEST_CASE("Testing the Flock class and functions") {
     Boid com(0, 0, 0, 0);
 
     Flock flock(params, 0, com);
+    double view_angle = 120.;
 
     flock.push_back(bd_1);
 
@@ -433,6 +495,7 @@ TEST_CASE("Testing the Flock class and functions") {
     Parameters params(5, 4, 1, 2, 3);
 
     Flock flock(params, 0);
+    double view_angle = 120.;
 
     flock.push_back(bd_1);
     flock.push_back(bd_2);
@@ -444,8 +507,10 @@ TEST_CASE("Testing the Flock class and functions") {
 
     CHECK(neighbours.size() == 0);
   }
+}
 
-  SUBCASE("Testing the Flock::vel_correction method with four boids 1") {
+TEST_CASE("Testing the Flock::vel_correction method") {
+  SUBCASE("Testing the Flock::vel_correction method with four boids") {
     Boid bd_1(1, 4, 5, 0);
     Boid bd_2(3, 3, -2, 9);
     Boid bd_3(10, 4, 5, 0);
@@ -462,14 +527,12 @@ TEST_CASE("Testing the Flock class and functions") {
     flock.push_back(bd_3);
 
     const auto it = flock.begin();
-    const auto neighbours = flock.get_neighbours(it, view_angle);
-    CHECK(neighbours.size() == 1);
-    const auto dv1 = flock.vel_correction(it, view_angle);
+    const auto dv1 = flock.vel_correction(it, 120.);
     CHECK(dv1[0] == -10.);
     CHECK(dv1[1] == 16.);
   }
 
-  SUBCASE("Testing the Flock::vel_correction method with four boids 2") {
+  SUBCASE("Testing the Flock::vel_correction method again with four boids") {
     Boid bd_1(1, 4, 5, 0);
     Boid bd_2(3, 3, -2, 9);
     Boid bd_3(4, 4, 5, 0);
@@ -485,9 +548,7 @@ TEST_CASE("Testing the Flock class and functions") {
     flock.push_back(bd_4);
 
     const auto it = flock.begin() + 1;
-    const auto neighbours = flock.get_neighbours(it, view_angle);
-    CHECK(neighbours.size() == 2);
-    const auto dv2 = flock.vel_correction(it, view_angle);
+    const auto dv2 = flock.vel_correction(it, 120.);
     CHECK(dv2[0] == 13.5);
     CHECK(dv2[1] == -17.);
   }
@@ -506,9 +567,7 @@ TEST_CASE("Testing the Flock class and functions") {
     flock.push_back(bd_1);
 
     const auto it = flock.begin() + 1;
-    const auto neighbours = flock.get_neighbours(it, view_angle);
-    CHECK(neighbours.size() == 0);
-    const auto dv2 = flock.vel_correction(it, view_angle);
+    const auto dv2 = flock.vel_correction(it, 120.);
     CHECK(dv2[0] == 0.);
     CHECK(dv2[1] == 0.);
   }
@@ -532,13 +591,8 @@ TEST_CASE("Testing the Flock class and functions") {
 
     const auto it = flock.begin() + 1;
     const auto ut = flock.end() - 1;
-
-    const auto neighbours_1 = flock.get_neighbours(it, view_angle);
-    const auto neighbours_2 = flock.get_neighbours(ut, view_angle);
-    CHECK(neighbours_1.size() == 2);
-    CHECK(neighbours_2.size() == 0);
-    const auto dv1 = flock.vel_correction(it, view_angle);
-    const auto dv2 = flock.vel_correction(ut, view_angle);
+    const auto dv1 = flock.vel_correction(it, 120.);
+    const auto dv2 = flock.vel_correction(ut, 120.);
     CHECK(dv1[0] == -0.5);
     CHECK(dv1[1] == -17.);
     CHECK(dv2[0] == 0.);
@@ -556,9 +610,7 @@ TEST_CASE("Testing the Flock class and functions") {
     flock.push_back(bd_1);
 
     const auto it = flock.begin();
-    const auto neighbours = flock.get_neighbours(it, view_angle);
-    CHECK(neighbours.size() == 0);
-    const auto dv = flock.vel_correction(it, view_angle);
+    const auto dv = flock.vel_correction(it, 120.);
     CHECK(dv[0] == 0.);
     CHECK(dv[1] == 0.);
   }
@@ -579,13 +631,13 @@ TEST_CASE("Testing the Flock class and functions") {
     flock.push_back(bd_4);
 
     const auto it = flock.end();
-    const auto neighbours = flock.get_neighbours(it, view_angle);
-    CHECK(neighbours.size() == 0);
-    const auto dv = flock.vel_correction(it, view_angle);
+    const auto dv = flock.vel_correction(it, 120.);
     CHECK(dv[0] == 0.);
     CHECK(dv[1] == 0.);
   }
+}
 
+TEST_CASE("Testing the Flock::Update_stats method") {
   SUBCASE("Testing the Flock::update_stats method with no neighbours") {
     Boid bd_1(1, 4, 5, 0);
     Boid bd_2(10, 6, 2, 0);
@@ -596,6 +648,7 @@ TEST_CASE("Testing the Flock class and functions") {
 
     flock.push_back(bd_1);
     flock.push_back(bd_2);
+    flock.sort();
 
     flock.update_stats();
 
@@ -619,6 +672,7 @@ TEST_CASE("Testing the Flock class and functions") {
     flock.push_back(bd_2);
     flock.push_back(bd_3);
     flock.push_back(bd_4);
+    flock.sort();
 
     flock.update_stats();
 
@@ -650,6 +704,9 @@ TEST_CASE("Testing the Flock class and functions") {
     flock_2.push_back(bd_4);
     flock_2.push_back(bd_5);
     flock_2.push_back(bd_6);
+
+    flock_1.sort();
+    flock_2.sort();
 
     flock_1.update_stats();
     flock_2.update_stats();

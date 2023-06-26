@@ -76,8 +76,8 @@ Parameters const& Flock::get_params() const { return f_params; }
 
 Boid const& Flock::get_com() const { return f_com; }
 
-void Flock::erase(int const& n) {
-  auto it = f_flock.begin() + n - 1;
+void Flock::erase(std::vector<Boid>::iterator const& it) {
+  assert(it < this->end() && it >= this->begin());
   f_flock.erase(it);
 }
 
@@ -145,6 +145,7 @@ std::valarray<double> Flock::vel_correction(
 
 void Flock::update_flock_state(double const& delta_t,
                                double const& view_angle) {
+  this->sort();
   std::vector<Boid> copy_flock = f_flock;
   auto it = f_flock.begin();
   std::for_each(copy_flock.begin(), copy_flock.end(), [&](Boid& bd) {
@@ -154,7 +155,6 @@ void Flock::update_flock_state(double const& delta_t,
   });
   f_flock = copy_flock;
   this->update_com();
-  this->sort();
 }
 
 void Flock::sort() {

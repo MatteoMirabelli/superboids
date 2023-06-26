@@ -59,7 +59,7 @@ class Flock {
   Boid const& get_boid(int const&) const;
   Boid const& get_com() const;
   Parameters const& get_params() const;
-  void erase(int const&);
+  void erase(std::vector<Boid>::iterator const&);
   void update_com();
 
   std::vector<Boid> get_neighbours(std::vector<Boid>::iterator const&,
