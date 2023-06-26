@@ -104,9 +104,6 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it,
                                         double const& view_angle) {
   std::vector<Boid> neighbours;
 
-  // Versione Matteo (Con la condizione che il vettore sia ordinato per distanza
-  // dall'origine, controllo solo i boid vicini a *it)
-
   if (it == f_flock.end()) {
   } else if (it == f_flock.begin()) {
     auto et = it;
@@ -164,47 +161,6 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it,
       neighbours.push_back(*et);
     }
   }
-
-  // Versione Alberto (copy_if)
-
-  /* if (it != this->end()) {
-     auto ev_dist = [&](Boid bd_1) {
-       return boid_dist(bd_1, *it) < f_params.d && boid_dist(bd_1, *it) > 0. &&
-              is_visible(bd_1, *it, 120.);
-     };
-     std::copy_if(f_flock.begin(), f_flock.end(),
-   std::back_inserter(neighbours), ev_dist); return neighbours; } else {
-     neighbours = std::vector<Boid>(0);
-     return neighbours;
-   } */
-
-  // Versione Andrea (For Loop su tutti il flock)
-
-  /* if (it != f_flock.end()) {
-    const auto b2 = *it;
-    const double dist = f_params.d;
-    for (auto ut = it; ut > f_flock.begin() &&
-                       std::abs(ut->get_pos()[0] - b2.get_pos()[0]) > dist;
-         --ut) {
-      const auto b1 = *(ut - 1);
-
-      if (boid_dist(b1, b2) < dist && is_visible(b1, b2, 120.)) {
-        neighbours.push_back(b1);
-      }
-    }
-
-    for (auto et = it + 1; et < f_flock.end() &&
-                           std::abs(et->get_pos()[0] - b2.get_pos()[0]) >
-  dist;
-         ++et) {
-      const auto b1 = *et;
-
-      if (boid_dist(b1, b2) < dist && is_visible(b1, b2, 120.)) {
-        neighbours.push_back(b1);
-      }
-    }
-  }
-*/
   return neighbours;
 }
 
@@ -235,7 +191,7 @@ void Flock::update_flock_state(double const& delta_t,
                                double const& view_angle) {
   std::vector<Boid> copy_flock = f_flock;
   auto it = f_flock.begin();
-  std::for_each(std::execution::par_unseq, copy_flock.begin(), copy_flock.end(),
+  std::for_each(std::execution::par, copy_flock.begin(), copy_flock.end(),
                 [&](Boid& bd) {
                   bd.update_state(delta_t, this->vel_correction(it, view_angle),
                                   true, f_params.d_s, f_params.s);
@@ -269,9 +225,14 @@ void Flock::update_stats() {
   double square_mean_vel{0};
   int number_of_couples{0};
 
+  // std::valarray<double> com_vel = {0., 0.};
+  // std::valarray<double> com_pos = {0., 0.};
+
   for (auto it = f_flock.begin(); it < f_flock.end(); ++it) {
     mean_vel += vec_norm(it->get_vel());
     square_mean_vel += (vec_norm(it->get_vel()) * vec_norm(it->get_vel()));
+    // com_pos += it->get_pos();
+    // com_vel += it->get_vel();
 
     for (auto ut = it;
          ut < f_flock.end() &&
@@ -285,6 +246,9 @@ void Flock::update_stats() {
     }
   }
 
+  // f_com.get_pos() = (com_pos / this->size());
+  // f_com.get_vel() = (com_vel / this->size());
+
   if (this->size() == 0) {
     f_stats.av_dist = 0.;
     f_stats.dist_RMS = 0.;
@@ -297,6 +261,9 @@ void Flock::update_stats() {
 
     f_stats.av_vel = mean_vel;
     f_stats.vel_RMS = vel_RMS;
+
+    // Se tutti i boid si trovano a distanza superiore al parametro d, la
+    // distanza media e la sua RMS sono pari a 0
 
     if (number_of_couples == 0) {
       f_stats.av_dist = 0;
