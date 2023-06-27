@@ -6,27 +6,28 @@
 #include <chrono>
 #include <iostream>
 
+#include "bird.hpp"
 #include "boid.hpp"
 #include "flock.hpp"
+#include "predator.hpp"
 
 int main() {
   try {
     Parameters params(80., 50., 1.5, 0.2, 0.3);
-    Flock bd_flock{params, 100};
-    std::vector<sf::ConvexShape> tr_boids;
+    Flock bd_flock{params, 100, 120.};
+    std::vector<Bird> tr_boids;
+    int i = 0;
     std::transform(bd_flock.begin(), bd_flock.end(),
-                   std::back_inserter(tr_boids), [](Boid b) -> sf::ConvexShape {
-                     sf::ConvexShape tr_boid;
-                     tr_boid.setPointCount(3);
-                     tr_boid.setPoint(0, sf::Vector2f(0.f, 0.f));
-                     tr_boid.setPoint(1, sf::Vector2f(15.f, 0.f));
-                     tr_boid.setPoint(2, sf::Vector2f(7.5f, 15.f));
-                     tr_boid.setFillColor(sf::Color::Black);
-                     tr_boid.setOrigin(7.5f, 7.5f);
-                     tr_boid.setPosition(b.get_pos()[0], b.get_pos()[1]);
-                     tr_boid.setRotation(b.get_angle());
+                   std::back_inserter(tr_boids), [&i](Boid b) -> Bird {
+                     Bird tr_boid(15., true);
+                     if (i % 2 == 0) {
+                     } else {
+                       tr_boid.animate();
+                     }
+                     i++;
                      return tr_boid;
                    });
+    i = 0;
     sf::RenderWindow window(sf::VideoMode(1920, 1080), "First boid test");
     window.setFramerateLimit(60);
     sf::Font font;
@@ -42,8 +43,7 @@ int main() {
     std::chrono::duration<double, std::milli> step;
     while (window.isOpen()) {
       std::transform(bd_flock.begin(), bd_flock.end(), tr_boids.begin(),
-                     tr_boids.begin(),
-                     [](Boid& b, sf::ConvexShape& tr_boid) -> sf::ConvexShape {
+                     tr_boids.begin(), [](Boid& b, Bird& tr_boid) -> Bird {
                        tr_boid.setPosition(b.get_pos()[0], b.get_pos()[1]);
                        tr_boid.setRotation(-b.get_angle());
                        return tr_boid;
@@ -59,8 +59,10 @@ int main() {
       window.clear(sf::Color::White);
       window.draw(mag_display);
 
-      for (sf::ConvexShape& tr_boid : tr_boids) {
+      for (Bird& tr_boid : tr_boids) {
         window.draw(tr_boid);
+        tr_boid.animate();
+        //++i;
       }
       window.display();
       init = std::chrono::steady_clock::now();

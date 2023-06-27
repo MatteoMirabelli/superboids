@@ -2,14 +2,15 @@
 
 #include <type_traits>
 
-Boid::Boid(std::valarray<double> pos, std::valarray<double> vel) {
+Boid::Boid(std::valarray<double> pos, std::valarray<double> vel, double angle) {
   assert(pos.size() == 2 || vel.size() == 2);
   b_pos = pos;
   b_vel = vel;
   b_angle = compute_angle<double>(vel);
+  b_view_angle = angle;
 }
 
-Boid::Boid(double x, double y, double vx, double vy) {
+Boid::Boid(double x, double y, double vx, double vy, double ang) {
   assert(x >= 0 && y >= 0);
   b_pos = std::valarray<double>(2);
   b_vel = std::valarray<double>(2);
@@ -18,6 +19,7 @@ Boid::Boid(double x, double y, double vx, double vy) {
   b_vel[0] = vx;
   b_vel[1] = vy;
   b_angle = compute_angle<double>(b_vel);
+  b_view_angle = ang;
 }
 
 std::valarray<double>& Boid::get_pos() { return b_pos; }
@@ -31,6 +33,8 @@ std::valarray<double> const& Boid::get_vel() const { return b_vel; }
 double& Boid::get_angle() { return b_angle; }
 
 double const& Boid::get_angle() const { return b_angle; }
+
+double const& Boid::get_view_angle() const { return b_view_angle; }
 
 void Boid::update_state(double delta_t, std::valarray<double> delta_vel) {
   b_vel += delta_vel;
@@ -90,8 +94,9 @@ T compute_angle(std::valarray<T> const& vec) {
   return angle;
 }
 
-bool is_visible(Boid const& bd_1, Boid const& bd_2, double const& angle) {
-  assert(angle >= 0. && angle <= 180.);
+bool is_visible(Boid const& bd_1, Boid const& bd_2) {
+  double angle = bd_2.get_view_angle();
+  assert(angle >= 0. &&  angle <= 180.);
   return std::abs(compute_angle<double>(bd_1.get_pos() - bd_2.get_pos()) -
                   bd_2.get_angle()) < angle;
 }
