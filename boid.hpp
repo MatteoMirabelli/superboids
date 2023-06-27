@@ -10,10 +10,12 @@ class Boid {
   std::valarray<double> b_vel;
   double b_angle;
   double b_view_angle;
+  std::valarray<double> b_space;
 
  public:
-  explicit Boid(std::valarray<double>, std::valarray<double>, double);
-  Boid(double, double, double, double, double);
+  explicit Boid(std::valarray<double>, std::valarray<double>, double,
+                std::valarray<double>);
+  explicit Boid(double, double, double, double, double, double, double);
   Boid() = default;
 
   std::valarray<double>& get_pos();
@@ -26,6 +28,9 @@ class Boid {
   double const& get_angle() const;
 
   double const& get_view_angle() const;
+
+  void set_space(double const&, double const&);
+  void set_space(std::valarray<double> const&);
 
   void update_state(double, std::valarray<double>);
   void update_state(double, std::valarray<double>, bool const&, double, double);

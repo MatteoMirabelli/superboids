@@ -3,61 +3,49 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
 
-Bird::Bird(float const& size, bool const& state) : size(size), state(state) {
-  bird_shape_left.setPointCount(3);
-  bird_shape_left.setPoint(0, sf::Vector2f(size / 2, size));
-  bird_shape_left.setPoint(1, sf::Vector2f(size / 2, 0.375 * size));
-  bird_shape_left.setFillColor(sf::Color::Black);
-  bird_shape_left.setOutlineThickness(0);
-  bird_shape_left.setOrigin(sf::Vector2f(size / 2, size / 2));
-  bird_shape_right.setPointCount(3);
-  bird_shape_right.setPoint(0, sf::Vector2f(size / 2, size));
-  bird_shape_right.setPoint(1, sf::Vector2f(size / 2, 0.375 * size));
-  bird_shape_right.setFillColor(sf::Color::Black);
-  bird_shape_right.setOutlineThickness(0);
-  bird_shape_right.setOrigin(sf::Vector2f(size / 2, size / 2));
-  // da rifare anche qui!
-  (state == true)
-      ? bird_shape_left.setPoint(2, bird_shape_left.getOrigin() +
-                                        sf::Vector2f(-std::cos(30) * size / 2,
-                                                     -std::sin(30) * size / 2)),
-      bird_shape_right.setPoint(2, bird_shape_right.getOrigin() +
-                                       sf::Vector2f(std::cos(30) * size / 2,
-                                                    -std::sin(30) * size / 2))
-      : bird_shape_left.setPoint(2, bird_shape_left.getOrigin() +
-                                        sf::Vector2f(-std::cos(60) * size / 2,
-                                                     -std::sin(60) * size / 2)),
-      bird_shape_right.setPoint(2, bird_shape_right.getOrigin() +
-                                       sf::Vector2f(std::cos(60) * size / 2,
-                                                    -std::sin(60) * size / 2));
+Bird::Bird(float const& b_size, bool const& b_state)
+    : size(b_size), state(b_state), bird_shape() {
+  // crea un triangolo
+  bird_shape.setPointCount(3);
+  bird_shape.setPoint(0, sf::Vector2f(0.f, 0.f));
+  bird_shape.setPoint(1, sf::Vector2f(b_size, 0.f));
+  bird_shape.setPoint(2, sf::Vector2f(b_size / 2, b_size));
+  // colore di default (possibile eventualmente anche far passare al
+  // costruttore)
+  bird_shape.setFillColor(sf::Color::Black);
+  // centra l'origine (x il movimento e la rotazione)
+  bird_shape.setOrigin(b_size / 2, b_size / 2);
+
+  /*bird_shape.setTextureRect(sf::IntRect(0, 0, size, size));
+  bird_shape.setOrigin(sf::Vector2f(size / 2, size / 2));*/
 }
 
+// qui per il futuro:
+/*void Bird::addTexture(sf::Texture const& texture) {
+  //textures.push_back(texture);
+  bird_shape.setTexture(texture);
+}*/
+
 void Bird::setPosition(float const& x, float const& y) {
+  // per movimento
   sf::Vector2f position(x, y);
-  bird_shape_left.setPosition(position);
-  bird_shape_right.setPosition(position);
+  bird_shape.setPosition(position);
 }
 
 void Bird::setRotation(float const& angle) {
-  bird_shape_left.setRotation(angle);
-  bird_shape_right.setRotation(angle);
+  // per rotazione
+  bird_shape.setRotation(angle);
 }
 
-void Bird::setState(bool const& state) { this->state = state; }
+void Bird::setState(bool const& statet) { this->state = statet; }
+
+void Bird::setFillColor(sf::Color const& color) {
+  // strega comanda colore
+  bird_shape.setFillColor(color);
+}
 
 void Bird::animate() {
-  // da rifare : qualcosa non torna
-  (state == false)
-      ? bird_shape_left.setPoint(2, sf::Vector2f(-std::cos(30) * size / 2,
-                                                 -std::sin(30) * size / 2)),
-      bird_shape_right.setPoint(2, bird_shape_right.getOrigin() +
-                                       sf::Vector2f(std::cos(30) * size / 2,
-                                                    -std::sin(30) * size / 2))
-      : bird_shape_left.setPoint(2, bird_shape_left.getOrigin() +
-                                        sf::Vector2f(-std::cos(60) * size / 2,
-                                                     -std::sin(60) * size / 2)),
-      bird_shape_right.setPoint(2, bird_shape_right.getOrigin() +
-                                       sf::Vector2f(std::cos(60) * size / 2,
-                                                    -std::sin(60) * size / 2));
+  // quando avremo più forme / texture per sprite aggiorna
+  // per ora flippa solo stato
   state = !state;
 }
