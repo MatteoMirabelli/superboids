@@ -5,8 +5,10 @@
 // aggiunto il passaggio delle dimensioni dello schermo
 
 Boid::Boid(std::valarray<double> pos, std::valarray<double> vel, double angle,
-           std::valarray<double> space = {1500., 700.}) {
+           std::valarray<double> space) {
   assert(pos.size() == 2 && vel.size() == 2 && space.size() == 2);
+  assert(pos[0] >= 0 && pos[1] >= 0 && space[0] > 0 && space[1] > 0 &&
+         vec_norm(vel) < 350. && angle >= 0. && angle <= 180.);
   b_pos = pos;
   b_vel = vel;
   b_angle = compute_angle<double>(vel);
@@ -14,9 +16,11 @@ Boid::Boid(std::valarray<double> pos, std::valarray<double> vel, double angle,
   b_space = space;
 }
 
-Boid::Boid(double x, double y, double vx, double vy, double ang,
-           double sx = 1500., double sy = 700.) {
-  assert(x >= 0 && y >= 0);
+Boid::Boid(double x, double y, double vx, double vy, double ang, double sx,
+           double sy) {
+  assert(x >= 0 && y >= 0 && sx > 0 && sy > 0 &&
+         vec_norm(std::valarray<double>{vx, vy}) < 350. && ang >= 0. &&
+         ang <= 180.);
   b_pos = std::valarray<double>(2);
   b_vel = std::valarray<double>(2);
   b_pos[0] = x;
@@ -44,6 +48,7 @@ double const& Boid::get_view_angle() const { return b_view_angle; }
 
 // per cambiare range (overloadato)
 void Boid::set_space(double const& sx, double const& sy) {
+  assert(sx > 0 && sy > 0);
   b_space[0] = sx;
   b_space[1] = sy;
 }
@@ -53,7 +58,10 @@ void Boid::set_space(std::valarray<double> const& space) { b_space = space; }
 void Boid::update_state(double delta_t, std::valarray<double> delta_vel) {
   b_vel += delta_vel;
   b_pos += (b_vel * delta_t);
+  // calcola l'angolo di orientamento dalla velocità:
   b_angle = compute_angle<double>(b_vel);
+  // velocità massima:
+  (vec_norm(b_vel) > 350.) ? b_vel *= (350. / vec_norm(b_vel)) : b_vel;
 }
 
 void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
@@ -77,16 +85,20 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
         : b_vel[1];
     (b_pos[1] < 1.7 * d) ? b_vel[1] += 2 * k * b_pos[1] : b_vel[1];
   }
-  b_angle = compute_angle<double>(b_vel);  // ora calcola dopo!
+  // calcola l'angolo di orientamento dalla velocità:
+  b_angle = compute_angle<double>(b_vel);
+  // viene fatto *dopo* le correzioni per i bordi / periodiche!
+  // velocità massima:
+  (vec_norm(b_vel) > 350.) ? b_vel *= (350. / vec_norm(b_vel)) : b_vel;
 }
 
 template <typename T>
 T vec_norm(std::valarray<T> vec) {
-  assert(std::is_arithmetic_v<T>);
   return std::sqrt(std::pow(vec, {2, 2}).sum());
 }
 
 double boid_dist(Boid const& bd_1, Boid const& bd_2) {
+  // distanza = norma della differenza
   return vec_norm<double>(bd_1.get_pos() - bd_2.get_pos());
 }
 

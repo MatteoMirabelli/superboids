@@ -6,6 +6,7 @@
 #include <chrono>
 #include <iostream>
 
+#include "animation.hpp"
 #include "bird.hpp"
 #include "boid.hpp"
 #include "flock.hpp"
@@ -14,28 +15,28 @@
 int main() {
   try {
     // inizializzo parametri stormo
-    Parameters params(80., 40., 1., 0.1, 0.05);
+    Parameters params(100., 50., 0.9, 0.05, 0.01);
     // prende parametri finestra (in fullscreen)
-    double video_x = sf::VideoMode::getFullscreenModes()[1].width;
+    double video_x = sf::VideoMode::getFullscreenModes()[1].width * 0.85;
     double video_y = sf::VideoMode::getFullscreenModes()[1].height;
     // inizializzo stormo
     Flock bd_flock{params, 100, 120., {video_x, video_y}};
     // vettore di oggetti grafici stormo:
     std::vector<Bird> tr_boids;
     // inizializzo predatore
-    Predator predator(300., 300., 10., 0., 120., video_x, video_y, 80., 0.7);
+    Predator predator(600., 300., 100., 0., 140., 70., 0.8, video_x, video_y);
     // qui servirà per caricare le texture:
-    /*sf::Texture bd_texture;
-    if (!bd_texture.loadFromFile("textures/bird.png")) {
+    sf::Texture bd_texture;
+    if (!bd_texture.loadFromFile("textures/eagle.png")) {
       return 0;
-    }*/
+    }
     // oggetto grafico predatore:
-    Bird tr_predator(20., true);
+    Animate tr_predator(bd_texture);
 
     // tr_predator.addTexture(bd_texture);
 
     // imposto colore, posizione e rotazione predatore
-    tr_predator.setFillColor(sf::Color::Red);
+    // tr_predator.setFillColor(sf::Color::Red);
     tr_predator.setPosition(predator.get_pos()[0], predator.get_pos()[1]);
     tr_predator.setRotation(-predator.get_angle());
     int i = 0;
@@ -50,7 +51,7 @@ int main() {
                      // tr_boid.addTexture(bd_texture);
                      i++;
                      tr_boid.setPosition(b.get_pos()[0], b.get_pos()[1]);
-                     tr_boid.setRotation(-b.get_angle());
+                     tr_boid.setRotation(b.get_angle());
                      return tr_boid;
                    });
     i = 0;  // potrà tornarci di nuovo utile nel ciclo...
@@ -75,18 +76,18 @@ int main() {
     mag_display.setCharacterSize(15);
 
     // finestra posizione com
-    sf::RectangleShape rec(sf::Vector2f(video_x * 0.15, video_y * 0.15));
+    sf::RectangleShape rec(sf::Vector2f(video_x * 0.12, video_y * 0.12));
     rec.setFillColor(sf::Color::White);
     rec.setOutlineColor(sf::Color::Black);
     rec.setOutlineThickness(2);
-    rec.setPosition(video_x * 0.85, 0.);
+    rec.setPosition(video_x + 40., 20.);
 
     // indicatore posizione com
     sf::CircleShape com_circle(5.);
     com_circle.setFillColor(sf::Color::Red);
     float com_x = bd_flock.get_com().get_pos()[0];
     float com_y = bd_flock.get_com().get_pos()[1];
-    com_circle.setPosition(video_x * 0.85 + 0.15 * com_x, 0. + 0.15 * com_y);
+    com_circle.setPosition(video_x + 40. + 0.12 * com_x, 20. + 0.12 * com_y);
 
     // per lo sfondo:
     /*sf::Texture bg_texture;
@@ -105,6 +106,7 @@ int main() {
     // game cicle
     while (window.isOpen()) {
       // aggiorna vettore di oggetti grafici bird
+      tr_boids.erase(tr_boids.begin() + bd_flock.size(), tr_boids.end());
       std::transform(bd_flock.begin(), bd_flock.end(), tr_boids.begin(),
                      tr_boids.begin(), [](Boid& b, Bird& tr_boid) -> Bird {
                        tr_boid.setPosition(b.get_pos()[0], b.get_pos()[1]);
@@ -113,7 +115,7 @@ int main() {
                      });
       // aggiorna oggetto grafico predatore
       tr_predator.setPosition(predator.get_pos()[0], predator.get_pos()[1]);
-      tr_predator.setRotation(-predator.get_angle());
+      tr_predator.setRotation(180. - predator.get_angle());
       //  Process events
       sf::Event event;
       while (window.pollEvent(event)) {
@@ -132,7 +134,7 @@ int main() {
       // clear window
       window.clear(sf::Color(200, 200, 255));
       // disegna sfondo
-      //window.draw(backg);
+      // window.draw(backg);
       // disegna testo
       window.draw(mag_display);
       // disegna predatore
@@ -145,7 +147,9 @@ int main() {
       }
       // finestra per posizione com flock
       window.draw(rec);
-      window.draw(com_circle);
+      if (rec_contains(rec.getGlobalBounds(), com_circle.getGlobalBounds())) {
+        window.draw(com_circle);
+      }
       // taaac
       window.display();
       // avvia cronometro
@@ -154,7 +158,7 @@ int main() {
       bd_flock.update_flock_pred_state(0.016, false, predator);
       com_x = bd_flock.get_com().get_pos()[0];
       com_y = bd_flock.get_com().get_pos()[1];
-      com_circle.setPosition(video_x * 0.85 + 0.15 * com_x, 0. + 0.15 * com_y);
+      com_circle.setPosition(video_x + 40. + 0.12 * com_x, 20. + 0.12 * com_y);
       // ferma cronometro: calcola tempo di computazione
       step = std::chrono::steady_clock::now() - init;
     }

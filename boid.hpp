@@ -13,9 +13,9 @@ class Boid {
   std::valarray<double> b_space;
 
  public:
-  explicit Boid(std::valarray<double>, std::valarray<double>, double,
-                std::valarray<double>);
-  explicit Boid(double, double, double, double, double, double, double);
+  Boid(std::valarray<double>, std::valarray<double>, double,
+       std::valarray<double>);
+  Boid(double, double, double, double, double, double, double);
   Boid() = default;
 
   std::valarray<double>& get_pos();

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <execution>
 #include <numeric>
 #include <random>
 
@@ -13,15 +14,23 @@ Flock::Flock(Parameters const& params, int const& bd_n, Boid const& com,
   assert(bd_n >= 0);
 
   if (bd_n == 0) {
-    f_flock = std::vector<Boid>(0);
+    // f_flock = std::vector<Boid>(0);
   } else {
+    double rg_x;
+    double rg_y;
+    (com.get_pos()[0] < space[0] / 2.)
+        ? rg_x = com.get_pos()[0] - 20.
+        : rg_x = space[0] - com.get_pos()[0] - 20.;
+    (com.get_pos()[1] < space[1] / 2.)
+        ? rg_x = com.get_pos()[1] - 20.
+        : rg_x = space[1] - com.get_pos()[1] - 20.;
     std::random_device rd;
-    std::uniform_real_distribution<> dist_pos_x(com.get_pos()[0] - 360.,
-                                                com.get_pos()[0] + 360.1);
+    std::uniform_real_distribution<> dist_pos_x(com.get_pos()[0] - rg_x,
+                                                com.get_pos()[0] + rg_x + 0.1);
     std::uniform_real_distribution<> dist_vel_x(com.get_vel()[0] - 150.,
                                                 com.get_vel()[0] + 150.1);
-    std::uniform_real_distribution<> dist_pos_y(com.get_pos()[1] - 360.,
-                                                com.get_pos()[1] + 360.1);
+    std::uniform_real_distribution<> dist_pos_y(com.get_pos()[1] - rg_y,
+                                                com.get_pos()[1] + rg_y + 0.1);
     std::uniform_real_distribution<> dist_vel_y(com.get_vel()[1] - 150.,
                                                 com.get_vel()[1] + 150.1);
     std::valarray<double> final_pos{0., 0.};
@@ -38,7 +47,7 @@ Flock::Flock(Parameters const& params, int const& bd_n, Boid const& com,
                            bd_n * com.get_vel() - final_vel, ang, space});
   }
 
-  this->sort();
+  sort();
 }
 
 Flock::Flock(Parameters const& params, int const& bd_n, double const& ang,
@@ -47,14 +56,22 @@ Flock::Flock(Parameters const& params, int const& bd_n, double const& ang,
   // Genera casualmente, secondo distribuzioni uniformi, i boids
   assert(bd_n >= 0);
   std::random_device rd;
-  std::uniform_real_distribution<> dist_pos_x(20., space[0] - 19.);
+  int x_max = 2 * (space[0] - 40.) / params.d_s;
+  int y_max = 2 * (space[1] - 40.) / params.d_s;
+
+  std::uniform_int_distribution<> dist_pos_x(0, x_max);
+  std::uniform_int_distribution<> dist_pos_y(0, y_max);
+
+  /*std::uniform_real_distribution<> dist_pos_x(20., space[0] - 19.);
+  std::uniform_real_distribution<> dist_pos_y(20., space[1] - 19.);*/
+
   std::uniform_real_distribution<> dist_vel_x(-150., 150.);
-  std::uniform_real_distribution<> dist_pos_y(20., space[1] - 19.);
   std::uniform_real_distribution<> dist_vel_y(-150., 150.);
 
   f_com = Boid{{0., 0.}, {0., 0.}, 360., space};
   for (auto n = 0; n < bd_n; ++n) {
-    std::valarray<double> pos = {dist_pos_x(rd), dist_pos_y(rd)};
+    std::valarray<double> pos = {dist_pos_x(rd) * 0.5 * (params.d_s),
+                                 dist_pos_y(rd) * 0.5 * (params.d_s)};
     std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
     f_flock.push_back(Boid{pos, vel, ang, space});
     f_com.get_vel() += vel;
@@ -63,7 +80,13 @@ Flock::Flock(Parameters const& params, int const& bd_n, double const& ang,
   f_com.get_vel() /= f_flock.size();
   f_com.get_pos() /= f_flock.size();
 
-  this->sort();
+  sort();
+  auto compare_bd = [](Boid& b1, Boid& b2) {
+    return b1.get_pos()[0] == b2.get_pos()[0] &&
+           b1.get_pos()[1] == b2.get_pos()[1];
+  };
+  auto last = std::unique(f_flock.begin(), f_flock.end(), compare_bd);
+  f_flock.erase(last, f_flock.end());
 }
 
 std::vector<Boid>::iterator Flock::begin() { return f_flock.begin(); }
@@ -81,7 +104,31 @@ Boid const& Flock::get_com() const { return f_com; }
 
 Parameters const& Flock::get_params() const { return f_params; }
 
+void Flock::set_parameter(int const& index, double const& value) {
+  assert(index >= 0 && index < 5);
+  switch (index) {
+    case 0:
+      f_params.d = value;
+      break;
+    case 1:
+      f_params.d_s = value;
+      break;
+    case 2:
+      f_params.s = value;
+      break;
+    case 3:
+      f_params.a = value;
+      break;
+    case 4:
+      f_params.c = value;
+      break;
+    default:
+      break;
+  }
+}
+
 void Flock::set_space(double const& sx, double const& sy) {
+  assert(sx > 0 && sy > 0);
   f_com.set_space(sx, sy);
   for (auto& bd : f_flock) {
     bd.set_space(sx, sy);
@@ -165,7 +212,7 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
       }
     }
   } else {
-    neighbours = this->get_neighbours(f_params.d, *it);
+    neighbours = get_neighbours(f_params.d, *it);
   }
 
   // Versione Alberto (copy_if)
@@ -226,7 +273,7 @@ std::vector<Boid> Flock::get_neighbours(double const& dist, Boid const& be) {
 // vel correction senza predatori
 std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
   assert(it >= f_flock.begin() && it < f_flock.end());
-  auto neighbours = this->get_neighbours(it);
+  auto neighbours = get_neighbours(it);
   std::valarray<double> delta_vel = {0., 0.};
   if (neighbours.size() > 0) {
     auto n_minus = neighbours.size();
@@ -251,11 +298,11 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
 std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
                                             Predator const& pred) {
   assert(it >= f_flock.begin() && it < f_flock.end());
-  auto neighbours = this->get_neighbours(it);
+  auto neighbours = get_neighbours(it);
   std::valarray<double> delta_vel = {0., 0.};
   // valuta subito se applicare separazione al predatore
   (boid_dist(pred, *it) < f_params.d_s && is_visible(pred, *it) == true)
-      ? delta_vel -= f_params.s * (pred.get_pos() - it->get_pos())
+      ? delta_vel -= 3 * f_params.s * (pred.get_pos() - it->get_pos())
       : delta_vel;
   // da qui in poi come caso no predatore:
   if (neighbours.size() > 0) {
@@ -299,37 +346,39 @@ void Flock::update_flock_pred_state(double const& delta_t, bool const& mod,
   // boid su cui applica caccia = prede
   std::vector<Boid> preys;
   // boid mangiati (rimossi) = vittime
-  std::vector<std::vector<Boid>::iterator> victims;
-  std::for_each(copy_flock.begin(), copy_flock.end(), [&](Boid& bd) {
-    if (boid_dist(bd, pred) < 9. && is_visible(bd, pred)) {
-      victims.push_back(it);
-      return;
+  std::vector<int> victims;
+  auto boid_update = [&](Boid& bd) {
+    if (is_visible(bd, pred)) {
+      if (boid_dist(bd, pred) < 12.) {
+        victims.push_back(it - f_flock.begin());
+        ++it;
+        return;
+      }
+      if (boid_dist(bd, pred) < pred.get_range() && boid_dist(bd, pred) >= 12.) {
+        preys.push_back(bd);
+      }
     }
-    // valuta prima e nel caso prosegue: vittime non sono prede! (già morte)
-
-    if (boid_dist(bd, pred) < pred.get_range() && is_visible(bd, pred)) {
-      preys.push_back(bd);
-    }
-    if (boid_dist(bd, pred) < f_params.d_s) {
-      bd.update_state(delta_t, this->vel_correction(it, pred), mod,
-                      f_params.d_s, f_params.s);
-    } else {
-      bd.update_state(delta_t, this->vel_correction(it), mod, f_params.d_s,
-                      f_params.s);
-    }
+    (boid_dist(bd, pred) < f_params.d_s)
+        ? bd.update_state(delta_t, this->vel_correction(it, pred), mod,
+                          f_params.d_s, f_params.s)
+        : bd.update_state(delta_t, this->vel_correction(it), mod, f_params.d_s,
+                          f_params.s);
     ++it;
-  });
+  };
+  std::for_each(copy_flock.begin(), copy_flock.end(), boid_update);
 
   // rimuove le vittime in modo un po' intricato perché sono iteratori di
   // f_flock
-  for (auto it_v = victims.begin(); it_v < victims.end(); ++it_v) {
-    copy_flock.erase(copy_flock.begin() + (*it_v - f_flock.begin()));
+  for (auto it_n : victims) {
+    copy_flock.erase(copy_flock.begin() + it_n);
   }
+  f_flock.resize(copy_flock.size());
   f_flock = copy_flock;
-  this->update_com();
-  this->sort();
+  update_com();
+  sort();
   // aggiorna qui lo stato del predatore, passandogli le prede
-  pred.update_state(delta_t, pred.predate(preys), mod, 70., 1.5);
+  pred.update_state(delta_t, pred.predate(preys), mod, pred.get_range() / 2,
+                    pred.get_hunger());
 }
 
 // NB: perché vettore di vittime? Così non si invalidano iteratori nel loop!

@@ -48,8 +48,8 @@ class Flock {
   Statistics f_stats;
 
  public:
-  explicit Flock(Parameters const&, int const&, Boid const&, double const&,
-                 std::valarray<double> const&);
+  Flock(Parameters const&, int const&, Boid const&, double const&,
+        std::valarray<double> const&);
   Flock(Parameters const&, int const&, double const&,
         std::valarray<double> const&);
   Flock() = default;
@@ -61,6 +61,7 @@ class Flock {
   Boid const& get_boid(int) const;
   Boid const& get_com() const;
   Parameters const& get_params() const;
+  void set_parameter(int const&, double const&);
   void set_space(double const&, double const&);
   void erase(std::vector<Boid>::iterator);
   void update_com();
