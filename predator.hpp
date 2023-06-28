@@ -1,41 +1,26 @@
 #ifndef PREDATOR_HPP
 #define PREDATOR_HPP
 
-#include <cassert>
-#include <cmath>
-#include <valarray>
+#include <vector>
 
-#include "flock.hpp"
+#include "boid.hpp"
 
-class Predator {
-  std::valarray<double> p_pos;
-  std::valarray<double> p_vel;
-  double p_angle;
-  double p_range;
+class Predator : public Boid {
+  double p_range;   // range delle prede
+  double p_hunger;  // fattore di coesione verso com locale prede
 
  public:
-  explicit Predator(std::valarray<double> pos, std::valarray<double> vel,
-                    double range);
-  Predator(double, double, double, double, double);
+  Predator(std::valarray<double> const&, std::valarray<double> const&,
+           double const&, double const&, double const&,
+           std::valarray<double> const&);
+  Predator(double const&, double const&, double const&, double const&,
+           double const&, double const&, double const&, double const&,
+           double const&);
   Predator() = default;
-
-  std::valarray<double>& get_pos();
-  std::valarray<double> const& get_pos() const;
-
-  std::valarray<double>& get_vel();
-  std::valarray<double> const& get_vel() const;
-
-  double& get_angle();
-  double const& get_angle() const;
-
-  std::vector<Boid> get_neighbours(double const&, Flock&), ;
-
-  std::valarray<double> vel_correction(double const&);
-
-  void update_state(double, std::valarray<double>);
-  void update_state(double, std::valarray<double>, bool const&, double, double);
-
-  bool is_visible(Boid const&, double view_angle);
+  double get_angle() const;
+  double get_range() const;
+  double get_hunger() const;
+  std::valarray<double> predate(std::vector<Boid>&);
 };
 
 #endif

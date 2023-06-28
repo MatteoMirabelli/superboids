@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "boid.hpp"
+#include "predator.hpp"
 
 struct Statistics {
   double av_dist;
@@ -47,8 +48,10 @@ class Flock {
   Statistics f_stats;
 
  public:
-  explicit Flock(Parameters const&, int const&, Boid const&);
-  Flock(Parameters const&, int const&);
+  Flock(Parameters const&, int const&, Boid const&, double const&,
+        std::valarray<double> const&);
+  Flock(Parameters const&, int const&, double const&,
+        std::valarray<double> const&);
   Flock() = default;
   double size() const;
   std::vector<Boid>::iterator begin();
@@ -58,14 +61,21 @@ class Flock {
   Boid const& get_boid(int) const;
   Boid const& get_com() const;
   Parameters const& get_params() const;
-  void erase(int);
+  void set_parameter(int const&, double const&);
+  void set_space(double const&, double const&);
+  void erase(std::vector<Boid>::iterator);
   void update_com();
 
-  std::vector<Boid> get_neighbours(std::vector<Boid>::iterator, double const&);
+  std::vector<Boid> get_neighbours(std::vector<Boid>::iterator);
+  std::vector<Boid> get_neighbours(double const&, Boid const&);
 
-  std::valarray<double> vel_correction(std::vector<Boid>::iterator, double const&);
+  std::valarray<double> vel_correction(std::vector<Boid>::iterator);
+  std::valarray<double> vel_correction(std::vector<Boid>::iterator,
+                                       Predator const&);
 
-  void update_flock_state(double const&, double const&);
+  void update_flock_state(double const&, bool const&);
+
+  void update_flock_pred_state(double const&, bool const&, Predator&);
 
   void sort();
 
