@@ -6,33 +6,17 @@
 #include <random>
 #include <valarray>
 
-Obstacle::Obstacle(std::valarray<double> const& pos, double const& size,
-                   std::valarray<double> const& space) {
-  assert(size >= 0 && pos.size() == 2 && space[0] >= 0 && space[1] >= 0);
-
-  if (size == 0) {
-    o_size = 0;
-    o_pos = {0, 0};
-    o_space = space;
-  } else {
-    o_size = size;
-    o_pos = pos;
-    o_space = space;
-  }
+Obstacle::Obstacle(std::valarray<double> const& pos, double const& size) {
+  assert(size > 0 && pos.size() == 2);
+  o_size = size;
+  o_pos = pos;
 }
 
-Obstacle::Obstacle(double const& pos_x, double const& pos_y, double const& size,
-                   double const& space_x, double const& space_y) {
-  assert(pos_x >= 0 && pos_y >= 0 && size >= 0 && space_x >= 0 && space_y >= 0);
-  if (size == 0) {
-    o_size = 0;
-    o_pos = {0, 0};
-    o_space = {space_x, space_y};
-  } else {
-    o_size = size;
-    o_pos = {pos_x, pos_y};
-    o_space = {space_x, space_y};
-  }
+Obstacle::Obstacle(double const& pos_x, double const& pos_y,
+                   double const& size) {
+  assert(pos_x >= 0 && pos_y >= 0 && size > 0);
+  o_size = size;
+  o_pos = {pos_x, pos_y};
 }
 
 std::valarray<double> const& Obstacle::get_pos() { return o_pos; };
@@ -44,7 +28,7 @@ double const& Obstacle::get_size() { return o_size; };
 // sovrapporli...
 // Ho usato cose strane, non so se funziona, guardateci benes
 
-Obstacle_set::Obstacle_set(int n_obstacles, double size,
+/* Obstacle_set::Obstacle_set(int n_obstacles, double size,
                            std::valarray<double> space)
     : g_obstacles{} {
   std::random_device rd;
@@ -52,32 +36,34 @@ Obstacle_set::Obstacle_set(int n_obstacles, double size,
   std::uniform_real_distribution<> dist_pos_y(20., space[1] - 20.);
 
   auto overlap = [&](std::vector<Obstacle>::iterator it, double const& x,
-                     double const& y, int j) {
+                     double const& y) {
     return (
         std::abs((x - size) - (it->get_pos()[0] - it->get_size())) < 2 * size &&
         std::abs((y - size) - (it->get_pos()[1] - it->get_size())) < 2 * size);
-    ++j;
   };
 
   for (int i = 0; i < n_obstacles; ++i) {
+
     for (int j = 0;; ++j) {
       std::valarray<double> pos;
       double pos_x = dist_pos_x(rd);
       double pos_y = dist_pos_y(rd);
 
-      auto et = std::find_if(g_obstacles.begin(), g_obstacles.end(), overlap(std::next(g_obstacles.begin(), j), pos_x, pos_y, j);
+      auto et = std::find_if(
+          g_obstacles.begin(), g_obstacles.end(),
+          overlap(std::next(g_obstacles.begin(), j), pos_x, pos_y));
       if (et == g_obstacles.end()) {
         pos = {pos_x, pos_y};
-        Obstacle obs(pos, size, space);
+        Obstacle obs(pos, size);
         g_obstacles.push_back(obs);
         break;
       }
     }
   }
-}
+} */
 
-// Restituiscono un ostacolo specifico, una versione solo in lettura, l'altra
-// anche in modifica
+// Restituiscono un ostacolo specifico, una versione solo in lettura,
+// l'altra anche in modifica
 
 Obstacle& Obstacle_set::get_obstacle(std::vector<Obstacle>::iterator it) {
   return *it;
@@ -106,7 +92,7 @@ double Obstacle_set::size() { return g_obstacles.size(); };
 // programma
 
 void Obstacle_set::sort() {
-  auto is_less = [&](Obstacle& obs1, Obstacle& obs2) {
+  auto is_less = [](Obstacle& obs1, Obstacle& obs2) {
     if (obs1.get_pos()[0] != obs2.get_pos()[0]) {
       return obs1.get_pos()[0] < obs2.get_pos()[0];
     } else {

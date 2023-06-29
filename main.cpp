@@ -24,7 +24,8 @@ int main() {
     // vettore di oggetti grafici stormo:
     std::vector<Bird> tr_boids;
     // inizializzo predatore
-    Predator predator(600., 300., 100., 0., 140., 70., 0.8, video_x, video_y);
+    Predator predator(600., 300., 100., 0., 140., 70., 0.8, video_x, video_y,
+                      50., 0.9);
     // qui servirà per caricare le texture:
     sf::Texture bd_texture;
     if (!bd_texture.loadFromFile("textures/eagle.png")) {
@@ -150,7 +151,7 @@ int main() {
       if (rec_contains(rec.getGlobalBounds(), com_circle.getGlobalBounds())) {
         window.draw(com_circle);
       }
-      // taaac
+      // taaac TAAAAAAC
       window.display();
       // avvia cronometro
       init = std::chrono::steady_clock::now();

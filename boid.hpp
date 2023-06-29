@@ -11,11 +11,13 @@ class Boid {
   double b_angle;
   double b_view_angle;
   std::valarray<double> b_space;
+  double b_param_ds;
+  double b_param_s;
 
  public:
   Boid(std::valarray<double>, std::valarray<double>, double,
-       std::valarray<double>);
-  Boid(double, double, double, double, double, double, double);
+       std::valarray<double>, double, double);
+  Boid(double, double, double, double, double, double, double, double, double);
   Boid() = default;
 
   std::valarray<double>& get_pos();

@@ -2,9 +2,8 @@
 #include "boid.hpp"
 #include "doctest.h"
 #include "flock.hpp"
+#include "obstacles.hpp"
 #include "predator.hpp"
-#incude "obstacles.hpp"
-
 
 TEST_CASE("Testing the Boid::update_state method") {
   SUBCASE("Testing the Boid::update_state method with positive values") {
@@ -14,7 +13,7 @@ TEST_CASE("Testing the Boid::update_state method") {
     double view_angle = 120.;
     std::valarray<double> delta_vel{1., 1.};
 
-    Boid boid(pos, vel, view_angle, window);
+    Boid boid(pos, vel, view_angle, window, 4, 1);
     boid.update_state(1., delta_vel);
 
     CHECK(boid.get_vel()[0] == doctest::Approx(3.));
@@ -31,7 +30,7 @@ TEST_CASE("Testing the Boid::update_state method") {
     double view_angle = 120.;
     std::valarray<double> delta_vel{0., 0.};
 
-    Boid boid(pos, vel, view_angle, window);
+    Boid boid(pos, vel, view_angle, window, 4, 1);
     boid.update_state(1., delta_vel);
 
     CHECK(boid.get_vel()[0] == doctest::Approx(1.));
@@ -48,7 +47,7 @@ TEST_CASE("Testing the Boid::update_state method") {
     double view_angle = 120.;
     std::valarray<double> delta_vel{0., -1.};
 
-    Boid boid(pos, vel, view_angle, window);
+    Boid boid(pos, vel, view_angle, window, 4, 1);
     boid.update_state(1., delta_vel);
 
     CHECK(boid.get_vel()[0] == doctest::Approx(5.));
@@ -77,11 +76,11 @@ TEST_CASE("Testing auxiliary functions") {
   }
 
   SUBCASE("Testing the boid_dist function") {
-    Boid bd_1(2, 2, 5, 4, 120., 1920, 1080);
-    Boid bd_2(4, 4, 1, -3, 120., 1920, 1080);
-    Boid bd_3(0, 0, 3, 5, 120., 1920, 1080);
-    Boid bd_4(0, 0, 6, -1, 120., 1920, 1080);
-    Boid bd_5(1, 8, 0, 0, 120., 1920, 1080);
+    Boid bd_1(2, 2, 5, 4, 120., 1920, 1080, 4, 1);
+    Boid bd_2(4, 4, 1, -3, 120., 1920, 1080, 4, 1);
+    Boid bd_3(0, 0, 3, 5, 120., 1920, 1080, 4, 1);
+    Boid bd_4(0, 0, 6, -1, 120., 1920, 1080, 4, 1);
+    Boid bd_5(1, 8, 0, 0, 120., 1920, 1080, 4, 1);
 
     double d12 = boid_dist(bd_1, bd_2);
     double d13 = boid_dist(bd_1, bd_3);
@@ -95,10 +94,10 @@ TEST_CASE("Testing auxiliary functions") {
   }
 
   SUBCASE("Testing the boid_dist function with boids with other boids") {
-    Boid bd_1(2, 2, 5, 4, 120., 1920, 1080);
-    Boid bd_2(4, 4, 1, -3, 120., 1920, 1080);
-    Boid bd_3(0, 0, 3, 5, 120., 1920, 1080);
-    Boid bd_4(0, 0, 6, -1, 120., 1920, 1080);
+    Boid bd_1(2, 2, 5, 4, 120., 1920, 1080, 4, 1);
+    Boid bd_2(4, 4, 1, -3, 120., 1920, 1080, 4, 1);
+    Boid bd_3(0, 0, 3, 5, 120., 1920, 1080, 4, 1);
+    Boid bd_4(0, 0, 6, -1, 120., 1920, 1080, 4, 1);
 
     double d12 = boid_dist(bd_1, bd_2);
     double d21 = boid_dist(bd_2, bd_1);
@@ -116,7 +115,7 @@ TEST_CASE("Testing auxiliary functions") {
   }
 
   SUBCASE("Testing the boid_dist function with just one boid") {
-    Boid bd_1(2, 2, 5, 4, 120., 1920, 1080);
+    Boid bd_1(2, 2, 5, 4, 120., 1920, 1080, 4, 1);
     double d11 = boid_dist(bd_1, bd_1);
 
     CHECK(d11 == 0);
@@ -137,8 +136,8 @@ TEST_CASE("Testing auxiliary functions") {
   }
 
   SUBCASE("Testing the is_visible function with view_angle 0") {
-    Boid b1(1., 2., 2., 1., 0., 1920, 1080);
-    Boid b2(3., 3., 2., 1., 0., 1920, 1080);
+    Boid b1(1., 2., 2., 1., 0., 1920, 1080, 4, 1);
+    Boid b2(3., 3., 2., 1., 0., 1920, 1080, 4, 1);
 
     bool iv12 = is_visible(b2, b1);
     bool iv21 = is_visible(b1, b2);
@@ -147,9 +146,9 @@ TEST_CASE("Testing auxiliary functions") {
   }
 
   SUBCASE("Testing the is_visible function") {
-    Boid b1(1., 2., 3., 4., 150., 1920, 1080);
-    Boid b2(4., 3., 2., 1., 150., 1920, 1080);
-    Boid b3(1., 1., 1., 1., 150., 1920, 1080);
+    Boid b1(1., 2., 3., 4., 150., 1920, 1080, 4, 1);
+    Boid b2(4., 3., 2., 1., 150., 1920, 1080, 4, 1);
+    Boid b3(1., 1., 1., 1., 150., 1920, 1080, 4, 1);
 
     bool iv12 = is_visible(b1, b2);
     bool iv13 = is_visible(b1, b3);
@@ -160,13 +159,13 @@ TEST_CASE("Testing auxiliary functions") {
 
 TEST_CASE("Testing the Boid::sort method") {
   SUBCASE("Testing the Flock::sort method with five boids boids") {
-    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_2(4, 3, -2, 9, 120., 1920, 1080);
-    Boid bd_3(0, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_4(54, 3, -2, 9, 120., 1920, 1080);
+    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_2(4, 3, -2, 9, 120., 1920, 1080, 4, 1);
+    Boid bd_3(0, 4, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_4(54, 3, -2, 9, 120., 1920, 1080, 4, 1);
 
     Parameters params(4, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080);
+    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
     Flock flock(params, 0, com, 120., {1920, 1080});
 
@@ -184,13 +183,13 @@ TEST_CASE("Testing the Boid::sort method") {
   }
 
   SUBCASE("Testing the Flock::sort method with boids with same x_position") {
-    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_2(4, 3, -2, 9, 120., 1920, 1080);
-    Boid bd_3(10, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_4(10, 3, -2, 9, 120., 1920, 1080);
+    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_2(4, 3, -2, 9, 120., 1920, 1080, 4, 1);
+    Boid bd_3(10, 4, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_4(10, 3, -2, 9, 120., 1920, 1080, 4, 1);
 
     Parameters params(4, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080);
+    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
     Flock flock(params, 0, com, 120., {1920, 1080});
 
@@ -210,10 +209,10 @@ TEST_CASE("Testing the Boid::sort method") {
   }
 
   SUBCASE("Testing the Flock::sort method with just one boids") {
-    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080);
+    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
 
     Parameters params(4, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080);
+    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
     Flock flock(params, 0, com, 120., {1920, 1080});
 
@@ -228,13 +227,13 @@ TEST_CASE("Testing the Boid::sort method") {
 
 TEST_CASE("Testing the Flock::update_com method") {
   SUBCASE("Testing the Flock::update_com method with four boids") {
-    Boid bd_1(2, 2, 5, 4, 120., 1920, 1080);
-    Boid bd_2(5, 7, 1, -3, 120., 1920, 1080);
-    Boid bd_3(6, 8, 4, 3, 120., 1920, 1080);
-    Boid bd_4(10, 12, -4, 8, 120., 1920, 1080);
+    Boid bd_1(2, 2, 5, 4, 120., 1920, 1080, 4, 1);
+    Boid bd_2(5, 7, 1, -3, 120., 1920, 1080, 4, 1);
+    Boid bd_3(6, 8, 4, 3, 120., 1920, 1080, 4, 1);
+    Boid bd_4(10, 12, -4, 8, 120., 1920, 1080, 4, 1);
 
     Parameters params(4, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080);
+    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
     Flock flock(params, 0, com, 120., {1920, 1080});
 
@@ -252,10 +251,10 @@ TEST_CASE("Testing the Flock::update_com method") {
   }
 
   SUBCASE("Testing the Flock::update_com method with just one boid") {
-    Boid bd_1(2, 2, 5, 4, 120., 1920, 1080);
+    Boid bd_1(2, 2, 5, 4, 120., 1920, 1080, 4, 1);
 
     Parameters params(4, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080);
+    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
     Flock flock(params, 0, com, 120., {1920, 1080});
 
@@ -269,11 +268,11 @@ TEST_CASE("Testing the Flock::update_com method") {
   }
 
   SUBCASE("Testing the Flock::update_com method with two boids") {
-    Boid bd_1(0, 0, 0, 0, 120., 1920, 1080);
-    Boid bd_2(0, 0, 0, 0, 120., 1920, 1080);
+    Boid bd_1(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_2(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
     Parameters params(4, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080);
+    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
     Flock flock(params, 0, com, 120., {1920, 1080});
 
@@ -289,11 +288,11 @@ TEST_CASE("Testing the Flock::update_com method") {
   }
 
   SUBCASE("Testing the Flock::sort method with two boids") {
-    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_2(4, 3, -2, 9, 120., 1920, 1080);
+    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_2(4, 3, -2, 9, 120., 1920, 1080, 4, 1);
 
     Parameters params(4, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080);
+    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
     Flock flock(params, 0, com, 120., {1920, 1080});
 
@@ -309,13 +308,13 @@ TEST_CASE("Testing the Flock::update_com method") {
 
 TEST_CASE("Testing the Flock::get_neighbours method") {
   SUBCASE("Testing the Flock::get_neighbours method with four boids") {
-    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_2(3, 3, -2, 9, 120., 1920, 1080);
-    Boid bd_3(10, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_4(10, 3, -2, 9, 120., 1920, 1080);
+    Boid bd_1(1, 4, 5, 0, 120., 1920., 1080., 4., 1.);
+    Boid bd_2(3, 3, -2, 9, 120., 1920, 1080, 4, 1);
+    Boid bd_3(10, 4, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_4(10, 3, -2, 9, 120., 1920, 1080, 4, 1);
 
     Parameters params(2.5, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080);
+    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
     Flock flock(params, 0, com, 120., {1920, 1080});
 
@@ -334,10 +333,10 @@ TEST_CASE("Testing the Flock::get_neighbours method") {
   }
 
   SUBCASE("Testing the Flock::get_neighbours method again with four boids ") {
-    Boid bd_1(1, 4, 5, 0, 150., 1920, 1080);
-    Boid bd_2(3, 3, -2, 9, 150., 1920, 1080);
-    Boid bd_3(4, 4, 5, 0, 150., 1920, 1080);
-    Boid bd_4(6, 7, -2, 9, 150., 1920, 1080);
+    Boid bd_1(1., 4., 5., 0., 150., 1920., 1080., 4., 1.);
+    Boid bd_2(3, 3, -2, 9, 150., 1920, 1080, 4, 1);
+    Boid bd_3(4, 4, 5, 0, 150., 1920, 1080, 4, 1);
+    Boid bd_4(6, 7, -2, 9, 150., 1920, 1080, 4, 1);
 
     Parameters params(5, 4, 1, 2, 3);
 
@@ -364,8 +363,8 @@ TEST_CASE("Testing the Flock::get_neighbours method") {
       "Testing the Flock::get_neighbours method with two boids that don't "
       "see "
       "each other") {
-    Boid bd_1(7, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_2(4, 3, -5, 0, 120., 1920, 1080);
+    Boid bd_1(7, 4, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_2(4, 3, -5, 0, 120., 1920, 1080, 4, 1);
 
     Parameters params(5, 4, 1, 2, 3);
 
@@ -385,10 +384,10 @@ TEST_CASE("Testing the Flock::get_neighbours method") {
       "Testing the Flock::get_neighbours method with four boids, the last "
       "one "
       "doesn't see the others") {
-    Boid bd_1(1, 1, 1, 1, 120., 1920, 1080);
-    Boid bd_2(3, 3, 1, 1, 120., 1920, 1080);
-    Boid bd_3(4, 4, 1, 1, 120., 1920, 1080);
-    Boid bd_4(6, 7, 1, 1, 120., 1920, 1080);
+    Boid bd_1(1, 1, 1, 1, 120., 1920, 1080, 4, 1);
+    Boid bd_2(3, 3, 1, 1, 120., 1920, 1080, 4, 1);
+    Boid bd_3(4, 4, 1, 1, 120., 1920, 1080, 4, 1);
+    Boid bd_4(6, 7, 1, 1, 120., 1920, 1080, 4, 1);
 
     Parameters params(5, 4, 1, 2, 3);
 
@@ -413,10 +412,10 @@ TEST_CASE("Testing the Flock::get_neighbours method") {
   }
 
   SUBCASE("Testing the Flock::get_neighbours method with just one boids") {
-    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080);
+    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
 
     Parameters params(2.5, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080);
+    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
     Flock flock(params, 0, com, 120., {1920, 1080});
 
@@ -429,10 +428,10 @@ TEST_CASE("Testing the Flock::get_neighbours method") {
   }
 
   SUBCASE("Testing the Flock::get_neighbours method with Flock::end") {
-    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_2(3, 3, -2, 9, 120., 1920, 1080);
-    Boid bd_3(4, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_4(6, 7, -2, 9, 120., 1920, 1080);
+    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_2(3, 3, -2, 9, 120., 1920, 1080, 4, 1);
+    Boid bd_3(4, 4, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_4(6, 7, -2, 9, 120., 1920, 1080, 4, 1);
 
     Parameters params(5, 4, 1, 2, 3);
 
@@ -452,13 +451,13 @@ TEST_CASE("Testing the Flock::get_neighbours method") {
 
 TEST_CASE("Testing the Flock::vel_correction method") {
   SUBCASE("Testing the Flock::vel_correction method with four boids") {
-    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_2(3, 3, -2, 9, 120., 1920, 1080);
-    Boid bd_3(10, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_4(10, 3, -2, 9, 120., 1920, 1080);
+    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_2(3, 3, -2, 9, 120., 1920, 1080, 4, 1);
+    Boid bd_3(10, 4, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_4(10, 3, -2, 9, 120., 1920, 1080, 4, 1);
 
     Parameters params(2.5, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080);
+    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
     Flock flock(params, 0, com, 120., {1920, 1080});
 
@@ -474,10 +473,10 @@ TEST_CASE("Testing the Flock::vel_correction method") {
   }
 
   SUBCASE("Testing the Flock::vel_correction method again with four boids") {
-    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_2(3, 3, -2, 9, 120., 1920, 1080);
-    Boid bd_3(4, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_4(6, 7, -2, 9, 120., 1920, 1080);
+    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_2(3, 3, -2, 9, 120., 1920, 1080, 4, 1);
+    Boid bd_3(4, 4, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_4(6, 7, -2, 9, 120., 1920, 1080, 4, 1);
 
     Parameters params(5, 4, 1, 2, 3);
 
@@ -498,8 +497,8 @@ TEST_CASE("Testing the Flock::vel_correction method") {
       "Testing the Flock::vel_correction method with two boids that don't "
       "see "
       "each other") {
-    Boid bd_1(7, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_2(4, 3, -5, 0, 120., 1920, 1080);
+    Boid bd_1(7, 4, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_2(4, 3, -5, 0, 120., 1920, 1080, 4, 1);
 
     Parameters params(5, 4, 1, 2, 3);
 
@@ -518,10 +517,10 @@ TEST_CASE("Testing the Flock::vel_correction method") {
       "Testing the Flock::vel_correction method with four boids, the last "
       "one "
       "doesn't see the others") {
-    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_2(3, 3, 5, 9, 120., 1920, 1080);
-    Boid bd_3(4, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_4(6, 7, 5, 0, 120., 1920, 1080);
+    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_2(3, 3, 5, 9, 120., 1920, 1080, 4, 1);
+    Boid bd_3(4, 4, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_4(6, 7, 5, 0, 120., 1920, 1080, 4, 1);
 
     Parameters params(5, 4, 1, 2, 3);
 
@@ -543,10 +542,10 @@ TEST_CASE("Testing the Flock::vel_correction method") {
   }
 
   SUBCASE("Testing the Flock::vel_correction method with just one boids") {
-    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080);
+    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
 
     Parameters params(2.5, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080);
+    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
     Flock flock(params, 0, com, 120., {1920, 1080});
 
@@ -557,33 +556,12 @@ TEST_CASE("Testing the Flock::vel_correction method") {
     CHECK(dv[0] == 0.);
     CHECK(dv[1] == 0.);
   }
-
-  /* SUBCASE("Testing the Flock::vel_correction method with Flock::end") {
-    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_2(3, 3, -2, 9, 120., 1920, 1080);
-    Boid bd_3(4, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_4(6, 7, -2, 9, 120., 1920, 1080);
-
-    Parameters params(5, 4, 1, 2, 3);
-
-    Flock flock(params, 0, 120., {1920, 1080});
-
-    flock.push_back(bd_1);
-    flock.push_back(bd_2);
-    flock.push_back(bd_3);
-    flock.push_back(bd_4);
-
-    const auto it = flock.end();
-    const auto dv = flock.vel_correction(it);
-    CHECK(dv[0] == 0.);
-    CHECK(dv[1] == 0.);
-  }  */
 }
 
 TEST_CASE("Testing the Flock::Update_stats method") {
   SUBCASE("Testing the Flock::update_stats method with no neighbours") {
-    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080);
-    Boid bd_2(10, 6, 2, 0, 120., 1920, 1080);
+    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_2(10, 6, 2, 0, 120., 1920, 1080, 4, 1);
 
     Parameters params(3, 4, 1, 2, 3);
 
@@ -602,10 +580,10 @@ TEST_CASE("Testing the Flock::Update_stats method") {
   }
 
   SUBCASE("Testing the Flock::update_stats method with boids") {
-    Boid bd_1(1, 1, 5, 0, 120., 1920, 1080);
-    Boid bd_2(2, 2, -2, 9, 120., 1920, 1080);
-    Boid bd_3(3, 3, 5, 0, 120., 1920, 1080);
-    Boid bd_4(4, 4, -2, 9, 120., 1920, 1080);
+    Boid bd_1(1, 1, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_2(2, 2, -2, 9, 120., 1920, 1080, 4, 1);
+    Boid bd_3(3, 3, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_4(4, 4, -2, 9, 120., 1920, 1080, 4, 1);
 
     Parameters params(10, 4, 1, 2, 3);
 
@@ -627,13 +605,13 @@ TEST_CASE("Testing the Flock::Update_stats method") {
   }
 
   SUBCASE("Testing the Flock::update_stats method with boids") {
-    Boid bd_1(1, 1, 5, 0, 120., 1920, 1080);
-    Boid bd_2(2, 2, -2, 9, 120., 1920, 1080);
-    Boid bd_3(3, 3, 5, 0, 120., 1920, 1080);
+    Boid bd_1(1, 1, 5, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_2(2, 2, -2, 9, 120., 1920, 1080, 4, 1);
+    Boid bd_3(3, 3, 5, 0, 120., 1920, 1080, 4, 1);
 
-    Boid bd_4(1, 1, 0, 0, 120., 1920, 1080);
-    Boid bd_5(4, 1, 0, 0, 120., 1920, 1080);
-    Boid bd_6(2, 3, 0, 0, 120., 1920, 1080);
+    Boid bd_4(1, 1, 0, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_5(4, 1, 0, 0, 120., 1920, 1080, 4, 1);
+    Boid bd_6(2, 3, 0, 0, 120., 1920, 1080, 4, 1);
 
     Parameters params(10, 4, 1, 2, 3);
 

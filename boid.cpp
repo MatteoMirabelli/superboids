@@ -4,28 +4,27 @@
 
 // aggiunto il passaggio delle dimensioni dello schermo
 
-Boid::Boid(std::valarray<double> pos, std::valarray<double> vel, double angle,
-           std::valarray<double> space) {
-  assert(pos.size() == 2);
-  assert(vel.size() == 2);
-  assert(space.size() == 2);
-  assert(pos[0] >= 0 && pos[1] >= 0);
-  assert(space[0] > 0 && space[1] > 0);
-  assert((vec_norm(vel) < 350.));
-  assert(angle >= 0.);
-  assert(angle <= 180.);
+Boid::Boid(std::valarray<double> pos, std::valarray<double> vel,
+           double view_ang, std::valarray<double> space, double param_ds,
+           double param_s) {
+  assert(pos.size() == 2 && vel.size() == 2 && space.size() == 2 &&
+         pos[0] >= 0 && pos[1] >= 0 && space[0] > 0 && space[1] > 0 &&
+         vec_norm(vel) < 350. && view_ang >= 0. && view_ang <= 180. &&
+         param_ds >= 0 && param_s >= 0);
   b_pos = pos;
   b_vel = vel;
   b_angle = compute_angle<double>(vel);
-  b_view_angle = angle;
+  b_view_angle = view_ang;
   b_space = space;
+  b_param_ds = param_ds;
+  b_param_s = param_s;
 }
 
-Boid::Boid(double x, double y, double vx, double vy, double ang, double sx,
-           double sy) {
+Boid::Boid(double x, double y, double vx, double vy, double view_ang, double sx,
+           double sy, double param_ds, double param_s) {
   assert(x >= 0 && y >= 0 && sx > 0 && sy > 0 &&
-         vec_norm(std::valarray<double>{vx, vy}) < 350. && ang >= 0. &&
-         ang <= 180.);
+         vec_norm(std::valarray<double>{vx, vy}) < 350. && view_ang >= 0. &&
+         view_ang <= 180. && param_ds >= 0 && param_s >= 0);
   b_pos = std::valarray<double>(2);
   b_vel = std::valarray<double>(2);
   b_pos[0] = x;
@@ -33,8 +32,10 @@ Boid::Boid(double x, double y, double vx, double vy, double ang, double sx,
   b_vel[0] = vx;
   b_vel[1] = vy;
   b_angle = compute_angle<double>(b_vel);
-  b_view_angle = ang;
+  b_view_angle = view_ang;
   b_space = std::valarray<double>{sx, sy};
+  b_param_ds = param_ds;
+  b_param_s = param_s;
 }
 
 std::valarray<double>& Boid::get_pos() { return b_pos; }

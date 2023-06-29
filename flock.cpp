@@ -7,12 +7,12 @@
 #include <random>
 
 Flock::Flock(Parameters const& params, int const& bd_n, Boid const& com,
-             double const& ang, std::valarray<double> const& space)
+             double const& view_ang, std::valarray<double> const& space)
     : f_com{com}, f_params{params}, f_stats{}, f_flock{} {
   // Genera casualmente, secondo distribuzioni uniformi attorno al centro di
   // massa, lo stormo
   assert(bd_n >= 0);
-
+  
   if (bd_n == 0) {
     // f_flock = std::vector<Boid>(0);
   } else {
@@ -38,19 +38,22 @@ Flock::Flock(Parameters const& params, int const& bd_n, Boid const& com,
     for (auto n = 0; n < bd_n - 1; ++n) {
       f_flock.push_back(Boid{{dist_pos_x(rd), dist_pos_y(rd)},
                              {dist_vel_x(rd), dist_vel_y(rd)},
-                             ang,
-                             space});
+                             view_ang,
+                             space,
+                             params.d_s,
+                             params.s});
       final_pos += f_flock[n].get_pos();
       final_vel += f_flock[n].get_vel();
     }
     f_flock.push_back(Boid{bd_n * com.get_pos() - final_pos,
-                           bd_n * com.get_vel() - final_vel, ang, space});
+                           bd_n * com.get_vel() - final_vel, view_ang, space,
+                           params.d_s, params.s});
   }
 
   sort();
 }
 
-Flock::Flock(Parameters const& params, int const& bd_n, double const& ang,
+Flock::Flock(Parameters const& params, int const& bd_n, double const& view_ang,
              std::valarray<double> const& space)
     : f_params{params}, f_stats{}, f_flock{} {
   // Genera casualmente, secondo distribuzioni uniformi, i boids
@@ -68,12 +71,12 @@ Flock::Flock(Parameters const& params, int const& bd_n, double const& ang,
   std::uniform_real_distribution<> dist_vel_x(-150., 150.);
   std::uniform_real_distribution<> dist_vel_y(-150., 150.);
 
-  f_com = Boid{{0., 0.}, {0., 0.}, 0., space};
+  f_com = Boid{{0., 0.}, {0., 0.}, 0., space, params.d_s, params.s};
   for (auto n = 0; n < bd_n; ++n) {
     std::valarray<double> pos = {dist_pos_x(rd) * 0.5 * (params.d_s),
                                  dist_pos_y(rd) * 0.5 * (params.d_s)};
     std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
-    f_flock.push_back(Boid{pos, vel, ang, space});
+    f_flock.push_back(Boid{pos, vel, view_ang, space, params.d_s, params.s});
     f_com.get_vel() += vel;
     f_com.get_pos() += pos;
   }
@@ -81,6 +84,7 @@ Flock::Flock(Parameters const& params, int const& bd_n, double const& ang,
   f_com.get_pos() /= f_flock.size();
 
   sort();
+
   auto compare_bd = [](Boid& b1, Boid& b2) {
     return b1.get_pos()[0] == b2.get_pos()[0] &&
            b1.get_pos()[1] == b2.get_pos()[1];
@@ -314,6 +318,7 @@ void Flock::update_flock_pred_state(double const& delta_t, bool const& mod,
         preys.push_back(bd);
       }
     }
+
     (boid_dist(bd, pred) < f_params.d_s)
         ? bd.update_state(delta_t, this->vel_correction(it, pred), mod,
                           f_params.d_s, f_params.s)
@@ -321,6 +326,7 @@ void Flock::update_flock_pred_state(double const& delta_t, bool const& mod,
                           f_params.s);
     ++it;
   };
+
   std::for_each(copy_flock.begin(), copy_flock.end(), boid_update);
 
   // rimuove le vittime in modo un po' intricato perché sono iteratori di
@@ -328,6 +334,7 @@ void Flock::update_flock_pred_state(double const& delta_t, bool const& mod,
   for (auto it_n : victims) {
     copy_flock.erase(copy_flock.begin() + it_n);
   }
+
   f_flock.resize(copy_flock.size());
   f_flock = copy_flock;
   update_com();
@@ -344,7 +351,7 @@ void Flock::sort() {
   // posizione in x. Se le posizioni in x sono uguali, allora ordina secondo
   // le posizioni in y
 
-  auto is_less = [&](Boid& bd1, Boid& bd2) {
+  auto is_less = [](Boid& bd1, Boid& bd2) {
     if (bd1.get_pos()[0] != bd2.get_pos()[0]) {
       return bd1.get_pos()[0] < bd2.get_pos()[0];
     } else {

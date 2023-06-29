@@ -3,13 +3,13 @@
 Predator::Predator(std::valarray<double> const& pos,
                    std::valarray<double> const& vel, double const& ang,
                    double const& range, double const& hunger,
-                   std::valarray<double> const& space)
-    : Boid(pos, vel, ang, space), p_range(range), p_hunger(hunger) {}
+                   std::valarray<double> const& space, double param_d_s, double param_s)
+    : Boid(pos, vel, ang, space, param_d_s, param_s), p_range(range), p_hunger(hunger) {}
 
 Predator::Predator(double const& x, double const& y, double const& vx,
                    double const& vy, double const& ang, double const& range,
-                   double const& hunger, double const& sx, double const& sy)
-    : Boid(x, y, vx, vy, ang, sx, sy), p_range(range), p_hunger(hunger) {}
+                   double const& hunger, double const& sx, double const& sy, double param_d_s, double param_s)
+    : Boid(x, y, vx, vy, ang, sx, sy, param_d_s, param_s), p_range(range), p_hunger(hunger) {}
 
 double Predator::get_angle() const { return Boid::get_angle(); }
 
