@@ -208,8 +208,6 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
         neighbours.push_back(*et);
       }
     }
-  } else {
-    // neighbours = get_neighbours(f_params.d, *it);
   }
 
   return neighbours;
@@ -259,7 +257,7 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
   std::valarray<double> delta_vel = {0., 0.};
   // valuta subito se applicare separazione al predatore
   (boid_dist(pred, *it) < f_params.d_s && is_visible(pred, *it) == true)
-      ? delta_vel -= 3 * f_params.s * (pred.get_pos() - it->get_pos())
+      ? delta_vel -= 10 * f_params.s * (pred.get_pos() - it->get_pos())
       : delta_vel;
   // da qui in poi come caso no predatore:
   if (neighbours.size() > 0) {

@@ -2,6 +2,9 @@
 #include "boid.hpp"
 #include "doctest.h"
 #include "flock.hpp"
+#include "predator.hpp"
+#incude "obstacles.hpp"
+
 
 TEST_CASE("Testing the Boid::update_state method") {
   SUBCASE("Testing the Boid::update_state method with positive values") {

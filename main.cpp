@@ -15,7 +15,7 @@
 int main() {
   try {
     // inizializzo parametri stormo
-    Parameters params(100., 50., 0.9, 0.05, 0.01);
+    Parameters params(120., 50., 0.9, 0.1, 0.03);
     // prende parametri finestra (in fullscreen)
     double video_x = sf::VideoMode::getFullscreenModes()[1].width * 0.85;
     double video_y = sf::VideoMode::getFullscreenModes()[1].height;
