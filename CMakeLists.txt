@@ -41,4 +41,3 @@ if (BUILD_TESTING)
   add_test(NAME Boids.t COMMAND Boids.t)
 
 endif()
-
