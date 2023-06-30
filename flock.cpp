@@ -322,8 +322,8 @@ void Flock::update_flock_pred_state(double const& delta_t, bool const& brd_bhv,
     (boid_dist(bd, pred) < 5 * f_params.d_s)
         ? bd.update_state(delta_t, this->vel_correction(it, pred), brd_bhv,
                           f_params.d_s, f_params.s)
-        : bd.update_state(delta_t, this->vel_correction(it), brd_bhv, f_params.d_s,
-                          f_params.s);
+        : bd.update_state(delta_t, this->vel_correction(it), brd_bhv,
+                          f_params.d_s, f_params.s);
     ++it;
   };
 
