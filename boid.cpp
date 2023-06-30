@@ -2,16 +2,29 @@
 
 #include <type_traits>
 
-Boid::Boid(std::valarray<double> const& pos, std::valarray<double> const& vel) {
-  assert(pos.size() == 2 || vel.size() == 2);
+// aggiunto il passaggio delle dimensioni dello schermo
+
+Boid::Boid(std::valarray<double> pos, std::valarray<double> vel,
+           double view_ang, std::valarray<double> space, double param_ds,
+           double param_s) {
+  assert(pos.size() == 2 && vel.size() == 2 && space.size() == 2 &&
+         pos[0] >= 0 && pos[1] >= 0 && space[0] > 0 && space[1] > 0 &&
+         vec_norm(vel) < 350. && view_ang >= 0. && view_ang <= 180. &&
+         param_ds >= 0 && param_s >= 0);
   b_pos = pos;
   b_vel = vel;
   b_angle = compute_angle<double>(vel);
+  b_view_angle = view_ang;
+  b_space = space;
+  b_param_ds = param_ds;
+  b_param_s = param_s;
 }
 
-Boid::Boid(double const& x, double const& y, double const& vx,
-           double const& vy) {
-  assert(x >= 0 && y >= 0);
+Boid::Boid(double x, double y, double vx, double vy, double view_ang, double sx,
+           double sy, double param_ds, double param_s) {
+  assert(x >= 0 && y >= 0 && sx > 0 && sy > 0 &&
+         vec_norm(std::valarray<double>{vx, vy}) < 350. && view_ang >= 0. &&
+         view_ang <= 180. && param_ds >= 0 && param_s >= 0);
   b_pos = std::valarray<double>(2);
   b_vel = std::valarray<double>(2);
   b_pos[0] = x;
@@ -19,6 +32,10 @@ Boid::Boid(double const& x, double const& y, double const& vx,
   b_vel[0] = vx;
   b_vel[1] = vy;
   b_angle = compute_angle<double>(b_vel);
+  b_view_angle = view_ang;
+  b_space = std::valarray<double>{sx, sy};
+  b_param_ds = param_ds;
+  b_param_s = param_s;
 }
 
 std::valarray<double>& Boid::get_pos() { return b_pos; }
@@ -33,69 +50,85 @@ double& Boid::get_angle() { return b_angle; }
 
 double const& Boid::get_angle() const { return b_angle; }
 
-void Boid::update_state(double const& delta_t,
-                        std::valarray<double> const& delta_vel) {
-  b_vel += delta_vel;
-  b_pos += (b_vel * delta_t);
-  b_angle = compute_angle<double>(b_vel);
+double const& Boid::get_view_angle() const { return b_view_angle; }
+
+// per cambiare range (overloadato)
+void Boid::set_space(double const& sx, double const& sy) {
+  assert(sx > 0 && sy > 0);
+  b_space[0] = sx;
+  b_space[1] = sy;
 }
 
-void Boid::update_state(double const& delta_t,
-                        std::valarray<double> const& delta_vel, bool const& b,
-                        double const& d, double const& k) {
+void Boid::set_space(std::valarray<double> const& space) { b_space = space; }
+
+void Boid::update_state(double delta_t, std::valarray<double> delta_vel) {
   b_vel += delta_vel;
   b_pos += (b_vel * delta_t);
+  // calcola l'angolo di orientamento dalla velocità:
   b_angle = compute_angle<double>(b_vel);
+  // velocità massima:
+  (vec_norm(b_vel) > 350.) ? b_vel *= (350. / vec_norm(b_vel)) : b_vel;
+}
 
-  if (b == true) {
+void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
+                        bool const& brd_bhv, double d, double k) {
+  b_vel += delta_vel;
+  b_pos += (b_vel * delta_t);
+  if (brd_bhv == true) {
     // implementazione con periodiche
-    (b_pos[0] > 1800.) ? b_pos[0] = 21. : b_pos[0];
-    (b_pos[0] < 20.) ? b_pos[0] = 1799. : b_pos[0];
-    (b_pos[1] > 1000.) ? b_pos[1] = 21. : b_pos[1];
-    (b_pos[1] < 20.) ? b_pos[1] = 999. : b_pos[1];
+    (b_pos[0] > b_space[0] - 20.) ? b_pos[0] = 21. : b_pos[0];
+    (b_pos[0] < 20.) ? b_pos[0] = b_space[0] - 21. : b_pos[0];
+    (b_pos[1] > b_space[1]) ? b_pos[1] = 21. : b_pos[1];
+    (b_pos[1] < 20.) ? b_pos[1] = b_space[1] - 21. : b_pos[1];
   } else {
     // implementazione con bordi
-
-    (b_pos[0] > 1800 - d) ? b_vel[0] -= 2 * k * (1800 - b_pos[0]) : b_vel[0];
-    (b_pos[0] < 2 * d) ? b_vel[0] += 8 * k * b_pos[0] : b_vel[0];
-    (b_pos[1] > 1000 - d) ? b_vel[1] -= 2 * k * (1000 - b_pos[1]) : b_vel[1];
-    (b_pos[1] < d) ? b_vel[1] += 2 * k * b_pos[1] : b_vel[1];
+    (b_pos[0] > b_space[0] - 2.2 * d)
+        ? b_vel[0] -= 3.5 * k * (b_space[0] - b_pos[0])
+        : b_vel[0];
+    (b_pos[0] < 2.2 * d) ? b_vel[0] += 3.5 * k * b_pos[0] : b_vel[0];
+    (b_pos[1] > b_space[1] - 2.2 * d)
+        ? b_vel[1] -= 3.5 * k * (b_space[1] - b_pos[1])
+        : b_vel[1];
+    (b_pos[1] < 2.2 * d) ? b_vel[1] += 3.5 * k * b_pos[1] : b_vel[1];
   }
+  // calcola l'angolo di orientamento dalla velocità:
+  b_angle = compute_angle<double>(b_vel);
+  // viene fatto *dopo* le correzioni per i bordi / periodiche!
+  // velocità massima:
+  (vec_norm(b_vel) > 350.) ? b_vel *= (350. / vec_norm(b_vel)) : b_vel;
+  (vec_norm(b_vel) < 70.) ? b_vel *= (70. / vec_norm(b_vel)) : b_vel;
 }
 
-// Nota per il futuro: passare ai boids i parametri dello schermo per non avere
-// problemi di portabilità
-
 template <typename T>
-T vec_norm(std::valarray<T> const& vec) {
-  assert(std::is_arithmetic_v<T>);
+T vec_norm(std::valarray<T> vec) {
   return std::sqrt(std::pow(vec, {2, 2}).sum());
 }
 
 double boid_dist(Boid const& bd_1, Boid const& bd_2) {
+  // distanza = norma della differenza
   return vec_norm<double>(bd_1.get_pos() - bd_2.get_pos());
 }
 
 template <typename T>
-T compute_angle(const std::valarray<T>& vec) {
-  T angle = 0;
-  if (vec[1] == 0 && vec[0] < 0) {
-    angle = 270;
-  } else if (vec[1] == 0 && vec[0] > 0) {
-    angle = 90;
+T compute_angle(std::valarray<T> const& vec) {
+  // assert(vec.size() == 2);
+  double angle{0.};
+  if (vec[1] == 0. && vec[0] < 0.) {
+    angle = 270.;
+  } else if (vec[1] == 0. && vec[0] > 0.) {
+    angle = 90.;
+  } else if (vec[1] == 0. && vec[0] == 0.) {  // rimediato allo spiacevole baco
+    angle = 0.;
   } else {
     angle = std::atan(vec[0] / vec[1]) / M_PI * 180;
-    if (vec[1] < 0) {
-      angle += 180;
-    }
+    (vec[1] < 0.) ? angle += 180. : angle;
   }
   return angle;
 }
 
-bool is_visible(Boid const& bd_1, Boid const& bd_2, double const& angle) {
+bool is_visible(Boid const& bd_1, Boid const& bd_2) {
+  double angle = bd_2.get_view_angle();
   assert(angle >= 0. && angle <= 180.);
   return std::abs(compute_angle<double>(bd_1.get_pos() - bd_2.get_pos()) -
                   bd_2.get_angle()) <= angle;
 }
-
-// bd_1 boid da vedere e bd_2 boid che vede

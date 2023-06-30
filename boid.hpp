@@ -8,10 +8,15 @@ class Boid {
   std::valarray<double> b_pos;
   std::valarray<double> b_vel;
   double b_angle;
+  double b_view_angle;
+  std::valarray<double> b_space;
+  double b_param_ds;
+  double b_param_s;
 
  public:
-  explicit Boid(std::valarray<double> const&, std::valarray<double> const&);
-  Boid(double const&, double const&, double const&, double const&);
+  Boid(std::valarray<double>, std::valarray<double>, double,
+       std::valarray<double>, double, double);
+  Boid(double, double, double, double, double, double, double, double, double);
   Boid() = default;
 
   std::valarray<double>& get_pos();
@@ -23,19 +28,23 @@ class Boid {
   double& get_angle();
   double const& get_angle() const;
 
-  void update_state(double const&, std::valarray<double> const&);
-  void update_state(double const&, std::valarray<double> const&, bool const&,
-                    double const&, double const&);
+  double const& get_view_angle() const;
+
+  void set_space(double const&, double const&);
+  void set_space(std::valarray<double> const&);
+
+  void update_state(double, std::valarray<double>);
+  void update_state(double, std::valarray<double>, bool const&, double, double);
 };
 
 template <typename T>
-T vec_norm(std::valarray<T> const&);
+T vec_norm(std::valarray<T> vec);
 
-double boid_dist(Boid const&, Boid const&);
+double boid_dist(Boid const& bd_1, Boid const& bd_2);
 
 template <typename T>
 T compute_angle(std::valarray<T> const&);
 
-bool is_visible(Boid const&, Boid const&, double const&);
+bool is_visible(Boid const&, Boid const&);
 
 #endif
