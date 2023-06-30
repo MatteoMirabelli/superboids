@@ -1,4 +1,3 @@
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "boid.hpp"
 #include "doctest.h"
 #include "flock.hpp"
@@ -562,8 +561,6 @@ TEST_CASE("Testing the Flock::vel_correction method with predator") {
   SUBCASE(
       "Testing the Flock::vel_correction method with predator with three "
       "boids") {}
-
-      
 }
 
 TEST_CASE("Testing the Flock::Update_stats method") {
