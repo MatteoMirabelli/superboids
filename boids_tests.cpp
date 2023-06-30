@@ -449,7 +449,7 @@ TEST_CASE("Testing the Flock::get_neighbours method") {
   }
 }
 
-TEST_CASE("Testing the Flock::vel_correction method") {
+TEST_CASE("Testing the Flock::vel_correction method without predator") {
   SUBCASE("Testing the Flock::vel_correction method with four boids") {
     Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
     Boid bd_2(3, 3, -2, 9, 120., 1920, 1080, 4, 1);
@@ -558,6 +558,14 @@ TEST_CASE("Testing the Flock::vel_correction method") {
   }
 }
 
+TEST_CASE("Testing the Flock::vel_correction method with predator") {
+  SUBCASE(
+      "Testing the Flock::vel_correction method with predator with three "
+      "boids") {}
+
+      
+}
+
 TEST_CASE("Testing the Flock::Update_stats method") {
   SUBCASE("Testing the Flock::update_stats method with no neighbours") {
     Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
@@ -643,5 +651,36 @@ TEST_CASE("Testing the Flock::Update_stats method") {
     CHECK(flock_2.get_stats().dist_RMS == doctest::Approx(0.3272645));
     CHECK(flock_2.get_stats().av_vel == 0);
     CHECK(flock_2.get_stats().vel_RMS == 0);
+  }
+}
+
+TEST_CASE("Testing the Predator::Predate method") {
+  // PREDATOR CONSTRUCTOR takes:
+  // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
+  // param_s, p_range, p_hunger
+
+  SUBCASE("Testing the Predator::Predate method with two preys") {
+    Predator pr(2., 2., 5., 5., 50., 1920., 1080., 10., 2., 5., 2.);
+
+    Boid bd1(5., 3., 1., 1., 120., 1920., 1080., 10., 2.);
+    Boid bd2(3., 6., 1., 1., 120., 1920., 1080., 10., 2.);
+
+    std::vector<Boid> preys{bd1, bd2};
+
+    auto vel_correction = pr.predate(preys);
+
+    CHECK(vel_correction[0] == 10);
+    CHECK(vel_correction[1] == 7);
+  }
+
+  SUBCASE("Testing the Predator::Predate method with no preys") {
+    Predator pr(2., 2., 5., 5., 50., 1920., 1080., 10., 2., 5., 2.);
+
+    std::vector<Boid> preys{};
+
+    auto vel_correction = pr.predate(preys);
+
+    CHECK(vel_correction[0] == 0);
+    CHECK(vel_correction[1] == 0);
   }
 }

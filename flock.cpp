@@ -12,7 +12,7 @@ Flock::Flock(Parameters const& params, int const& bd_n, Boid const& com,
   // Genera casualmente, secondo distribuzioni uniformi attorno al centro di
   // massa, lo stormo
   assert(bd_n >= 0);
-  
+
   if (bd_n == 0) {
     // f_flock = std::vector<Boid>(0);
   } else {
@@ -260,8 +260,8 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
   auto neighbours = get_neighbours(it);
   std::valarray<double> delta_vel = {0., 0.};
   // valuta subito se applicare separazione al predatore
-  (boid_dist(pred, *it) < f_params.d_s && is_visible(pred, *it) == true)
-      ? delta_vel -= 10 * f_params.s * (pred.get_pos() - it->get_pos())
+  (boid_dist(pred, *it) < 5 * f_params.d_s)
+      ? delta_vel -= 4 * f_params.s * (pred.get_pos() - it->get_pos())
       : delta_vel;
   // da qui in poi come caso no predatore:
   if (neighbours.size() > 0) {
@@ -284,11 +284,11 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
 }
 
 // update senza predatori
-void Flock::update_flock_state(double const& delta_t, bool const& mod) {
+void Flock::update_flock_state(double const& delta_t, bool const& brd_bhv) {
   std::vector<Boid> copy_flock = f_flock;
   auto it = f_flock.begin();
   std::for_each(copy_flock.begin(), copy_flock.end(), [&](Boid& bd) {
-    bd.update_state(delta_t, this->vel_correction(it), mod, f_params.d_s,
+    bd.update_state(delta_t, this->vel_correction(it), brd_bhv, f_params.d_s,
                     f_params.s);
     ++it;
   });
@@ -298,7 +298,7 @@ void Flock::update_flock_state(double const& delta_t, bool const& mod) {
 }
 
 // update con un predatore
-void Flock::update_flock_pred_state(double const& delta_t, bool const& mod,
+void Flock::update_flock_pred_state(double const& delta_t, bool const& brd_bhv,
                                     Predator& pred) {
   std::vector<Boid> copy_flock = f_flock;
   auto it = f_flock.begin();
@@ -319,10 +319,10 @@ void Flock::update_flock_pred_state(double const& delta_t, bool const& mod,
       }
     }
 
-    (boid_dist(bd, pred) < f_params.d_s)
-        ? bd.update_state(delta_t, this->vel_correction(it, pred), mod,
+    (boid_dist(bd, pred) < 5 * f_params.d_s)
+        ? bd.update_state(delta_t, this->vel_correction(it, pred), brd_bhv,
                           f_params.d_s, f_params.s)
-        : bd.update_state(delta_t, this->vel_correction(it), mod, f_params.d_s,
+        : bd.update_state(delta_t, this->vel_correction(it), brd_bhv, f_params.d_s,
                           f_params.s);
     ++it;
   };
@@ -340,7 +340,7 @@ void Flock::update_flock_pred_state(double const& delta_t, bool const& mod,
   update_com();
   sort();
   // aggiorna qui lo stato del predatore, passandogli le prede
-  pred.update_state(delta_t, pred.predate(preys), mod, pred.get_range() / 2,
+  pred.update_state(delta_t, pred.predate(preys), brd_bhv, pred.get_range() / 2,
                     pred.get_hunger());
 }
 

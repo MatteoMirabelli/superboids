@@ -19,6 +19,11 @@ Obstacle::Obstacle(double const& pos_x, double const& pos_y,
   o_pos = {pos_x, pos_y};
 }
 
+std::vector<Obstacle> generate_obstacles(int n, double size) {}
+
+void add_obstacle(std::vector<Obstacle>, std::valarray<double> pos,
+                  double size) {}
+
 std::valarray<double> const& Obstacle::get_pos() { return o_pos; };
 double const& Obstacle::get_size() { return o_size; };
 

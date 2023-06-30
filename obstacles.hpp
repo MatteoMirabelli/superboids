@@ -18,6 +18,10 @@ class Obstacle {
 
 // Flock di ostacoli
 
+std::vector<Obstacle> generate_obstacles(int n, double size);
+void add_obstacle(std::vector<Obstacle>, std::valarray<double> pos,
+                  double size);
+
 class Obstacle_set {
   std::vector<Obstacle> g_obstacles;
 

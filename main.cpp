@@ -15,7 +15,7 @@
 int main() {
   try {
     // inizializzo parametri stormo
-    Parameters params(120., 50., 0.9, 0.1, 0.03);
+    Parameters params(80., 25., 0.2, 0.05, 0.009);
     // prende parametri finestra (in fullscreen)
     double video_x = sf::VideoMode::getFullscreenModes()[1].width * 0.85;
     double video_y = sf::VideoMode::getFullscreenModes()[1].height;
@@ -24,8 +24,8 @@ int main() {
     // vettore di oggetti grafici stormo:
     std::vector<Bird> tr_boids;
     // inizializzo predatore
-    Predator predator(600., 300., 100., 0., 140., 70., 0.8, video_x, video_y,
-                      50., 0.9);
+    Predator predator(600., 300., 100., 0., 140., 70., 0.6, video_x, video_y,
+                      90., 0.8);
     // qui servirà per caricare le texture:
     sf::Texture bd_texture;
     if (!bd_texture.loadFromFile("textures/eagle.png")) {
@@ -156,7 +156,7 @@ int main() {
       // avvia cronometro
       init = std::chrono::steady_clock::now();
       // aggiorna stato flock e predatore
-      bd_flock.update_flock_pred_state(0.016, false, predator);
+      bd_flock.update_flock_pred_state(0.016, true, predator);
       com_x = bd_flock.get_com().get_pos()[0];
       com_y = bd_flock.get_com().get_pos()[1];
       com_circle.setPosition(video_x + 40. + 0.12 * com_x, 20. + 0.12 * com_y);
