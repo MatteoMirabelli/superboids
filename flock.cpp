@@ -144,6 +144,12 @@ void Flock::erase(std::vector<Boid>::iterator it) { f_flock.erase(it); }
 void Flock::update_com() {
   f_com.get_vel() = {0., 0.};
   f_com.get_pos() = {0., 0.};
+
+  /* f_com.get_pos() = std::accumulate(
+      f_flock.begin(), f_flock.end(), {0, 0},
+      [&](std::valarray<double>& acc, Boid& bd) { return acc + bd.get_pos(); });
+   */
+
   for (auto bd : f_flock) {
     f_com.get_vel() += bd.get_vel();
     f_com.get_pos() += bd.get_pos();
