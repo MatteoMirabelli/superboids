@@ -52,6 +52,8 @@ double const& Boid::get_angle() const { return b_angle; }
 
 double const& Boid::get_view_angle() const { return b_view_angle; }
 
+std::valarray<double> const& Boid::get_space() const { return b_space; }
+
 // per cambiare range (overloadato)
 void Boid::set_space(double const& sx, double const& sy) {
   assert(sx > 0 && sy > 0);

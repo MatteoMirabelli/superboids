@@ -141,12 +141,21 @@ void Flock::set_space(double const& sx, double const& sy) {
 void Flock::erase(std::vector<Boid>::iterator it) { f_flock.erase(it); }
 
 void Flock::update_com() {
-  f_com.get_vel() = {0., 0.};
-  f_com.get_pos() = {0., 0.};
-  for (auto bd : f_flock) {
-    f_com.get_vel() += bd.get_vel();
-    f_com.get_pos() += bd.get_pos();
-  }
+  const auto& view_angle = f_com.get_view_angle();
+  const auto& space = f_com.get_space();
+  const auto& ds = get_params().d_s;
+  const auto& s = get_params().s;
+  f_com = std::accumulate(
+      f_flock.begin(), f_flock.end(),
+      Boid({0., 0.}, {0., 0.}, view_angle, space, ds, s),
+      [view_angle, space, ds, s](const Boid& acc, const Boid& bd) {
+        return Boid{acc.get_pos() + bd.get_pos(),
+                    acc.get_vel() + bd.get_vel(),
+                    view_angle,
+                    space,
+                    ds,
+                    s};
+      });
   f_com.get_vel() /= f_flock.size();
   f_com.get_pos() /= f_flock.size();
 }
