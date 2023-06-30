@@ -12,10 +12,10 @@ class Predator : public Boid {
  public:
   Predator(std::valarray<double> const&, std::valarray<double> const&,
            double const&, double const&, double const&,
-           std::valarray<double> const&);
+           std::valarray<double> const&, double const&, double const&);
   Predator(double const&, double const&, double const&, double const&,
            double const&, double const&, double const&, double const&,
-           double const&);
+           double const&, double const&, double const&);
   Predator() = default;
   double get_angle() const;
   double get_range() const;

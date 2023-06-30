@@ -1,15 +1,22 @@
 #include "predator.hpp"
 
 Predator::Predator(std::valarray<double> const& pos,
-                   std::valarray<double> const& vel, double const& ang,
-                   double const& range, double const& hunger,
-                   std::valarray<double> const& space)
-    : Boid(pos, vel, ang, space), p_range(range), p_hunger(hunger) {}
+                   std::valarray<double> const& vel, double const& view_ang,
+                   double const& param_d_s, double const& param_s,
+                   std::valarray<double> const& space, double const& range,
+                   double const& hunger)
+    : Boid(pos, vel, view_ang, space, param_d_s, param_s),
+      p_range(range),
+      p_hunger(hunger) {}
 
 Predator::Predator(double const& x, double const& y, double const& vx,
-                   double const& vy, double const& ang, double const& range,
-                   double const& hunger, double const& sx, double const& sy)
-    : Boid(x, y, vx, vy, ang, sx, sy), p_range(range), p_hunger(hunger) {}
+                   double const& vy, double const& view_ang,
+                   double const& param_d_s, double const& param_s,
+                   double const& sx, double const& sy, double const& range,
+                   double const& hunger)
+    : Boid(x, y, vx, vy, view_ang, sx, sy, param_d_s, param_s),
+      p_range(range),
+      p_hunger(hunger) {}
 
 double Predator::get_angle() const { return Boid::get_angle(); }
 
@@ -19,17 +26,21 @@ double Predator::get_hunger() const { return p_hunger; }
 
 // vel correction per predatori: calcola contributo coesione verso com prede
 std::valarray<double> Predator::predate(std::vector<Boid>& preys) {
-  std::valarray<double> prey_pos(2);
+  std::valarray<double> prey_com_pos(2);
+
   if (preys.size() > 0) {
     auto nearest = [&](Boid& b1, Boid& b2) {
       return boid_dist(b1, *this) < boid_dist(b2, *this);
     };
+
     std::sort(preys.begin(), preys.end(), nearest);
     for (auto const& prey : preys) {
-      prey_pos += prey.get_pos();
+      prey_com_pos += prey.get_pos();
     }
-    prey_pos /= preys.size();
-    return p_hunger * (prey_pos - this->get_pos()) +
+
+    prey_com_pos /= preys.size();
+
+    return p_hunger * (prey_com_pos - this->get_pos()) +
            p_hunger * (preys.size() / 2) *
                (preys[0].get_pos() - this->get_pos());
   } else {

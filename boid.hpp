@@ -11,11 +11,13 @@ class Boid {
   double b_angle;
   double b_view_angle;
   std::valarray<double> b_space;
+  double b_param_ds;
+  double b_param_s;
 
  public:
   Boid(std::valarray<double>, std::valarray<double>, double,
-       std::valarray<double>);
-  Boid(double, double, double, double, double, double, double);
+       std::valarray<double>, double, double);
+  Boid(double, double, double, double, double, double, double, double, double);
   Boid() = default;
 
   std::valarray<double>& get_pos();
@@ -32,8 +34,10 @@ class Boid {
   void set_space(double const&, double const&);
   void set_space(std::valarray<double> const&);
 
-  void update_state(double, std::valarray<double>);
-  void update_state(double, std::valarray<double>, bool const&, double, double);
+  void set_par_ds(double const&);
+  void set_par_s(double const&);
+
+  void update_state(double, std::valarray<double>, bool const&);
 };
 
 template <typename T>
