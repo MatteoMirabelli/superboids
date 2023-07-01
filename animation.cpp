@@ -1,70 +1,69 @@
-#ifndef ANIMATION_HPP
-#define ANIMATION_HPP
+#include "animation.hpp"
 
 #include <SFML/Graphics.hpp>
-#include <valarray>
-#include <vector>
+#include <cassert>
+#include <cmath>
+#include <filesystem>
 
-class Animate : public sf::Drawable, public sf::Transformable {
-  float a_scale;
-  int a_state;
-  std::vector<sf::Texture> a_textures;
-  sf::Sprite a_sprite;
+Animate::Animate(sf::Texture const& texture)
+    : a_scale(0.), a_state(0), a_sprite(texture), a_textures() {
+  a_textures.push_back(texture);
+}
 
- protected:
-  virtual void draw(sf::RenderTarget&, sf::RenderStates) const;
+Animate::Animate(float const& scale, sf::Texture const& texture)
+    : a_scale(scale), a_state(0), a_sprite(texture), a_textures() {
+  a_textures.push_back(texture);
+  a_sprite.setScale(.3, .5);
+  a_sprite.setOrigin(sf::Vector2f(a_sprite.getGlobalBounds().width / 2,
+                                  a_sprite.getGlobalBounds().height / 2));
+}
 
- public:
-  Animate(sf::Texture const&);
-  Animate(float const&, sf::Texture const&);
-  void addTexture(sf::Texture const&);
-  void addTextures(std::vector<sf::Texture> const&);
-  void addTextures(std::string const&);
-  void setPosition(float const&, float const&);
-  void setRotation(float const&);
-  void setState(int const&);
-  void animate();
-};
+void Animate::addTexture(sf::Texture const& texture) {
+  a_textures.push_back(texture);
+}
 
-class Tracker : public sf::Drawable, public sf::Transformable {
-  sf::RectangleShape t_outer;
-  sf::RectangleShape t_inner;
-  sf::CircleShape t_circle;
-  sf::VertexArray t_path;
-  std::valarray<float> t_range;
-  std::valarray<float> t_pos;
+void Animate::addTextures(std::vector<sf::Texture> const& textures) {
+  for (auto& texture : textures) {
+    a_textures.push_back(texture);
+  }
+}
 
- protected:
-  virtual void draw(sf::RenderTarget&, sf::RenderStates) const;
+void Animate::addTextures(std::string const& path) {
+  for (auto const& entry :
+       std::filesystem::recursive_directory_iterator(path)) {
+    sf::Texture texture;
+    if (entry.path().extension() == ".png" ||
+        entry.path().extension() == ".jpg") {
+      if (!texture.loadFromFile(entry.path().string())) {
+        break;
+      }
+      a_textures.push_back(texture);
+    }
+  }
+}
 
- public:
-  Tracker(std::valarray<float> const&, std::valarray<float> const&, float,
-          float);
-  void setPosition(sf::Vector2f const&);
-  void setFillColors(sf::Color const&, sf::Color const&, sf::Color const&);
-  void setOutlineColors(sf::Color const&, sf::Color const&, sf::Color const&);
-  void setOutlineThickness(float const&, float const&, float const&);
-  void update_pos(std::valarray<float> const&);
-};
+void Animate::setPosition(float const& x, float const& y) {
+  // per movimento
+  sf::Vector2f position(x, y);
+  a_sprite.setPosition(position);
+}
 
-class StatusBar : public sf::Drawable, public sf::Transformable {
-  sf::RectangleShape s_outer;
-  sf::RectangleShape s_bar;
-  sf::Text s_text;
-  std::valarray<float> s_range;
-  float value;
+void Animate::setRotation(float const& angle) {
+  // per rotazione
+  a_sprite.setRotation(angle);
+}
 
- protected:
-  virtual void draw(sf::RenderTarget&, sf::RenderStates) const;
+void Animate::setState(int const& state) {
+  assert(state >= 0);
+  int state_ = state % (a_textures.size() - 1);
+  a_state = state_;
+  a_sprite.setTexture(a_textures[state_]);
+}
 
- public:
-  StatusBar();
-  void setPosition(sf::Vector2f const&);
-  void setColors(sf::Color const&, sf::Color const&, sf::Color const&);
-  void setOutlineThickness(float const&);
-  void setRange(std::valarray<float> const&);
-  void update_pos(std::valarray<float> const&);
-  void set_text(std::string const&);
-};
+void Animate::animate() { setState(a_state + 1); }
 
-#endif
+bool rec_contains(sf::FloatRect const& container, sf::FloatRect const& contained) {
+  return container.contains(contained.left, contained.top) &&
+         container.contains(contained.left + contained.width,
+                            contained.top + contained.height);
+}

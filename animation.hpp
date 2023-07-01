@@ -2,17 +2,16 @@
 #define ANIMATION_HPP
 
 #include <SFML/Graphics.hpp>
-#include <valarray>
 #include <vector>
 
 class Animate : public sf::Drawable, public sf::Transformable {
+  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const {
+    target.draw(a_sprite, states);
+  }
   float a_scale;
   int a_state;
   std::vector<sf::Texture> a_textures;
   sf::Sprite a_sprite;
-
- protected:
-  virtual void draw(sf::RenderTarget&, sf::RenderStates) const;
 
  public:
   Animate(sf::Texture const&);
@@ -26,45 +25,6 @@ class Animate : public sf::Drawable, public sf::Transformable {
   void animate();
 };
 
-class Tracker : public sf::Drawable, public sf::Transformable {
-  sf::RectangleShape t_outer;
-  sf::RectangleShape t_inner;
-  sf::CircleShape t_circle;
-  sf::VertexArray t_path;
-  std::valarray<float> t_range;
-  std::valarray<float> t_pos;
-
- protected:
-  virtual void draw(sf::RenderTarget&, sf::RenderStates) const;
-
- public:
-  Tracker(std::valarray<float> const&, std::valarray<float> const&, float,
-          float);
-  void setPosition(sf::Vector2f const&);
-  void setFillColors(sf::Color const&, sf::Color const&, sf::Color const&);
-  void setOutlineColors(sf::Color const&, sf::Color const&, sf::Color const&);
-  void setOutlineThickness(float const&, float const&, float const&);
-  void update_pos(std::valarray<float> const&);
-};
-
-class StatusBar : public sf::Drawable, public sf::Transformable {
-  sf::RectangleShape s_outer;
-  sf::RectangleShape s_bar;
-  sf::Text s_text;
-  std::valarray<float> s_range;
-  float value;
-
- protected:
-  virtual void draw(sf::RenderTarget&, sf::RenderStates) const;
-
- public:
-  StatusBar();
-  void setPosition(sf::Vector2f const&);
-  void setColors(sf::Color const&, sf::Color const&, sf::Color const&);
-  void setOutlineThickness(float const&);
-  void setRange(std::valarray<float> const&);
-  void update_pos(std::valarray<float> const&);
-  void set_text(std::string const&);
-};
+bool rec_contains(sf::FloatRect const&, sf::FloatRect const&);
 
 #endif

@@ -5,6 +5,11 @@
 #include "predator.hpp"
 
 TEST_CASE("Testing the Flock::sort method") {
+  // BOID CONSTRUCTOR takes:
+  // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
+  // param_s
+  // PARAMS are f_params.d, f_params.d_s, f_params.s, f_params.a, f_params.c
+
   SUBCASE("Testing the Flock::sort method with five boids boids") {
     Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
     Boid bd_2(4, 3, -2, 9, 120., 1920, 1080, 4, 1);
@@ -73,6 +78,11 @@ TEST_CASE("Testing the Flock::sort method") {
 }
 
 TEST_CASE("Testing the Flock::update_com method") {
+  // BOID CONSTRUCTOR takes:
+  // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
+  // param_s
+  // PARAMS are f_params.d, f_params.d_s, f_params.s, f_params.a, f_params.c
+
   SUBCASE("Testing the Flock::update_com method with four boids") {
     Boid bd_1(2, 2, 5, 4, 120., 1920, 1080, 4, 1);
     Boid bd_2(5, 7, 1, -3, 120., 1920, 1080, 4, 1);
@@ -154,6 +164,11 @@ TEST_CASE("Testing the Flock::update_com method") {
 }
 
 TEST_CASE("Testing the Flock::get_neighbours method") {
+  // BOID CONSTRUCTOR takes:
+  // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
+  // param_s
+  // PARAMS are f_params.d, f_params.d_s, f_params.s, f_params.a, f_params.c
+
   SUBCASE("Testing the Flock::get_neighbours method with four boids") {
     Boid bd_1(1, 4, 5, 0, 120., 1920., 1080., 4., 1.);
     Boid bd_2(3, 3, -2, 9, 120., 1920, 1080, 4, 1);
@@ -297,6 +312,11 @@ TEST_CASE("Testing the Flock::get_neighbours method") {
 }
 
 TEST_CASE("Testing the Flock::vel_correction method without predator") {
+  // BOID CONSTRUCTOR takes:
+  // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
+  // param_s
+  // PARAMS are f_params.d, f_params.d_s, f_params.s, f_params.a, f_params.c
+
   SUBCASE("Testing the Flock::vel_correction method with four boids") {
     Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
     Boid bd_2(3, 3, -2, 9, 120., 1920, 1080, 4, 1);
@@ -406,17 +426,19 @@ TEST_CASE("Testing the Flock::vel_correction method without predator") {
 }
 
 TEST_CASE("Testing the Flock::vel_correction method with predator") {
+  // BOID CONSTRUCTOR takes:
+  // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
+  // param_s
+
+  // PREDATOR CONSTRUCTOR takes:
+  // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
+  // param_s, p_range, p_hunger
+
+  // PARAMS are f_params.d, f_params.d_s, f_params.s, f_params.a, f_params.c
+
   SUBCASE(
       "Testing the Flock::vel_correction method with predator with four "
       "boids and one predator") {
-    // BOID CONSTRUCTOR takes:
-    // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
-    // param_s,
-
-    // PREDATOR CONSTRUCTOR takes:
-    // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
-    // param_s, p_range, p_hunger
-
     Boid bd_1(1., 4., 5., 0., 120., 1920., 1080., 4., 1.);
     Boid bd_2(3., 3., 5., 9., 120., 1920., 1080., 4., 1.);
     Boid bd_3(4., 4., 5., 0., 120., 1920., 1080., 4., 1.);
@@ -504,6 +526,11 @@ TEST_CASE("Testing the Flock::vel_correction method with predator") {
 }
 
 TEST_CASE("Testing the Flock::Update_stats method") {
+  // BOID CONSTRUCTOR takes:
+  // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
+  // param_s
+  // PARAMS are f_params.d, f_params.d_s, f_params.s, f_params.a, f_params.c
+  
   SUBCASE("Testing the Flock::update_stats method with no neighbours") {
     Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
     Boid bd_2(10, 6, 2, 0, 120., 1920, 1080, 4, 1);
