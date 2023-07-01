@@ -1,11 +1,14 @@
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "boid.hpp"
 #include "doctest.h"
 #include "flock.hpp"
 #include "obstacles.hpp"
 #include "predator.hpp"
 
-TEST_CASE("Testing the Boid::update_state method") {
+TEST_CASE("Testing the Boid::update_state method without border behaviour") {
+  // BOID CONSTRUCTOR takes:
+  // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
+  // param_s
+
   SUBCASE("Testing the Boid::update_state method with positive values") {
     std::valarray<double> pos{2., 2.};
     std::valarray<double> vel{2., 2.};
@@ -14,7 +17,7 @@ TEST_CASE("Testing the Boid::update_state method") {
     std::valarray<double> delta_vel{1., 1.};
 
     Boid boid(pos, vel, view_angle, window, 4, 1);
-    boid.update_state(1., delta_vel, true);
+    boid.update_state(1., delta_vel);
 
     CHECK(boid.get_vel()[0] == doctest::Approx(3.));
     CHECK(boid.get_vel()[1] == doctest::Approx(3.));
@@ -31,7 +34,7 @@ TEST_CASE("Testing the Boid::update_state method") {
     std::valarray<double> delta_vel{0., 0.};
 
     Boid boid(pos, vel, view_angle, window, 4, 1);
-    boid.update_state(1., delta_vel, true);
+    boid.update_state(1., delta_vel);
 
     CHECK(boid.get_vel()[0] == doctest::Approx(1.));
     CHECK(boid.get_vel()[1] == doctest::Approx(1.));
@@ -48,12 +51,123 @@ TEST_CASE("Testing the Boid::update_state method") {
     std::valarray<double> delta_vel{0., -1.};
 
     Boid boid(pos, vel, view_angle, window, 4, 1);
-    boid.update_state(1., delta_vel, true);
+    boid.update_state(1., delta_vel);
 
     CHECK(boid.get_vel()[0] == doctest::Approx(5.));
     CHECK(boid.get_vel()[1] == doctest::Approx(-5.));
     CHECK(boid.get_pos()[0] == doctest::Approx(8.));
     CHECK(boid.get_pos()[1] == doctest::Approx(5.));
+  }
+}
+
+TEST_CASE("Testing the Boid::update_state method with borders") {
+  // BOID CONSTRUCTOR takes:
+  // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
+  // param_s
+}
+
+TEST_CASE("Testing the Boid::update_state method with periodic conditions") {
+  // BOID CONSTRUCTOR takes:
+  // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
+  // param_s
+
+  // update_state(double delta_t, std::valarray<double> delta_vel, bool const&
+  // brd_bhv, double param_d, double repulsion_factor)
+
+  // REMEMBER: Max speed: 350; Min speed: 70; ( sqrt((vel_x)^2+(vel_y)^2) )
+
+  SUBCASE(
+      "Testing the Boid::update_state method with periodic conditions on left "
+      "border") {
+    std::valarray<double> space{1920, 1080};
+    std::valarray<double> init_pos{100., 100.};
+    std::valarray<double> init_vel{-75., 75.};
+    std::valarray<double> delta_vel{-30., +4.};
+    Boid bd(init_pos, init_vel, 120., space, 4., 1.);
+    bd.update_state(1., delta_vel, true, 5., 1);
+
+    CHECK(bd.get_vel()[0] == -105);
+    CHECK(bd.get_vel()[1] == 79);
+    CHECK(bd.get_pos()[0] == 1899);
+    CHECK(bd.get_pos()[1] == 179);
+  }
+
+  SUBCASE(
+      "Testing the Boid::update_state method with periodic conditions on right "
+      "border") {
+    std::valarray<double> space{1920, 1080};
+    std::valarray<double> init_pos{1880., 100.};
+    std::valarray<double> init_vel{75., 75.};
+    std::valarray<double> delta_vel{30., +4.};
+    Boid bd(init_pos, init_vel, 120., space, 4., 1.);
+    bd.update_state(1., delta_vel, true, 5., 1);
+
+    CHECK(bd.get_vel()[0] == 105);
+    CHECK(bd.get_vel()[1] == 79);
+    CHECK(bd.get_pos()[0] == 21);
+    CHECK(bd.get_pos()[1] == 179);
+  }
+
+  SUBCASE(
+      "Testing the Boid::update_state method with periodic conditions on top "
+      "border") {
+    std::valarray<double> space{1920, 1080};
+    std::valarray<double> init_pos{500., 25.};
+    std::valarray<double> init_vel{100., 7.};
+    std::valarray<double> delta_vel{30., -15.};
+    Boid bd(init_pos, init_vel, 120., space, 4., 1.);
+    bd.update_state(1., delta_vel, true, 5., 1);
+
+    CHECK(bd.get_vel()[0] == 130);
+    CHECK(bd.get_vel()[1] == -8);
+    CHECK(bd.get_pos()[0] == 630);
+    CHECK(bd.get_pos()[1] == 1059);
+  }
+
+  SUBCASE(
+      "Testing the Boid::update_state method with periodic conditions on "
+      "bottom border") {
+    std::valarray<double> space{1920, 1080};
+    std::valarray<double> init_pos{500., 1050.};
+    std::valarray<double> init_vel{100., 7.};
+    std::valarray<double> delta_vel{30., 15.};
+    Boid bd(init_pos, init_vel, 120., space, 4., 1.);
+    bd.update_state(1., delta_vel, true, 5., 1);
+
+    CHECK(bd.get_vel()[0] == 130);
+    CHECK(bd.get_vel()[1] == 22);
+    CHECK(bd.get_pos()[0] == 630);
+    CHECK(bd.get_pos()[1] == 21);
+  }
+
+    SUBCASE(
+      "Testing the Boid::update_state method with periodic conditions on top left corner") {
+    std::valarray<double> space{1920, 1080};
+    std::valarray<double> init_pos{1880., 100.};
+    std::valarray<double> init_vel{20., -70.};
+    std::valarray<double> delta_vel{30., -15.};
+    Boid bd(init_pos, init_vel, 120., space, 4., 1.);
+    bd.update_state(1., delta_vel, true, 5., 1);
+
+    CHECK(bd.get_vel()[0] == 50);
+    CHECK(bd.get_vel()[1] == -85);
+    CHECK(bd.get_pos()[0] == 21);
+    CHECK(bd.get_pos()[1] == 1059);
+  }
+
+    SUBCASE(
+      "Testing the Boid::update_state method with periodic conditions: boid exactly on top left corner, no correction needed") {
+    std::valarray<double> space{1920, 1080};
+    std::valarray<double> init_pos{1880., 100.};
+    std::valarray<double> init_vel{20., -70.};
+    std::valarray<double> delta_vel{0., -10.};
+    Boid bd(init_pos, init_vel, 120., space, 4., 1.);
+    bd.update_state(1., delta_vel, true, 5., 1);
+
+    CHECK(bd.get_vel()[0] == 20);
+    CHECK(bd.get_vel()[1] == -80);
+    CHECK(bd.get_pos()[0] == 1900);
+    CHECK(bd.get_pos()[1] == 20);
   }
 }
 
@@ -562,8 +676,6 @@ TEST_CASE("Testing the Flock::vel_correction method with predator") {
   SUBCASE(
       "Testing the Flock::vel_correction method with predator with three "
       "boids") {}
-
-      
 }
 
 TEST_CASE("Testing the Flock::Update_stats method") {
