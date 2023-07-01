@@ -38,8 +38,8 @@ std::vector<Obstacle> generate_obstacles(int n_obstacles, double size,
   double x_max = (space[0] - 40.);
   double y_max = (space[1] - 40.);
 
-  std::uniform_int_distribution<double> dist_pos_x(0, x_max);
-  std::uniform_int_distribution<double> dist_pos_y(0, y_max);
+  std::uniform_real_distribution<> dist_pos_x(0, x_max);
+  std::uniform_real_distribution<> dist_pos_y(0, y_max);
 
   for (auto n = 0; n < n_obstacles; ++n) {
     std::valarray<double> pos = {dist_pos_x(rd), dist_pos_y(rd)};
