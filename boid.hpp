@@ -47,3 +47,5 @@ template <typename T>
 T compute_angle(std::valarray<T> const&);
 
 bool is_visible(Boid const&, Boid const&);
+
+#endif
