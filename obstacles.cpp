@@ -79,6 +79,7 @@ void add_obstacle(std::vector<Obstacle>& g_obstacles, std::valarray<double> pos,
   auto it = std::find_if(g_obstacles.begin(), g_obstacles.end(), overlap);
   if (it == g_obstacles.end()) {
     g_obstacles.push_back(Obstacle(pos, size));
+    sort_obstacles(g_obstacles);
   } else {
     std::cout << "Impossibile aggiungere l'ostacolo" << '\n';
   }
