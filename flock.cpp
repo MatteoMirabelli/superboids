@@ -145,15 +145,11 @@ void Flock::update_com() {
   f_com.get_vel() = {0., 0.};
   f_com.get_pos() = {0., 0.};
 
-  /* f_com.get_pos() = std::accumulate(
-      f_flock.begin(), f_flock.end(), {0, 0},
-      [&](std::valarray<double>& acc, Boid& bd) { return acc + bd.get_pos(); });
-   */
-
   for (auto bd : f_flock) {
     f_com.get_vel() += bd.get_vel();
     f_com.get_pos() += bd.get_pos();
   }
+
   f_com.get_vel() /= f_flock.size();
   f_com.get_pos() /= f_flock.size();
 }
@@ -266,7 +262,7 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
   auto neighbours = get_neighbours(it);
   std::valarray<double> delta_vel = {0., 0.};
   // valuta subito se applicare separazione al predatore
-  (boid_dist(pred, *it) < 5 * f_params.d_s)
+  (boid_dist(pred, *it) < 5 * f_params.d)
       ? delta_vel -= 4 * f_params.s * (pred.get_pos() - it->get_pos())
       : delta_vel;
   // da qui in poi come caso no predatore:
@@ -289,7 +285,45 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
   return delta_vel;
 }
 
-// update senza predatori
+// Overload di vel_correction con più predatori per i test
+std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
+                                            std::vector<Predator> const& preds,
+                                            double boid_pred_detection,
+                                            double boid_pred_repulsion) {
+  assert(it >= f_flock.begin() && it < f_flock.end());
+
+  auto neighbours = get_neighbours(it);
+  std::valarray<double> delta_vel = {0., 0.};
+
+  // Eventuale separazione dai predatori
+  for (Predator pt : preds) {
+    (boid_dist(pt, *it) < boid_pred_detection * f_params.d)
+        ? delta_vel -=
+          boid_pred_repulsion * f_params.s * (pt.get_pos() - it->get_pos())
+        : delta_vel;
+  }
+
+  // Eventuale saparazione dai vicini:
+  if (neighbours.size() > 0) {
+    auto n_minus = neighbours.size();
+    std::valarray<double> local_com = {0., 0.};
+    for (Boid bd : neighbours) {
+      // separation
+      (boid_dist(bd, *it) < f_params.d_s)
+          ? delta_vel -= f_params.s * (bd.get_pos() - it->get_pos())
+          : delta_vel;
+      // alignment
+      delta_vel += f_params.a * (bd.get_vel() - it->get_vel()) / n_minus;
+
+      local_com += bd.get_pos();
+    }
+    // cohesion
+    delta_vel += f_params.c * (local_com / n_minus - it->get_pos());
+  }
+  return delta_vel;
+}
+
+// update_flock_state senza predatori
 void Flock::update_flock_state(double const& delta_t, bool const& brd_bhv) {
   std::vector<Boid> copy_flock = f_flock;
   auto it = f_flock.begin();
@@ -303,7 +337,7 @@ void Flock::update_flock_state(double const& delta_t, bool const& brd_bhv) {
   this->sort();
 }
 
-// update con un predatore
+// update_flock_state con un predatore
 void Flock::update_flock_pred_state(double const& delta_t, bool const& brd_bhv,
                                     Predator& pred) {
   std::vector<Boid> copy_flock = f_flock;

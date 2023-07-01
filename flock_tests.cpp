@@ -407,8 +407,100 @@ TEST_CASE("Testing the Flock::vel_correction method without predator") {
 
 TEST_CASE("Testing the Flock::vel_correction method with predator") {
   SUBCASE(
-      "Testing the Flock::vel_correction method with predator with three "
-      "boids") {}
+      "Testing the Flock::vel_correction method with predator with four "
+      "boids and one predator") {
+    // BOID CONSTRUCTOR takes:
+    // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
+    // param_s,
+
+    // PREDATOR CONSTRUCTOR takes:
+    // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
+    // param_s, p_range, p_hunger
+
+    Boid bd_1(1., 4., 5., 0., 120., 1920., 1080., 4., 1.);
+    Boid bd_2(3., 3., 5., 9., 120., 1920., 1080., 4., 1.);
+    Boid bd_3(4., 4., 5., 0., 120., 1920., 1080., 4., 1.);
+    Boid bd_4(6, 7, 5, 0, 120., 1920, 1080, 4, 1);
+
+    Predator pd(1., 1., 2., 2., 140., 1920., 1080., 4., 1., 5., 1.);
+
+    Parameters params(5, 4, 1, 2, 3);
+
+    Flock flock(params, 0, 120., {1920, 1080});
+
+    flock.push_back(bd_1);
+    flock.push_back(bd_2);
+    flock.push_back(bd_3);
+    flock.push_back(bd_4);
+
+    std::vector<Predator> preds;
+    preds.push_back(pd);
+
+    auto it = flock.begin() + 1;
+    auto et = flock.end() - 1;
+
+    auto dv2 = flock.vel_correction(it, preds, 2., 2);
+    auto dv4 = flock.vel_correction(et, preds, 2., 2.);
+    CHECK(dv2[0] == 3.5);
+    CHECK(dv2[1] == -13);
+    CHECK(dv4[0] == 10);
+    CHECK(dv4[1] == 12);
+  }
+
+  SUBCASE(
+      "Testing the Flock::vel_correction method with four boids and Predator "
+      "out of range for three of them") {
+    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);  // pd out of range
+    Boid bd_2(3, 3, 5, 9, 120., 1920, 1080, 4, 1);  // pd out of range
+    Boid bd_3(4, 4, 5, 0, 120., 1920, 1080, 4, 1);  // pd out of range
+    Boid bd_4(6, 7, 5, 0, 120., 1920, 1080, 4, 1);  // pd NOT out of range
+
+    Predator pd(8., 14., -5., -5., 140., 1920., 1080., 4., 1., 5., 1.);
+
+    Parameters params(4, 4, 1, 2, 3);
+
+    Flock flock(params, 0, 120., {1920, 1080});
+    std::vector<Predator> preds;
+    preds.push_back(pd);
+
+    flock.push_back(bd_1);
+    flock.push_back(bd_2);
+    flock.push_back(bd_3);
+    flock.push_back(bd_4);
+
+    const auto it = flock.begin() + 1;
+    const auto ut = flock.end() - 1;
+    const auto dv1 = flock.vel_correction(it, preds, 2., 2.);
+    const auto dv4 = flock.vel_correction(ut, preds, 2., 2.);
+    CHECK(dv1[0] == -0.5);  // vel_correction without predator
+    CHECK(dv1[1] == -17.);  // vel_correction without predator
+    CHECK(dv4[0] == -4);    // vel_correction with predator
+    CHECK(dv4[1] == -14.);  // vel_correction with predator
+  }
+
+  SUBCASE(
+      "Testing the Flock::vel_correction method with one boid and two "
+      "predators, one of which "
+      "out of range") {
+    Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
+
+    Predator pd1(4., 8., -5., -5., 140., 1920., 1080., 4., 1., 5., 1.);
+    Predator pd2(10., 8., -5., -5., 140., 1920., 1080., 4., 1., 5., 1.);
+
+    Parameters params(4, 4, 1, 2, 3);
+
+    Flock flock(params, 0, 120., {1920, 1080});
+    std::vector<Predator> preds;
+    preds.push_back(pd1);
+    preds.push_back(pd2);
+
+    flock.push_back(bd_1);
+
+    const auto it = flock.begin();
+    const auto dv1 = flock.vel_correction(it, preds, 2., 2.);
+    CHECK(dv1[0] == -6);
+    CHECK(dv1[1] == -8.);
+  }
 }
 
 TEST_CASE("Testing the Flock::Update_stats method") {
