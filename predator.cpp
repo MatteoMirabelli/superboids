@@ -1,5 +1,8 @@
 #include "predator.hpp"
 
+//#include <algorithm>
+#include <execution>
+
 Predator::Predator(std::valarray<double> const& pos,
                    std::valarray<double> const& vel, double const& view_ang,
                    double const& param_d_s, double const& param_s,
@@ -29,11 +32,11 @@ std::valarray<double> Predator::predate(std::vector<Boid>& preys) {
   std::valarray<double> prey_com_pos(2);
 
   if (preys.size() > 0) {
-    auto nearest = [&](Boid& b1, Boid& b2) {
+    auto nearest = [&](Boid const& b1, Boid const& b2) {
       return boid_dist(b1, *this) < boid_dist(b2, *this);
     };
 
-    std::sort(preys.begin(), preys.end(), nearest);
+    std::sort(std::execution::par, preys.begin(), preys.end(), nearest);
     for (auto const& prey : preys) {
       prey_com_pos += prey.get_pos();
     }

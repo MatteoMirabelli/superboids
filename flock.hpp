@@ -73,6 +73,8 @@ class Flock {
   std::valarray<double> vel_correction(std::vector<Boid>::iterator);
   std::valarray<double> vel_correction(std::vector<Boid>::iterator,
                                        Predator const&);
+  std::valarray<double> vel_correction(Boid const&);
+  std::valarray<double> vel_correction(Boid const&, Predator const&);
 
   void update_flock_state(double const&, bool const&);
 

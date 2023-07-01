@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cassert>
 #include <chrono>
+#include <execution>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -17,7 +18,7 @@
 int main() {
   try {
     // inizializzo parametri stormo
-    Parameters params(80., 25., 0.2, 0.05, 0.009);
+    Parameters params(80., 25., 0.7, 0.1, 0.02);
     // parametri finestra e video tarati sul device
     float window_x = sf::VideoMode::getFullscreenModes()[0].width;
     float window_y = sf::VideoMode::getFullscreenModes()[0].height * 0.92;
@@ -31,7 +32,7 @@ int main() {
     // vettore di oggetti grafici stormo:
     std::vector<Bird> tr_boids;
     // inizializzo predatore
-    Predator predator(600., 300., 100., 0., 140., 70., 0.6, video_x, video_y,
+    Predator predator(600., 300., 100., 0., 140., 30., 0.6, video_x, video_y,
                       90., 0.8);
     // qui servirà per caricare le texture:
     sf::Texture bd_texture;
@@ -48,6 +49,7 @@ int main() {
     tr_predator.setPosition(predator.get_pos()[0] + margin,
                             predator.get_pos()[1] + margin);
     tr_predator.setRotation(-predator.get_angle());
+
     // trasformo gli oggetti boid in oggetti grafici bird
     std::transform(bd_flock.begin(), bd_flock.end(),
                    std::back_inserter(tr_boids), [&margin](Boid b) -> Bird {
@@ -92,7 +94,7 @@ int main() {
                         {pos_com_x, pos_com_y}, com_ratio, margin / 2);
     com_tracker.setPosition(sf::Vector2f{tracker_x, tracker_y});
     com_tracker.setFillColors(sf::Color::White, sf::Color(220, 220, 220),
-                              sf::Color::Magenta);
+                              sf::Color::Blue);
     com_tracker.setOutlineColors(sf::Color::Black, sf::Color::Black,
                                  sf::Color::Black);
     com_tracker.setOutlineThickness(2, 0, 0);
@@ -111,7 +113,7 @@ int main() {
                         {0., 350.});
     speed_bar.setPosition(sf::Vector2f{
         video_x + 2 * margin,
-        video_y * com_ratio + 3 * margin + 3 * comp_text.getCharacterSize()});
+        video_y * com_ratio + 3 * margin + 4.2 * comp_text.getCharacterSize()});
     Statistics flock_stats = bd_flock.get_stats();
 
     // per lo sfondo:
@@ -129,6 +131,7 @@ int main() {
     // iniziali step = durata di tempo
     std::chrono::duration<double, std::milli> step_cmpt;
     std::chrono::duration<double, std::milli> step_draw;
+    std::chrono::duration<double, std::milli> step_update;
     // stringstream per convertire durate in stringhe
     std::ostringstream step_ss;
 
@@ -137,6 +140,7 @@ int main() {
 
     // game cicle
     while (window.isOpen()) {
+      init = std::chrono::steady_clock::now();
       // aggiorna vettore di oggetti grafici bird
       // da implementare in file separato per gestire aggiunta/rimozione
       tr_boids.erase(tr_boids.begin() + bd_flock.size(), tr_boids.end());
@@ -153,7 +157,7 @@ int main() {
                               predator.get_pos()[1] + margin);
       tr_predator.setRotation(180. - predator.get_angle());
       // aggiorna posizione com
-      if (counter % 10 == 0) {
+      if (counter % 4 == 0) {
         pos_com_x = bd_flock.get_com().get_pos()[0];
         pos_com_y = bd_flock.get_com().get_pos()[1];
         /*com_circle.setPosition(com_rec.getPosition().x + com_x * com_ratio,
@@ -165,6 +169,7 @@ int main() {
         flock_stats = bd_flock.get_stats();
         speed_bar.update_value(flock_stats.av_vel);
       }
+      step_update += std::chrono::steady_clock::now() - init;
       //  Process events
       sf::Event event;
       while (window.pollEvent(event)) {
@@ -177,16 +182,19 @@ int main() {
           }
         }*/
       }
-      // stampa a schermo tempo di calcolo e disegno (mediato su 10 frame)
+      // stampa a schermo tempo di calcolo e disegno (mediato su 4 frame)
       if (counter % 4 == 0) {
         step_ss.str("");
         step_ss << "Computation time: " << std::setprecision(2) << std::fixed
                 << step_cmpt.count() / 4 << " ms \n";
         step_ss << "Drawing time: " << std::setprecision(2) << std::fixed
-                << step_draw.count() / 4 << " ms";
+                << step_draw.count() / 4 << " ms \n";
+        step_ss << "Update time: " << std::setprecision(2) << std::fixed
+                << step_update.count() / 4 << " ms";
         comp_text.setString(step_ss.str());
         step_cmpt = std::chrono::duration<double, std::milli>::zero();
         step_draw = std::chrono::duration<double, std::milli>::zero();
+        step_update = std::chrono::duration<double, std::milli>::zero();
       }
 
       // calcola tempo di computazione
