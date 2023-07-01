@@ -71,25 +71,25 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel) {
 }
 
 void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
-                        bool const& brd_bhv, double d, double k) {
+                        bool const& brd_bhv, double param_d, double repulsion_factor) {
   b_vel += delta_vel;
   b_pos += (b_vel * delta_t);
   if (brd_bhv == true) {
     // implementazione con periodiche
     (b_pos[0] > b_space[0] - 20.) ? b_pos[0] = 21. : b_pos[0];
     (b_pos[0] < 20.) ? b_pos[0] = b_space[0] - 21. : b_pos[0];
-    (b_pos[1] > b_space[1]) ? b_pos[1] = 21. : b_pos[1];
+    (b_pos[1] > b_space[1] -20) ? b_pos[1] = 21. : b_pos[1];
     (b_pos[1] < 20.) ? b_pos[1] = b_space[1] - 21. : b_pos[1];
   } else {
     // implementazione con bordi
-    (b_pos[0] > b_space[0] - 2.2 * d)
-        ? b_vel[0] -= 3.5 * k * (b_space[0] - b_pos[0])
+    (b_pos[0] > b_space[0] - 2.2 * param_d)
+        ? b_vel[0] -= 3.5 * repulsion_factor * (b_space[0] - b_pos[0])
         : b_vel[0];
-    (b_pos[0] < 2.2 * d) ? b_vel[0] += 3.5 * k * b_pos[0] : b_vel[0];
-    (b_pos[1] > b_space[1] - 2.2 * d)
-        ? b_vel[1] -= 3.5 * k * (b_space[1] - b_pos[1])
+    (b_pos[0] < 2.2 * param_d) ? b_vel[0] += 3.5 * repulsion_factor * b_pos[0] : b_vel[0];
+    (b_pos[1] > b_space[1] - 2.2 * param_d)
+        ? b_vel[1] -= 3.5 * repulsion_factor * (b_space[1] - b_pos[1])
         : b_vel[1];
-    (b_pos[1] < 2.2 * d) ? b_vel[1] += 3.5 * k * b_pos[1] : b_vel[1];
+    (b_pos[1] < 2.2 * param_d) ? b_vel[1] += 3.5 * repulsion_factor * b_pos[1] : b_vel[1];
   }
   // calcola l'angolo di orientamento dalla velocità:
   b_angle = compute_angle<double>(b_vel);

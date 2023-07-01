@@ -59,38 +59,46 @@ Flock::Flock(Parameters const& params, int const& bd_n, double const& view_ang,
   // Genera casualmente, secondo distribuzioni uniformi, i boids
   assert(bd_n >= 0);
   std::random_device rd;
-  int x_max = 2 * (space[0] - 40.) / params.d_s;
-  int y_max = 2 * (space[1] - 40.) / params.d_s;
+  int x_max = 2.5 * (space[0] - 40.) / params.d_s;
+  int y_max = 2.5 * (space[1] - 40.) / params.d_s;
 
   std::uniform_int_distribution<> dist_pos_x(0, x_max);
   std::uniform_int_distribution<> dist_pos_y(0, y_max);
-
-  /*std::uniform_real_distribution<> dist_pos_x(20., space[0] - 19.);
-  std::uniform_real_distribution<> dist_pos_y(20., space[1] - 19.);*/
 
   std::uniform_real_distribution<> dist_vel_x(-150., 150.);
   std::uniform_real_distribution<> dist_vel_y(-150., 150.);
 
   f_com = Boid{{0., 0.}, {0., 0.}, 0., space, params.d_s, params.s};
   for (auto n = 0; n < bd_n; ++n) {
-    std::valarray<double> pos = {dist_pos_x(rd) * 0.5 * (params.d_s),
-                                 dist_pos_y(rd) * 0.5 * (params.d_s)};
+    std::valarray<double> pos = {dist_pos_x(rd) * 0.4 * (params.d_s) + 20.,
+                                 dist_pos_y(rd) * 0.4 * (params.d_s) + 20.};
     std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
     f_flock.push_back(Boid{pos, vel, view_ang, space, params.d_s, params.s});
-    f_com.get_vel() += vel;
-    f_com.get_pos() += pos;
   }
-  f_com.get_vel() /= f_flock.size();
-  f_com.get_pos() /= f_flock.size();
 
   sort();
 
-  auto compare_bd = [](Boid& b1, Boid& b2) {
-    return b1.get_pos()[0] == b2.get_pos()[0] &&
-           b1.get_pos()[1] == b2.get_pos()[1];
+  auto compare_bd = [&](Boid& b1, Boid& b2) {
+    return boid_dist(b1, b2) < 0.3 * params.d_s;
   };
+
+  // verifica la prima volta che non ci siano boid coincidenti
   auto last = std::unique(f_flock.begin(), f_flock.end(), compare_bd);
   f_flock.erase(last, f_flock.end());
+
+  // se ce n'erano, rigenera e ripulisce fino a quando non
+  while (f_flock.size() < bd_n) {
+    for (int i = 0; i < f_flock.size() - bd_n; ++i) {
+      std::valarray<double> pos = {dist_pos_x(rd) * 0.4 * (params.d_s) + 20.,
+                                   dist_pos_y(rd) * 0.4 * (params.d_s) + 20.};
+      std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
+      f_flock.push_back(Boid{pos, vel, view_ang, space, params.d_s, params.s});
+    }
+    sort();
+    auto lt = std::unique(f_flock.begin(), f_flock.end(), compare_bd);
+    f_flock.erase(lt, f_flock.end());
+  }
+  update_com();
 }
 
 std::vector<Boid>::iterator Flock::begin() { return f_flock.begin(); }

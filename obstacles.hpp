@@ -16,28 +16,14 @@ class Obstacle {
   double const& get_size();
 };
 
-// Flock di ostacoli
-
+// Genera il vettore di ostacoli
 std::vector<Obstacle> generate_obstacles(int n, double size);
-void add_obstacle(std::vector<Obstacle>, std::valarray<double> pos,
+
+// Ordina il vettore di ostacoli
+void sort_obstacles(std::vector<Obstacle>&);
+
+// Aggiungi un ostacolo
+void add_obstacle(std::vector<Obstacle>&, std::valarray<double> pos,
                   double size);
-
-class Obstacle_set {
-  std::vector<Obstacle> g_obstacles;
-
- public:
-  // costruttori
-  // Obstacle_set(int, double, std::valarray<double> o_pos);
-
-  Obstacle& get_obstacle(std::vector<Obstacle>::iterator);
-  Obstacle const& get_obstacle(std::vector<Obstacle>::iterator) const;
-
-  void push_back(Obstacle const&);
-
-  void erase(std::vector<Obstacle>::iterator);
-  double size();
-
-  void sort();
-};
 
 #endif
