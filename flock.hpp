@@ -53,6 +53,7 @@ class Flock {
   Flock(Parameters const&, int const&, double const&,
         std::valarray<double> const&);
   Flock() = default;
+  void add_boid();
   double size() const;
   std::vector<Boid>::iterator begin();
   std::vector<Boid>::iterator end();

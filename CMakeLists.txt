@@ -19,8 +19,8 @@ string(APPEND CMAKE_CXX_FLAGS
 " -Wnon-virtual-dtor -Wold-style-cast")
 
 # abilita l'address sanitizer e l'undefined-behaviour sanitizer in debug mode
-string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=address,undefined -fno-omit-frame-pointer")
-string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " -fsanitize=address,undefined -fno-omit-frame-pointer")
+string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=address,-fsanitize=thread, undefined -fno-omit-frame-pointer")
+string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " -fsanitize=address,-fsanitize=thread, undefined -fno-omit-frame-pointer")
 
 find_package(X11 REQUIRED)
 find_package(SFML 2.5 COMPONENTS graphics REQUIRED)

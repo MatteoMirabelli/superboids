@@ -101,6 +101,36 @@ Flock::Flock(Parameters const& params, int const& bd_n, double const& view_ang,
   update_com();
 }
 
+void Flock::add_boid() {
+  std::random_device rd;
+  int x_max = 2.5 * (f_flock[0].get_space()[0] - 40.) / f_params.d_s;
+  int y_max = 2.5 * (f_flock[0].get_space()[1] - 40.) / f_params.d_s;
+
+  std::uniform_int_distribution<> dist_pos_x(0, x_max);
+  std::uniform_int_distribution<> dist_pos_y(0, y_max);
+
+  std::uniform_real_distribution<> dist_vel_x(-150., 150.);
+  std::uniform_real_distribution<> dist_vel_y(-150., 150.);
+
+  std::valarray<double> pos = {dist_pos_x(rd) * 0.4 * (f_params.d_s) + 20.,
+                               dist_pos_y(rd) * 0.4 * (f_params.d_s) + 20.};
+
+  auto find_clone = [pos](Boid& b1) {
+    return b1.get_pos()[0] == pos[0] && b1.get_pos()[1] == pos[1];
+  };
+  auto clone = std::find_if(f_flock.begin(), f_flock.end(), find_clone);
+  while (clone != f_flock.end()) {
+    pos = {dist_pos_x(rd) * 0.4 * (f_params.d_s) + 20.,
+           dist_pos_y(rd) * 0.4 * (f_params.d_s) + 20.};
+    clone = std::find_if(f_flock.begin(), f_flock.end(), find_clone);
+  }
+  std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
+  f_flock.push_back(Boid{pos, vel, f_flock[0].get_view_angle(),
+                         f_flock[0].get_space(), f_params.d_s, f_params.s});
+  sort();
+  update_com();
+}
+
 std::vector<Boid>::iterator Flock::begin() { return f_flock.begin(); }
 std::vector<Boid>::iterator Flock::end() { return f_flock.end(); }
 

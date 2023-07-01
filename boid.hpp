@@ -31,6 +31,7 @@ class Boid {
 
   double const& get_view_angle() const;
 
+  std::valarray<double> const& get_space() const;
   void set_space(double const&, double const&);
   void set_space(std::valarray<double> const&);
 

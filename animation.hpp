@@ -45,25 +45,27 @@ class Tracker : public sf::Drawable, public sf::Transformable {
   void setOutlineColors(sf::Color const&, sf::Color const&, sf::Color const&);
   void setOutlineThickness(float const&, float const&, float const&);
   void update_pos(std::valarray<float> const&);
+  sf::RectangleShape const& getOuter() const;
 };
 
 class StatusBar : public sf::Drawable, public sf::Transformable {
+  sf::Text s_text;
   sf::RectangleShape s_outer;
   sf::RectangleShape s_bar;
-  sf::Text s_text;
   std::valarray<float> s_range;
-  float value;
+  float s_value;
 
  protected:
   virtual void draw(sf::RenderTarget&, sf::RenderStates) const;
 
  public:
-  StatusBar();
+  StatusBar(std::string const&, sf::Font const&, float, float,
+            std::valarray<float> const&);
   void setPosition(sf::Vector2f const&);
-  void setColors(sf::Color const&, sf::Color const&, sf::Color const&);
-  void setOutlineThickness(float const&);
+  void setColors(sf::Color const&, sf::Color const&);
+  void setOutlineThickness(float);
   void setRange(std::valarray<float> const&);
-  void update_pos(std::valarray<float> const&);
+  void update_value(float);
   void set_text(std::string const&);
 };
 

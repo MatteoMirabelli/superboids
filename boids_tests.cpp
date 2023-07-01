@@ -14,7 +14,7 @@ TEST_CASE("Testing the Boid::update_state method") {
     std::valarray<double> delta_vel{1., 1.};
 
     Boid boid(pos, vel, view_angle, window, 4, 1);
-    boid.update_state(1., delta_vel);
+    boid.update_state(1., delta_vel, true);
 
     CHECK(boid.get_vel()[0] == doctest::Approx(3.));
     CHECK(boid.get_vel()[1] == doctest::Approx(3.));
@@ -31,7 +31,7 @@ TEST_CASE("Testing the Boid::update_state method") {
     std::valarray<double> delta_vel{0., 0.};
 
     Boid boid(pos, vel, view_angle, window, 4, 1);
-    boid.update_state(1., delta_vel);
+    boid.update_state(1., delta_vel, true);
 
     CHECK(boid.get_vel()[0] == doctest::Approx(1.));
     CHECK(boid.get_vel()[1] == doctest::Approx(1.));
@@ -48,7 +48,7 @@ TEST_CASE("Testing the Boid::update_state method") {
     std::valarray<double> delta_vel{0., -1.};
 
     Boid boid(pos, vel, view_angle, window, 4, 1);
-    boid.update_state(1., delta_vel);
+    boid.update_state(1., delta_vel, true);
 
     CHECK(boid.get_vel()[0] == doctest::Approx(5.));
     CHECK(boid.get_vel()[1] == doctest::Approx(-5.));

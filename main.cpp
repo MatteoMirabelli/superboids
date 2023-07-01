@@ -106,6 +106,13 @@ int main() {
                           video_y * com_ratio + 3 * margin);
 
     // indicatore velocità media
+    StatusBar speed_bar("Mean speed", font,
+                        com_tracker.getOuter().getGlobalBounds().width, 22.,
+                        {0., 350.});
+    speed_bar.setPosition(sf::Vector2f{
+        video_x + 2 * margin,
+        video_y * com_ratio + 3 * margin + 3 * comp_text.getCharacterSize()});
+    Statistics flock_stats = bd_flock.get_stats();
 
     // per lo sfondo:
     /*sf::Texture bg_texture;
@@ -131,6 +138,7 @@ int main() {
     // game cicle
     while (window.isOpen()) {
       // aggiorna vettore di oggetti grafici bird
+      // da implementare in file separato per gestire aggiunta/rimozione
       tr_boids.erase(tr_boids.begin() + bd_flock.size(), tr_boids.end());
       std::transform(bd_flock.begin(), bd_flock.end(), tr_boids.begin(),
                      tr_boids.begin(),
@@ -151,6 +159,11 @@ int main() {
         /*com_circle.setPosition(com_rec.getPosition().x + com_x * com_ratio,
                                com_rec.getPosition().y + com_y * com_ratio);*/
         com_tracker.update_pos({pos_com_x, pos_com_y});
+
+        // aggiorna velocità media
+        bd_flock.update_stats();
+        flock_stats = bd_flock.get_stats();
+        speed_bar.update_value(flock_stats.av_vel);
       }
       //  Process events
       sf::Event event;
@@ -194,6 +207,8 @@ int main() {
       window.draw(com_tracker);
       // disegna testo
       window.draw(comp_text);
+      // disegna barra velocità media
+      window.draw(speed_bar);
       // taaac TAAAAAAC
       window.display();
       // calcola tempo di disegno
