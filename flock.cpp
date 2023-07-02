@@ -126,7 +126,7 @@ void Flock::add_boid() {
   while (clone != f_flock.end()) {
     pos = {dist_pos_x(rd) * 0.4 * (f_params.d_s) + 20.,
            dist_pos_y(rd) * 0.4 * (f_params.d_s) + 20.};
-    clone = std::find_if(std::execution::par, f_flock.begin(), f_flock.end(),
+    clone = std::find_if(std::execution::unseq, f_flock.begin(), f_flock.end(),
                          find_clone);
   }
   std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
@@ -244,6 +244,7 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
   std::valarray<double> delta_vel = {0., 0.};
   if (neighbours.size() > 0) {
     auto n_minus = neighbours.size();
+    // std::mutex mtx;
     std::valarray<double> local_com = {0., 0.};
     for (Boid bd : neighbours) {
       // separation
@@ -255,6 +256,18 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
 
       local_com += bd.get_pos();
     }
+    /*auto compute = [&](Boid const& bd) {
+      // separation
+      std::lock_guard<std::mutex> lck(mtx);
+      (boid_dist(bd, *it) < f_params.d_s)
+          ? delta_vel -= f_params.s * (bd.get_pos() - it->get_pos())
+          : delta_vel;
+      // alignment
+      delta_vel += f_params.a * (bd.get_vel() - it->get_vel()) / n_minus;
+      local_com += bd.get_pos();
+    };
+    std::for_each(std::execution::par_unseq, neighbours.begin(),
+                  neighbours.end(), compute);*/
     // cohesion
     delta_vel += f_params.c * (local_com / n_minus - it->get_pos());
   }
@@ -275,6 +288,7 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
   if (neighbours.size() > 0) {
     auto n_minus = neighbours.size();
     std::valarray<double> local_com = {0., 0.};
+    // std::mutex mtx;
     for (Boid bd : neighbours) {
       // separation
       (boid_dist(bd, *it) < f_params.d_s)
@@ -285,6 +299,18 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
 
       local_com += bd.get_pos();
     }
+    /*auto compute = [&](Boid const& bd) {
+      // separation
+      std::lock_guard<std::mutex> lck(mtx);
+      (boid_dist(bd, *it) < f_params.d_s)
+          ? delta_vel -= f_params.s * (bd.get_pos() - it->get_pos())
+          : delta_vel;
+      // alignment
+      delta_vel += f_params.a * (bd.get_vel() - it->get_vel()) / n_minus;
+      local_com += bd.get_pos();
+    };
+    std::for_each(std::execution::par_unseq, neighbours.begin(),
+                  neighbours.end(), compute);*/
     // cohesion
     delta_vel += f_params.c * (local_com / n_minus - it->get_pos());
   }

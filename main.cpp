@@ -203,14 +203,14 @@ int main() {
       window.clear(sf::Color(210, 210, 210));
       // disegna riquadro simulazione
       window.draw(rec_sim);
-      // disegna predatore
-      window.draw(tr_predator);
       // disegna stormo
       for (Bird& tr_boid : tr_boids) {
         window.draw(tr_boid);
         // tr_boid.animate();
         //++i;
       }
+      // disegna predatore
+      window.draw(tr_predator);
       // disegna tracker centro di massa
       window.draw(com_tracker);
       // disegna testo
