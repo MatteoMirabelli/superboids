@@ -10,6 +10,7 @@ class Predator : public Boid {
   double p_hunger;  // fattore di coesione verso com locale prede
 
  public:
+  char type() const override;
   Predator(std::valarray<double> const&, std::valarray<double> const&,
            double const&, double const&, double const&,
            std::valarray<double> const&, double const&, double const&);
@@ -22,5 +23,11 @@ class Predator : public Boid {
   double get_hunger() const;
   std::valarray<double> predate(std::vector<Boid>&);
 };
+
+std::vector<Predator> random_predators(int, std::valarray<double> const&,
+                                       double, double, double, double, double);
+void update_predators_state(std::vector<Predator>&, double, bool,
+                            std::vector<std::pair<Boid, unsigned int>> const&,
+                            std::vector<Obstacle> const&);
 
 #endif

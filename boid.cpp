@@ -1,6 +1,11 @@
 #include "boid.hpp"
 
+#include <mutex>
 #include <type_traits>
+
+// BOID
+
+char Boid::type() const { return 'b'; }
 
 // aggiunto il passaggio delle dimensioni dello schermo
 
@@ -8,9 +13,9 @@ Boid::Boid(std::valarray<double> pos, std::valarray<double> vel,
            double view_ang, std::valarray<double> space, double param_ds,
            double param_s) {
   assert(pos.size() == 2 && vel.size() == 2 && space.size() == 2 &&
-         pos[0] >= 0 && pos[1] >= 0 && space[0] > 0 && space[1] > 0 &&
+         pos[0] >= 0. && pos[1] >= 0. && space[0] > 0. && space[1] > 0. &&
          vec_norm(vel) < 350. && view_ang >= 0. && view_ang <= 180. &&
-         param_ds >= 0 && param_s >= 0);
+         param_ds >= 0. && param_s >= 0.);
   b_pos = pos;
   b_vel = vel;
   b_angle = compute_angle<double>(vel);
@@ -22,9 +27,9 @@ Boid::Boid(std::valarray<double> pos, std::valarray<double> vel,
 
 Boid::Boid(double x, double y, double vx, double vy, double view_ang, double sx,
            double sy, double param_ds, double param_s) {
-  assert(x >= 0 && y >= 0 && sx > 0 && sy > 0 &&
+  assert(x >= 0. && y >= 0. && sx > 0. && sy > 0. &&
          vec_norm(std::valarray<double>{vx, vy}) < 350. && view_ang >= 0. &&
-         view_ang <= 180. && param_ds >= 0 && param_s >= 0);
+         view_ang <= 180. && param_ds >= 0. && param_s >= 0.);
   b_pos = std::valarray<double>(2);
   b_vel = std::valarray<double>(2);
   b_pos[0] = x;
@@ -51,6 +56,10 @@ double& Boid::get_angle() { return b_angle; }
 double const& Boid::get_angle() const { return b_angle; }
 
 double const& Boid::get_view_angle() const { return b_view_angle; }
+
+double const& Boid::get_par_ds() const { return b_param_ds; }
+
+double const& Boid::get_par_s() const { return b_param_s; }
 
 std::valarray<double> const& Boid::get_space() const { return b_space; }
 
@@ -97,9 +106,27 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
   // calcola l'angolo di orientamento dalla velocità:
   b_angle = compute_angle<double>(b_vel);
   // viene fatto *dopo* le correzioni per i bordi / periodiche!
-  // velocità massima:
+  // velocità massima e minima:
   (vec_norm(b_vel) > 350.) ? b_vel *= (350. / vec_norm(b_vel)) : b_vel;
-  (vec_norm(b_vel) < 70.) ? b_vel *= (70. / vec_norm(b_vel)) : b_vel;
+  (vec_norm(b_vel) < 80.) ? b_vel *= (80. / vec_norm(b_vel)) : b_vel;
+}
+
+std::valarray<double> Boid::avoid_obs(std::vector<Obstacle> const& obstacles) const {
+  if (obstacles.size() == 0) {
+    return std::valarray<double>{0., 0.};
+  } else {
+    std::valarray<double> delta_vel{0., 0.};
+    std::mutex mtx;
+    auto avoid_lambda = [&](Obstacle const& ob) {
+      std::valarray<double> dist = ob.get_pos() - b_pos;
+      std::lock_guard<std::mutex> lck(mtx);
+      (vec_norm(dist) < ob.get_size() + 2 * b_param_ds)
+          ? delta_vel -= 1.5 * b_param_s * (ob.get_pos() - b_pos)
+          : delta_vel;
+    };
+    std::for_each(obstacles.begin(), obstacles.end(), avoid_lambda);
+    return delta_vel;
+  }
 }
 
 template <typename T>
@@ -134,4 +161,33 @@ bool is_visible(Boid const& bd_1, Boid const& bd_2) {
   assert(angle >= 0. && angle <= 180.);
   return std::abs(compute_angle<double>(bd_1.get_pos() - bd_2.get_pos()) -
                   bd_2.get_angle()) <= angle;
+}
+
+
+// inizialmente speravo di poterlo sfruttare per i predatori, invece ho dovuto
+// reimplementare. Si può anche riportare in flock
+std::vector<Boid> get_vector_neighbours(std::vector<Boid> const& flock,
+                                        std::vector<Boid>::iterator it,
+                                        double dist) {
+  std::vector<Boid> neighbours;
+  assert(it >= flock.begin() && it < flock.end());
+  auto et = it;
+  for (; et != flock.end() &&
+         std::abs(it->get_pos()[0] - et->get_pos()[0]) < dist;
+       ++et) {
+    if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
+        is_visible(*et, *it) == true) {
+      neighbours.push_back(*et);
+    }
+  }
+  et = it;
+  for (; et != flock.begin() &&
+         std::abs(it->get_pos()[0] - et->get_pos()[0]) < dist;
+       --et) {
+    if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
+        is_visible(*et, *it) == true) {
+      neighbours.push_back(*et);
+    }
+  }
+  return neighbours;
 }

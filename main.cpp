@@ -14,11 +14,12 @@
 #include "boid.hpp"
 #include "flock.hpp"
 #include "predator.hpp"
+#include "multiflock.hpp"
 
 int main() {
   try {
     // inizializzo parametri stormo
-    Parameters params(80., 25., 0.7, 0.1, 0.02);
+    Parameters params(60., 25., 0.9, 0.1, 0.01);
     // parametri finestra e video tarati sul device
     float window_x = sf::VideoMode::getFullscreenModes()[0].width;
     float window_y = sf::VideoMode::getFullscreenModes()[0].height * 0.92;
@@ -27,13 +28,25 @@ int main() {
     // margini
     float margin = (window_y - video_y) / 2;
 
+    std::vector<Obstacle> obstacles =
+        generate_obstacles(10, 20., {video_x, video_y});
+
     // inizializzo stormo
-    Flock bd_flock{params, 100, 120., {video_x, video_y}};
+    Flock bd_flock{params, 100, 120., {video_x, video_y}, obstacles};
     // vettore di oggetti grafici stormo:
     std::vector<Bird> tr_boids;
     // inizializzo predatore
     Predator predator(600., 300., 100., 0., 140., 30., 0.6, video_x, video_y,
                       90., 0.8);
+    std::vector<Predator> predators;
+    predators.push_back(predator);
+
+    sf::Texture backg;
+    /*if (!backg.loadFromFile("textures/sky.jpg")) {
+      return 0;
+    }
+    backg.setSmooth(true);*/
+
     // qui servirà per caricare le texture:
     sf::Texture bd_texture;
     if (!bd_texture.loadFromFile("textures/eagle.png")) {
@@ -45,24 +58,38 @@ int main() {
     // tr_predator.addTexture(bd_texture);
 
     // imposto colore, posizione e rotazione predatore
-    // tr_predator.setFillColor(sf::Color::Red);
-    tr_predator.setPosition(predator.get_pos()[0] + margin,
-                            predator.get_pos()[1] + margin);
-    tr_predator.setRotation(-predator.get_angle());
+    tr_predator.setPosition(predators[0].get_pos()[0] + margin,
+                            predators[0].get_pos()[1] + margin);
+    tr_predator.setRotation(180.-predators[0].get_angle());
 
     // trasformo gli oggetti boid in oggetti grafici bird
     std::transform(bd_flock.begin(), bd_flock.end(),
                    std::back_inserter(tr_boids), [&margin](Boid b) -> Bird {
-                     Bird tr_boid(15., true);
+                     Bird tr_boid(15.);
                      tr_boid.setPosition(b.get_pos()[0] + margin,
                                          b.get_pos()[1] + margin);
                      tr_boid.setRotation(b.get_angle());
                      return tr_boid;
                    });
 
+    // disegna ostacoli
+    std::vector<sf::CircleShape> obs_circles;
+    std::transform(
+        obstacles.begin(), obstacles.end(), std::back_inserter(obs_circles),
+        [&margin](Obstacle b) -> sf::CircleShape {
+          sf::CircleShape ob_circ(b.get_size() * 0.7);
+          ob_circ.setFillColor(sf::Color::Red);
+          ob_circ.setPosition(b.get_pos()[0] + margin, b.get_pos()[1] + margin);
+          return ob_circ;
+        });
+
+    // impostazioni di anti-aliasing
+    sf::ContextSettings settings;
+    settings.antialiasingLevel = 8;
+
     // inizializzo finestra
     sf::RenderWindow window(sf::VideoMode(window_x, window_y), "n-th boid test",
-                            sf::Style::Default);
+                            sf::Style::Default, settings);
     window.setFramerateLimit(60);
     // posiziona finestra in alto a sinistra
     window.setPosition(sf::Vector2i(0, window_x * 0.023));
@@ -78,6 +105,7 @@ int main() {
     // riquadro simulazione
     sf::RectangleShape rec_sim(sf::Vector2f(video_x, video_y));
     rec_sim.setFillColor(sf::Color::White);
+    // rec_sim.setTexture(&backg);
     rec_sim.setOutlineColor(sf::Color::Black);
     rec_sim.setOutlineThickness(2);
     rec_sim.setPosition(margin, margin);
@@ -116,22 +144,16 @@ int main() {
         video_y * com_ratio + 3 * margin + 4.2 * comp_text.getCharacterSize()});
     Statistics flock_stats = bd_flock.get_stats();
 
-    // per lo sfondo:
-    /*sf::Texture bg_texture;
-    if (!bg_texture.loadFromFile("textures/backg.png")) {
-      return 0;
-    }
-    sf::Sprite backg;
-    backg.setTexture(bg_texture);
-    backg.setPosition(0., 0.);*/
-
     // calcolo tempi di computazione / disegno
     // inizializza init = istante di tempo
     auto init = std::chrono::steady_clock::now();
     // iniziali step = durata di tempo
-    std::chrono::duration<double, std::milli> step_cmpt;
-    std::chrono::duration<double, std::milli> step_draw;
-    std::chrono::duration<double, std::milli> step_update;
+    std::chrono::duration<double, std::milli> step_cmpt{
+        std::chrono::duration<double, std::milli>::zero()};
+    std::chrono::duration<double, std::milli> step_draw{
+        std::chrono::duration<double, std::milli>::zero()};
+    std::chrono::duration<double, std::milli> step_update{
+        std::chrono::duration<double, std::milli>::zero()};
     // stringstream per convertire durate in stringhe
     std::ostringstream step_ss;
 
@@ -153,9 +175,9 @@ int main() {
                        return tr_boid;
                      });
       // aggiorna oggetto grafico predatore
-      tr_predator.setPosition(predator.get_pos()[0] + margin,
-                              predator.get_pos()[1] + margin);
-      tr_predator.setRotation(180. - predator.get_angle());
+      tr_predator.setPosition(predators[0].get_pos()[0] + margin,
+                              predators[0].get_pos()[1] + margin);
+      tr_predator.setRotation(180. - predators[0].get_angle());
       // aggiorna posizione com
       if (counter % 4 == 0) {
         pos_com_x = bd_flock.get_com().get_pos()[0];
@@ -175,12 +197,7 @@ int main() {
       while (window.pollEvent(event)) {
         // Close window: exit
         if (event.type == sf::Event::Closed) window.close();
-        // non mi andava con la tastiera quindi ho messo il mouse
-        /*if (event.type == sf::Event::MouseButtonPressed) {
-          if (event.mouseButton.button == sf::Mouse::Left) {
-            window.close();
-          }
-        }*/
+        // eventualmente altri comandi qui:
       }
       // stampa a schermo tempo di calcolo e disegno (mediato su 4 frame)
       if (counter % 4 == 0) {
@@ -203,11 +220,13 @@ int main() {
       window.clear(sf::Color(210, 210, 210));
       // disegna riquadro simulazione
       window.draw(rec_sim);
+      // disegna ostacoli
+      for (sf::CircleShape& obs : obs_circles) {
+        window.draw(obs);
+      }
       // disegna stormo
       for (Bird& tr_boid : tr_boids) {
         window.draw(tr_boid);
-        // tr_boid.animate();
-        //++i;
       }
       // disegna predatore
       window.draw(tr_predator);
@@ -224,7 +243,7 @@ int main() {
       // avvia cronometro per computazione
       init = std::chrono::steady_clock::now();
       // aggiorna stato flock e predatore
-      bd_flock.update_flock_pred_state(0.016, true, predator);
+      bd_flock.update_global_state(0.0166, false, predators, obstacles);
       // ferma cronometro: calcola tempo di computazione
       step_cmpt += std::chrono::steady_clock::now() - init;
 

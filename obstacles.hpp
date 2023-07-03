@@ -2,42 +2,39 @@
 #define OBSTACLES_HPP
 
 #include <cassert>
+#include <execution>
 #include <valarray>
 
-// classe ostacoli, dotata di posizione, dimensioni, dimensioni schermo (?)
-class Obstacle {
-  std::valarray<double> o_pos;
-  double o_size;
+class Entity {
+ protected:
+  std::valarray<double> b_pos;
 
  public:
+  virtual ~Entity() = 0;
+  virtual char type() const = 0;
+};
+
+// classe ostacoli, dotata di posizione, dimensioni, dimensioni schermo (?)
+class Obstacle : public Entity {
+  double o_size;
+ public:
+  char type() const override;
   Obstacle(std::valarray<double> const&, double const&);
   Obstacle(double const&, double const&, double const&);
-  std::valarray<double> const& get_pos();
-  double const& get_size();
+  Obstacle() = default;
+  std::valarray<double> const& get_pos() const;
+  double const& get_size() const;
 };
 
-// Flock di ostacoli
+// Genera il vettore di ostacoli
+std::vector<Obstacle> generate_obstacles(int, double,
+                                         std::valarray<double> const&);
 
-std::vector<Obstacle> generate_obstacles(int n, double size);
+// Ordina il vettore di ostacoli
+void sort_obstacles(std::vector<Obstacle>&);
+
+// Aggiungi un ostacolo
 void add_obstacle(std::vector<Obstacle>&, std::valarray<double> pos,
                   double size);
-
-class Obstacle_set {
-  std::vector<Obstacle> g_obstacles;
-
- public:
-  // costruttori
-  // Obstacle_set(int, double, std::valarray<double> o_pos);
-
-  Obstacle& get_obstacle(std::vector<Obstacle>::iterator);
-  Obstacle const& get_obstacle(std::vector<Obstacle>::iterator) const;
-
-  void push_back(Obstacle const&);
-
-  void erase(std::vector<Obstacle>::iterator);
-  double size();
-
-  void sort();
-};
 
 #endif

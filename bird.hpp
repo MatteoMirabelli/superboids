@@ -10,19 +10,13 @@ class Bird : public sf::Drawable {
     target.draw(bird_shape, states);
   }
   float size;
-  bool state;
-  // std::vector<sf::Texture> textures;
-  // sf::Sprite bird_shape;
   sf::ConvexShape bird_shape;
 
  public:
-  Bird(float const&, bool const&);
-  // void addTexture(sf::Texture const&);
+  Bird(float const&);
   void setPosition(float const&, float const&);
   void setRotation(float const&);
-  void setState(bool const&);
   void setFillColor(sf::Color const&);
-  void animate();
 };
 
 #endif

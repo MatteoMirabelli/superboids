@@ -29,7 +29,7 @@ find_package(TBB REQUIRED)
 
 # link_directories(${X11_LIBRARIES})
 
-add_executable(Boids_engine main.cpp boid.cpp flock.cpp bird.cpp predator.cpp animation.cpp obstacles.cpp)
+add_executable(Boids_engine main.cpp boid.cpp flock.cpp bird.cpp predator.cpp animation.cpp obstacles.cpp multiflock.cpp)
 target_link_libraries(Boids_engine PRIVATE sfml-graphics TBB::tbb)
 target_link_libraries(Boids_engine PRIVATE ${OPENGL_LIBRARIES} ${X11_LIBRARIES})
 

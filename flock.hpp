@@ -52,6 +52,8 @@ class Flock {
         std::valarray<double> const&);
   Flock(Parameters const&, int const&, double const&,
         std::valarray<double> const&);
+  Flock(Parameters const&, int, double, std::valarray<double> const&,
+        std::vector<Obstacle> const&);
   Flock() = default;
   void add_boid();
   double size() const;
@@ -73,12 +75,20 @@ class Flock {
   std::valarray<double> vel_correction(std::vector<Boid>::iterator);
   std::valarray<double> vel_correction(std::vector<Boid>::iterator,
                                        Predator const&);
-  std::valarray<double> vel_correction(Boid const&);
-  std::valarray<double> vel_correction(Boid const&, Predator const&);
+  std::valarray<double> vel_correction(std::vector<Boid> const&,
+                                       std::vector<Boid>::iterator);
+  std::valarray<double> avoid_pred(Boid const&, Predator const&);
+  std::valarray<double> vel_correction(std::vector<Boid> const&,
+                                       std::vector<Boid>::iterator,
+                                       Predator const&);
 
   void update_flock_state(double const&, bool const&);
 
-  void update_flock_pred_state(double const&, bool const&, Predator&);
+  void update_global_state(double const&, bool const&, Predator&);
+  void update_global_state(double const&, bool const&, Predator&,
+                           std::vector<Obstacle> const&);
+  void update_global_state(double, bool, std::vector<Predator>&,
+                           std::vector<Obstacle> const&);
 
   void sort();
 
