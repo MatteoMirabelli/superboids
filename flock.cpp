@@ -552,13 +552,11 @@ void Flock::update_global_state(double const& delta_t, bool const& brd_bhv,
 
   // lambda per aggiornare lo stato
   auto boid_update = [&](unsigned int const& index, Boid const& bd) -> Boid {
-    if (is_visible(bd, pred)) {
-      if (boid_dist(bd, pred) < pred.get_range() &&
-          boid_dist(bd, pred) > 0.3 * f_params.d_s) {
-        // blocca il mutex prima della modifica di preys
-        std::lock_guard<std::mutex> lck(mtx);
-        preys.push_back(bd);
-      }
+    if (is_visible(bd, pred) && boid_dist(bd, pred) < pred.get_range() &&
+        boid_dist(bd, pred) > 0.3 * f_params.d_s) {
+      // blocca il mutex prima della modifica di preys
+      std::lock_guard<std::mutex> lck(mtx);
+      preys.push_back(bd);
     }
     // aggiorna lo stato del boid
     f_flock[index].update_state(
@@ -626,7 +624,8 @@ void Flock::update_global_state(double delta_t, bool brd_bhv,
     std::valarray<double> corr = {0., 0.};
     for (unsigned int idx = 0; idx < preds.size(); ++idx) {
       corr += avoid_pred(bd, preds[idx]);
-      if (boid_dist(bd, preds[idx]) < preds[idx].get_range() &&
+      if (is_visible(bd, preds[idx]) &&
+          boid_dist(bd, preds[idx]) < preds[idx].get_range() &&
           boid_dist(bd, preds[idx]) > 0.3 * f_params.d_s) {
         // blocca il mutex prima della modifica di preys
         std::lock_guard<std::mutex> lck(mtx);
