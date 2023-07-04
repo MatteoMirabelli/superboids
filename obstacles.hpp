@@ -15,8 +15,6 @@ class Obstacle {
   Obstacle() = default;
   std::valarray<double> const& get_pos() const;
   double const& get_size() const;
-  std::valarray<double> const& get_pos() const;
-  double const& get_size() const;
 };
 
 // Genera il vettore di ostacoli

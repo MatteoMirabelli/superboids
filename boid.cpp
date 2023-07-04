@@ -3,10 +3,6 @@
 #include <mutex>
 #include <type_traits>
 
-// BOID
-
-char Boid::type() const { return 'b'; }
-
 // aggiunto il passaggio delle dimensioni dello schermo
 
 Boid::Boid(std::valarray<double> pos, std::valarray<double> vel,
@@ -30,6 +26,7 @@ Boid::Boid(double x, double y, double vx, double vy, double view_ang, double sx,
   assert(x >= 0. && y >= 0. && sx > 0. && sy > 0. &&
          vec_norm(std::valarray<double>{vx, vy}) < 350. && view_ang >= 0. &&
          view_ang <= 180. && param_ds >= 0. && param_s >= 0.);
+         view_ang <= 180. && param_ds >= 0 && param_s >= 0);
   b_pos = std::valarray<double>(2);
   b_vel = std::valarray<double>(2);
   b_pos[0] = x;
@@ -72,9 +69,16 @@ void Boid::set_space(double const& sx, double const& sy) {
 
 void Boid::set_space(std::valarray<double> const& space) { b_space = space; }
 
-void Boid::set_par_ds(double const& new_ds) { b_param_ds = new_ds; }
+std::valarray<double> const& Boid::get_space() const { return b_space; }
 
-void Boid::set_par_s(double const& new_s) { b_param_s = new_s; }
+void Boid::update_state(double delta_t, std::valarray<double> delta_vel) {
+  b_vel += delta_vel;
+  b_pos += (b_vel * delta_t);
+  // calcola l'angolo di orientamento dalla velocità:
+  b_angle = compute_angle<double>(b_vel);
+  // velocità massima:
+  (vec_norm(b_vel) > 350.) ? b_vel *= (350. / vec_norm(b_vel)) : b_vel;
+}
 
 void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
                         bool const& brd_bhv) {
@@ -82,33 +86,30 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
   b_pos += (b_vel * delta_t);
   if (brd_bhv == true) {
     // implementazione con periodiche
-    (b_pos[0] > b_space[0] - b_param_ds) ? b_pos[0] = b_param_ds + 1.
-                                         : b_pos[0];
-    (b_pos[0] < b_param_ds) ? b_pos[0] = b_space[0] - b_param_ds - 1.
-                            : b_pos[0];
-    (b_pos[1] > b_space[1] - b_param_ds) ? b_pos[1] = b_param_ds + 1.
-                                         : b_pos[1];
-    (b_pos[1] < b_param_ds) ? b_pos[1] = b_space[1] - b_param_ds - 1.
-                            : b_pos[1];
+    (b_pos[0] > b_space[0] - 20.) ? b_pos[0] = 21. : b_pos[0];
+    (b_pos[0] < 20.) ? b_pos[0] = b_space[0] - 21. : b_pos[0];
+    (b_pos[1] > b_space[1] - 20) ? b_pos[1] = 21. : b_pos[1];
+    (b_pos[1] < 20.) ? b_pos[1] = b_space[1] - 21. : b_pos[1];
   } else {
     // implementazione con bordi
     (b_pos[0] > b_space[0] - 2.2 * b_param_ds)
-        ? b_vel[0] -= 3.5 * b_param_s * (b_space[0] - b_pos[0])
+        ? b_vel[0] -= 3.5 * b_param_s / (b_space[0] - b_pos[0])
         : b_vel[0];
-    (b_pos[0] < 2.2 * b_param_ds) ? b_vel[0] += 3.5 * b_param_s * b_pos[0]
+    (b_pos[0] < 2.2 * b_param_ds) ? b_vel[0] += 3.5 * b_param_s / b_pos[0]
                                   : b_vel[0];
     (b_pos[1] > b_space[1] - 2.2 * b_param_ds)
-        ? b_vel[1] -= 3.5 * b_param_s * (b_space[1] - b_pos[1])
+        ? b_vel[1] -= 3.5 * b_param_s / (b_space[1] - b_pos[1])
         : b_vel[1];
-    (b_pos[1] < 2.2 * b_param_ds) ? b_vel[1] += 3.5 * b_param_s * b_pos[1]
+    (b_pos[1] < 2.2 * b_param_ds) ? b_vel[1] += 3.5 * b_param_s / b_pos[1]
                                   : b_vel[1];
   }
+
   // calcola l'angolo di orientamento dalla velocità:
   b_angle = compute_angle<double>(b_vel);
   // viene fatto *dopo* le correzioni per i bordi / periodiche!
   // velocità massima e minima:
   (vec_norm(b_vel) > 350.) ? b_vel *= (350. / vec_norm(b_vel)) : b_vel;
-  (vec_norm(b_vel) < 80.) ? b_vel *= (80. / vec_norm(b_vel)) : b_vel;
+  (vec_norm(b_vel) < 70.) ? b_vel *= (70. / vec_norm(b_vel)) : b_vel;
 }
 
 std::valarray<double> Boid::avoid_obs(
@@ -119,7 +120,9 @@ std::valarray<double> Boid::avoid_obs(
     std::valarray<double> delta_vel{0., 0.};
     for (auto const& ob : obstacles) {
       std::valarray<double> dist = ob.get_pos() - b_pos;
-      if (vec_norm(dist) < ob.get_size() + b_param_ds) {
+      if (vec_norm(dist) < ob.get_size() + b_param_ds &&
+          std::abs(compute_angle<double>(ob.get_pos() - get_pos()) -
+                   get_angle()) <= get_view_angle()) {
         delta_vel -= 1.5 * b_param_s * (ob.get_pos() - b_pos);
       }
     }
@@ -127,9 +130,18 @@ std::valarray<double> Boid::avoid_obs(
   }
 }
 
+double const& Boid::get_par_ds() const { return b_param_ds; }
+
+double const& Boid::get_par_s() const { return b_param_s; }
+
+void Boid::set_par_ds(double const& new_ds) { b_param_ds = new_ds; }
+
+void Boid::set_par_s(double const& new_s) { b_param_s = new_s; }
+
 template <typename T>
 T vec_norm(std::valarray<T> vec) {
   return std::sqrt(std::pow(vec, {2., 2.}).sum());
+  return std::sqrt(std::pow(vec, {2, 2}).sum());
 }
 
 double boid_dist(Boid const& bd_1, Boid const& bd_2) {
@@ -147,8 +159,15 @@ T compute_angle(std::valarray<T> const& vec) {
     angle = 90.;
   } else if (vec[1] == 0. && vec[0] == 0.) {  // rimediato allo spiacevole baco
     angle = 0.;
+  } else if (vec[0] == 0. && vec[1] > 0.) {
+    angle = 0.;
+  } else if (vec[0] == 0. && vec[1] < 0.) {
+    angle = 180.;
   } else {
     angle = std::atan(vec[0] / vec[1]) / M_PI * 180;
+    (vec[1] < 0. && vec[0] < 0.) ? angle -= 180. : angle;
+    (vec[1] < 0. && vec[0] > 0.) ? angle += 180. : angle;
+    angle = std::atan(vec[0] / vec[1]) / M_PI * 180.;
     (vec[1] < 0. && vec[0] < 0.) ? angle -= 180. : angle;
     (vec[1] < 0. && vec[0] > 0.) ? angle += 180. : angle;
   }
@@ -164,6 +183,32 @@ bool is_visible(Boid const& bd_1, Boid const& bd_2) {
 
 // inizialmente speravo di poterlo sfruttare per i predatori, invece ho dovuto
 // reimplementare. Si può anche riportare in flock
+std::vector<Boid> get_vector_neighbours(std::vector<Boid> const& flock,
+                                        std::vector<Boid>::iterator it,
+                                        double dist) {
+  std::vector<Boid> neighbours;
+  assert(it >= flock.begin() && it < flock.end());
+  auto et = it;
+  for (; et != flock.end() &&
+         std::abs(it->get_pos()[0] - et->get_pos()[0]) < dist;
+       ++et) {
+    if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
+        is_visible(*et, *it) == true) {
+      neighbours.push_back(*et);
+    }
+  }
+  et = it;
+  for (; et != flock.begin() &&
+         std::abs(it->get_pos()[0] - et->get_pos()[0]) < dist;
+       --et) {
+    if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
+        is_visible(*et, *it) == true) {
+      neighbours.push_back(*et);
+    }
+  }
+  return neighbours;
+}
+
 std::vector<Boid> get_vector_neighbours(std::vector<Boid> const& flock,
                                         std::vector<Boid>::iterator it,
                                         double dist) {
