@@ -27,7 +27,7 @@ find_package(SFML 2.5 COMPONENTS graphics REQUIRED)
 
 # link_directories(${X11_LIBRARIES})
 
-add_executable(Boids_engine main.cpp boid.cpp flock.cpp)
+add_executable(Boids_engine main.cpp boid.cpp flock.cpp animation.cpp bird.cpp predator.cpp obstacles.cpp multiflock.cpp)
 target_link_libraries(Boids_engine PRIVATE sfml-graphics)
 
 # se il testing e' abilitato...
@@ -35,55 +35,9 @@ target_link_libraries(Boids_engine PRIVATE sfml-graphics)
 if (BUILD_TESTING)
 
   # aggiungi l'eseguibile Boids.t
-  add_executable(Boids.t boids_tests.cpp boid.cpp flock.cpp)
+  add_executable(Boids.t all_tests.cpp boids_tests.cpp flock_tests.cpp predator_tests.cpp obstacles_tests.cpp boid.cpp flock.cpp predator.cpp multiflock.cpp obstacles.cpp)
+  target_link_libraries(Boids.t PRIVATE sfml-graphics)
   #aggiungi l'eseguibile Boids.t alla lista dei test
   add_test(NAME Boids.t COMMAND Boids.t)
 
 endif()
-
-cmake_minimum_required(VERSION 3.16)
-project(Boids VERSION 0.2.1)
-
-# abilita il supporto per i test, tra cui l'opzione BUILD_TESTING usata sotto
-include(CTest)
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-# richiedi l'uso di C++17, senza estensioni non-standard offerte dal compilatore usato 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS ON)
-
-# abilita warning
-string(APPEND CMAKE_CXX_FLAGS
-" -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wcast-qual -Wformat=2"
-" -Wundef -Wshadow -Wcast-align -Wunused -Wnull-dereference"
-" -Wdouble-promotion -Wimplicit-fallthrough -Wextra-semi -Woverloaded-virtual"
-" -Wnon-virtual-dtor -Wold-style-cast")
-
-# abilita l'address sanitizer e l'undefined-behaviour sanitizer in debug mode
-string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=address,-fsanitize=thread, undefined -fno-omit-frame-pointer")
-string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " -fsanitize=address,-fsanitize=thread, undefined -fno-omit-frame-pointer")
-
-find_package(X11 REQUIRED)
-find_package(SFML 2.5 COMPONENTS graphics REQUIRED)
-find_package(OpenGL 1.1 REQUIRED)
-find_package(TBB REQUIRED)
-
-# link_directories(${X11_LIBRARIES})
-
-add_executable(Boids_engine main.cpp boid.cpp flock.cpp bird.cpp predator.cpp animation.cpp obstacles.cpp multiflock.cpp)
-target_link_libraries(Boids_engine PRIVATE sfml-graphics TBB::tbb)
-target_link_libraries(Boids_engine PRIVATE ${OPENGL_LIBRARIES} ${X11_LIBRARIES})
-
-# se il testing e' abilitato...
-#   per disabilitare il testing, passare -DBUILD_TESTING=OFF a cmake durante la fase di configurazione
-if (BUILD_TESTING)
-
-  # aggiungi l'eseguibile statistics.t
-  # add_executable(statistics.t statistics.test.cpp statistics.cpp)
-  # aggiungi l'eseguibile statistics.t alla lista dei test
-  add_test(NAME statistics.t COMMAND statistics.t)
-
-endif()
-

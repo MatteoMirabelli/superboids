@@ -5,6 +5,8 @@
 
 
 
+#include <random>
+
 Predator::Predator(std::valarray<double> const& pos,
                    std::valarray<double> const& vel, double const& view_ang,
                    double const& param_d_s, double const& param_s,
@@ -53,10 +55,9 @@ std::valarray<double> Predator::predate(std::vector<Boid>& preys) {
   }
 }
 
-// genera predatori casualmente
 std::vector<Predator> random_predators(int pred_num,
                                        std::valarray<double> const& pred_space,
-                                       double pred_ang, double pred_ds,
+                                       double pred_view_ang, double pred_ds,
                                        double pred_s, double pred_range,
                                        double pred_hunger) {
   std::vector<Predator> predators;
@@ -75,8 +76,8 @@ std::vector<Predator> random_predators(int pred_num,
     std::valarray<double> pos = {dist_pos_x(rd) * 0.4 * (pred_ds) + 20.,
                                  dist_pos_y(rd) * 0.4 * (pred_ds) + 20.};
     std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
-    return Predator{pos,    vel,        pred_ang,   pred_ds,
-                    pred_s, pred_space, pred_range, pred_hunger};
+    return Predator{pos,    vel,        pred_view_ang, pred_ds,
+                    pred_s, pred_space, pred_range,    pred_hunger};
   };
 
   std::generate_n(std::execution::par, std::back_insert_iterator(predators),
@@ -110,13 +111,13 @@ std::vector<Predator> random_predators(int pred_num,
 }
 
 // copiato dal trova vicini in vettore per boid
-std::vector<Predator> get_vector_neighbours(std::vector<Predator> const& flock,
-                                            std::vector<Predator>::iterator it,
-                                            double dist) {
+std::vector<Predator> get_predator_neighbours(
+    std::vector<Predator> const& predators, std::vector<Predator>::iterator it,
+    double dist) {
   std::vector<Predator> neighbours;
-  assert(it >= flock.begin() && it < flock.end());
+  assert(it >= predators.begin() && it < predators.end());
   auto et = it;
-  for (; et != flock.end() &&
+  for (; et != predators.end() &&
          std::abs(it->get_pos()[0] - et->get_pos()[0]) < dist;
        ++et) {
     if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
@@ -125,7 +126,7 @@ std::vector<Predator> get_vector_neighbours(std::vector<Predator> const& flock,
     }
   }
   et = it;
-  for (; et != flock.begin() &&
+  for (; et != predators.begin() &&
          std::abs(it->get_pos()[0] - et->get_pos()[0]) < dist;
        --et) {
     if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
@@ -144,7 +145,7 @@ void update_predators_state(
   for (auto idx = predators.begin(); idx != predators.end(); ++idx) {
     std::valarray<double> pred_separation = {0., 0.};
     for (auto neighbour_pred :
-         get_vector_neighbours(predators, idx, idx->get_par_ds())) {
+         get_predator_neighbours(predators, idx, idx->get_par_ds())) {
       pred_separation -=
           idx->get_par_s() * (neighbour_pred.get_pos() - idx->get_pos());
     }
@@ -162,6 +163,7 @@ void update_predators_state(
                         bhv);
     }
   }
+
   auto sort_pred = [](Predator const& pred1, Predator const& pred2) {
     if (pred1.get_pos()[0] == pred2.get_pos()[0]) {
       return pred1.get_pos()[1] < pred2.get_pos()[1];

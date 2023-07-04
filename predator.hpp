@@ -30,4 +30,11 @@ void update_predators_state(std::vector<Predator>&, double, bool,
                             std::vector<std::pair<Boid, unsigned int>> const&,
                             std::vector<Obstacle> const&);
 
+std::vector<Predator> random_predators(int, std::valarray<double> const&,
+                                       double, double, double, double, double);
+void update_predators_state(std::vector<Predator>&, double, bool,
+                            std::vector<std::pair<Boid, unsigned int>> const&,
+                            std::vector<Obstacle> const&);
+
+
 #endif

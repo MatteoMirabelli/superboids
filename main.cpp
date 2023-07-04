@@ -15,11 +15,12 @@
 #include "flock.hpp"
 #include "multiflock.hpp"
 #include "predator.hpp"
+#include "multiflock.hpp"
 
 int main() {
   try {
     // inizializzo parametri stormo
-    Parameters params(50., 25., 1.2, 0.1, 0.01);
+    Parameters params(60., 25., 0.9, 0.1, 0.01);
     // parametri finestra e video tarati sul device
     float window_x = sf::VideoMode::getFullscreenModes()[0].width;
     float window_y = sf::VideoMode::getFullscreenModes()[0].height * 0.92;
@@ -33,6 +34,9 @@ int main() {
 
     // inizializzo stormo
     Flock bd_flock{params, 100, 120., {video_x, video_y}, obstacles};
+    Flock bd_flock{params, 100, 120., {video_x, video_y}, obstacles};
+    // vettore di oggetti grafici stormo:
+    std::vector<Bird> tr_boids;
     // inizializzo predatore
     /*Predator predator(600., 300., 100., 0., 140., 30., 0.6, video_x, video_y,
                       90., 0.8);*/
@@ -42,6 +46,17 @@ int main() {
 
     /*sf::Texture backg;
     if (!backg.loadFromFile("textures/sky.jpg")) {
+      return 0;
+    }
+    backg.setSmooth(true);*/
+
+    Predator predator(600., 300., 100., 0., 140., 30., 0.6, video_x, video_y,
+                      90., 0.8);
+    std::vector<Predator> predators;
+    predators.push_back(predator);
+
+    sf::Texture backg;
+    /*if (!backg.loadFromFile("textures/sky.jpg")) {
       return 0;
     }
     backg.setSmooth(true);*/
@@ -67,11 +82,23 @@ int main() {
     // tr_predator.addTexture(bd_texture);
 
     // imposto colore, posizione e rotazione predatore
-    for (int indx = 0; indx < predators.size(); ++indx) {
-      tr_predators[indx].setPosition(predators[indx].get_pos()[0] + margin,
-                                     predators[indx].get_pos()[1] + margin);
-      tr_predators[indx].setRotation(180. - predators[indx].get_angle());
-    }
+    tr_predator.setPosition(predators[0].get_pos()[0] + margin,
+                            predators[0].get_pos()[1] + margin);
+    tr_predator.setRotation(180.-predators[0].get_angle());
+
+    // trasformo gli oggetti boid in oggetti grafici bird
+    std::transform(bd_flock.begin(), bd_flock.end(),
+                   std::back_inserter(tr_boids), [&margin](Boid b) -> Bird {
+                     Bird tr_boid(15.);
+                     tr_boid.setPosition(b.get_pos()[0] + margin,
+                                         b.get_pos()[1] + margin);
+                     tr_boid.setRotation(b.get_angle());
+                     return tr_boid;
+                   });
+
+    // impostazioni di anti-aliasing
+    sf::ContextSettings settings;
+    settings.antialiasingLevel = 8;
 
     // disegna ostacoli
     std::vector<sf::CircleShape> obs_circles;
@@ -106,6 +133,8 @@ int main() {
     // riquadro simulazione
     sf::RectangleShape rec_sim(sf::Vector2f(video_x, video_y));
     rec_sim.setFillColor(sf::Color(203, 245, 255));
+    // rec_sim.setTexture(&backg);
+    rec_sim.setFillColor(sf::Color::White);
     // rec_sim.setTexture(&backg);
     rec_sim.setOutlineColor(sf::Color::Black);
     rec_sim.setOutlineThickness(2);
@@ -172,6 +201,20 @@ int main() {
                                        predators[indx].get_pos()[1] + margin);
         tr_predators[indx].setRotation(180. - predators[indx].get_angle());
       }
+      // da implementare in file separato per gestire aggiunta/rimozione
+      tr_boids.erase(tr_boids.begin() + bd_flock.size(), tr_boids.end());
+      std::transform(bd_flock.begin(), bd_flock.end(), tr_boids.begin(),
+                     tr_boids.begin(),
+                     [&margin](Boid& b, Bird& tr_boid) -> Bird {
+                       tr_boid.setPosition(b.get_pos()[0] + margin,
+                                           b.get_pos()[1] + margin);
+                       tr_boid.setRotation(-b.get_angle());
+                       return tr_boid;
+                     });
+      // aggiorna oggetto grafico predatore
+      tr_predator.setPosition(predators[0].get_pos()[0] + margin,
+                              predators[0].get_pos()[1] + margin);
+      tr_predator.setRotation(180. - predators[0].get_angle());
       // aggiorna posizione com
       if (counter % 4 == 0) {
         pos_com_x = bd_flock.get_com().get_pos()[0];
@@ -224,6 +267,8 @@ int main() {
       }
       // disegna predatore
       for (Animate& tr_predator : tr_predators) window.draw(tr_predator);
+      // disegna predatore
+      window.draw(tr_predator);
       // disegna tracker centro di massa
       window.draw(com_tracker);
       // disegna testo

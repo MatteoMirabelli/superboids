@@ -1,6 +1,8 @@
 Ciao, sei nel main!
+Ciao,
 
 Al momento questo ospita la prima versione del programma Superboids V.1
+sei sul branch di Matthaeus!
 
 Cose da fare:
 - [] Velocizzare GetNeighbours
@@ -15,3 +17,6 @@ Cose da fare:
 - [] Limiti alle velocità
 - [] Aggiungere namespaces
 - [] Controllare la const correctness
+
+COSE DA VEDERE:
+Interazione utente nel main;

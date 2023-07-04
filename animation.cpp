@@ -170,6 +170,7 @@ StatusBar::StatusBar(std::string const& title, sf::Font const& font,
   s_outer.setPosition(0, s_text.getGlobalBounds().top +
                              s_text.getGlobalBounds().height +
                              s_text.getCharacterSize() / 2);
+  s_outer.setPosition(0, 1.7 * s_text.getCharacterSize());
   s_bar.setPosition(s_outer.getPosition());
 }
 

@@ -142,6 +142,79 @@ Flock::Flock(Parameters const& params, int bd_n, double view_ang,
   // verifica la prima volta che non ci siano boid coincidenti
   auto last = std::unique(std::execution::par, f_flock.begin(), f_flock.end(),
                           compare_bd);
+  f_flock.erase(last, f_flock.end());
+
+  // se ce n'erano, rigenera e ripulisce fino a quando non
+  while (f_flock.size() < bd_n) {
+    for (int i = 0; i < f_flock.size() - bd_n; ++i) {
+      std::valarray<double> pos = {dist_pos_x(rd) * 0.4 * (params.d_s) + 20.,
+                                   dist_pos_y(rd) * 0.4 * (params.d_s) + 20.};
+      std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
+      f_flock.push_back(Boid{pos, vel, view_ang, space, params.d_s, params.s});
+    }
+    sort();
+    last = std::unique(std::execution::par, f_flock.begin(), f_flock.end(),
+                       compare_bd);
+  }
+
+  auto avoid_obs = [&](Boid const& bx) {
+    auto overlap = [&](Obstacle const& obs) {
+      std::valarray<double> dist = bx.get_pos() - obs.get_pos();
+      return vec_norm(dist) < obs.get_size() + 0.6 * f_params.d_s;
+    };
+    return std::any_of(std::execution::par, obs.begin(), obs.end(), overlap);
+  };
+  last = std::remove_if(std::execution::par, f_flock.begin(), f_flock.end(),
+                        avoid_obs);
+  while (last != f_flock.end()) {
+    std::generate(std::execution::par, last, f_flock.end(), generator);
+    last = std::remove_if(std::execution::par, f_flock.begin(), f_flock.end(),
+                          avoid_obs);
+    auto lt = std::unique(std::execution::par, f_flock.begin(), f_flock.end(),
+                          compare_bd);
+    f_flock.erase(lt, f_flock.end());
+  }
+  sort();
+  update_com();
+}
+
+Flock::Flock(Parameters const& params, int bd_n, double view_ang,
+             std::valarray<double> const& space,
+             std::vector<Obstacle> const& obs)
+    : f_params{params}, f_stats{}, f_flock{} {
+  // Genera casualmente, secondo distribuzioni uniformi, i boids
+  assert(bd_n >= 0);
+  std::random_device rd;
+  int x_max = 2.5 * (space[0] - 40.) / params.d_s;
+  int y_max = 2.5 * (space[1] - 40.) / params.d_s;
+
+  std::uniform_int_distribution<> dist_pos_x(0, x_max);
+  std::uniform_int_distribution<> dist_pos_y(0, y_max);
+
+  std::uniform_real_distribution<> dist_vel_x(-150., 150.);
+  std::uniform_real_distribution<> dist_vel_y(-150., 150.);
+
+  f_com = Boid{{0., 0.}, {0., 0.}, 0., space, params.d_s, params.s};
+
+  auto generator = [&]() -> Boid {
+    std::valarray<double> pos = {dist_pos_x(rd) * 0.4 * (params.d_s) + 20.,
+                                 dist_pos_y(rd) * 0.4 * (params.d_s) + 20.};
+    std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
+    return Boid{pos, vel, view_ang, space, params.d_s, params.s};
+  };
+
+  std::generate_n(std::execution::par, std::back_insert_iterator(f_flock), bd_n,
+                  generator);
+
+  sort();
+
+  auto compare_bd = [&](Boid& b1, Boid& b2) {
+    return boid_dist(b1, b2) < 0.3 * params.d_s;
+  };
+
+  // verifica la prima volta che non ci siano boid coincidenti
+  auto last = std::unique(std::execution::par, f_flock.begin(), f_flock.end(),
+                          compare_bd);
 
   // se ce n'erano, rigenera e così fino a quando unique restituisce
   // end(), ovvero non ci sono duplicati
@@ -194,6 +267,8 @@ void Flock::add_boid() {
            dist_pos_y(rd) * 0.4 * (f_params.d_s) + 20.};
     clone = std::find_if(std::execution::unseq, f_flock.begin(), f_flock.end(),
                          find_clone);
+    clone = std::find_if(std::execution::par, f_flock.begin(), f_flock.end(),
+                         find_clone);
   }
   std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
   f_flock.push_back(Boid{pos, vel, f_flock[0].get_view_angle(),
@@ -225,15 +300,9 @@ void Flock::set_parameter(int const& index, double const& value) {
       break;
     case 1:
       f_params.d_s = value;
-      for (auto it_s = f_flock.begin(); it_s != f_flock.end(); ++it_s) {
-        it_s->set_par_ds(value);
-      }
       break;
     case 2:
       f_params.s = value;
-      for (auto it_s = f_flock.begin(); it_s != f_flock.end(); ++it_s) {
-        it_s->set_par_s(value);
-      }
       break;
     case 3:
       f_params.a = value;
@@ -259,10 +328,12 @@ void Flock::erase(std::vector<Boid>::iterator it) { f_flock.erase(it); }
 void Flock::update_com() {
   f_com.get_vel() = {0., 0.};
   f_com.get_pos() = {0., 0.};
+
   for (auto bd : f_flock) {
     f_com.get_vel() += bd.get_vel();
     f_com.get_pos() += bd.get_pos();
   }
+
   f_com.get_vel() /= f_flock.size();
   f_com.get_pos() /= f_flock.size();
 }
@@ -301,10 +372,69 @@ std::vector<Boid> Flock::get_neighbours(double const& dist, Boid const& be) {
   };
   std::copy_if(std::execution::par, f_flock.begin(), f_flock.end(),
                std::back_inserter(neighbours), ev_dist);
+  std::vector<Boid> neighbours;
+  if (it >= f_flock.begin() && it < f_flock.end()) {
+    if (it == f_flock.begin()) {
+      auto et = it;
+      for (; et < --f_flock.end() &&
+             std::abs(it->get_pos()[0] - et->get_pos()[0]) < f_params.d;
+           ++et) {
+        if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+            is_visible(*et, *it) == true) {
+          neighbours.push_back(*et);
+        }
+      }
+      if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+          is_visible(*et, *it) == true) {
+        neighbours.push_back(*et);
+      }
+    } else if (it == --f_flock.end()) {
+      auto et = it;
+      for (; et > f_flock.begin() &&
+             std::abs(it->get_pos()[0] - et->get_pos()[0]) < f_params.d;
+           --et) {
+        if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+            is_visible(*et, *it) == true) {
+          neighbours.push_back(*et);
+        }
+      }
+      if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+          is_visible(*et, *it) == true) {
+        neighbours.push_back(*et);
+      }
+    } else {
+      auto et = it;
+      for (; et < --f_flock.end() &&
+             std::abs(it->get_pos()[0] - et->get_pos()[0]) < f_params.d;
+           ++et) {
+        if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+            is_visible(*et, *it) == true) {
+          neighbours.push_back(*et);
+        }
+      }
+      if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+          is_visible(*et, *it) == true) {
+        neighbours.push_back(*et);
+      }
+      et = it;
+      for (; et > f_flock.begin() &&
+             std::abs(it->get_pos()[0] - et->get_pos()[0]) < f_params.d;
+           --et) {
+        if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+            is_visible(*et, *it) == true) {
+          neighbours.push_back(*et);
+        }
+      }
+      if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+          is_visible(*et, *it) == true) {
+        neighbours.push_back(*et);
+      }
+    }
+  }
   return neighbours;
 }
 
-// vel correction senza predatori
+// vel correction senza predatori (1)
 std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
   assert(it >= f_flock.begin() && it < f_flock.end());
   auto neighbours = get_neighbours(it);
@@ -356,7 +486,7 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid> const& copy_flock,
   return delta_vel;
 }
 
-// vel correction con un predatore
+// vel correction con un predatore (2)
 std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
                                             Predator const& pred) {
   assert(it >= f_flock.begin() && it < f_flock.end());
@@ -365,6 +495,8 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
   // valuta subito se applicare separazione al predatore
   (boid_dist(pred, *it) < f_params.d)
       ? delta_vel -= f_params.s * (pred.get_pos() - it->get_pos())
+  (boid_dist(pred, *it) < 5 * f_params.d)
+      ? delta_vel -= 4 * f_params.s * (pred.get_pos() - it->get_pos())
       : delta_vel;
   // da qui in poi come caso no predatore:
   if (neighbours.size() > 0) {
@@ -421,6 +553,135 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid> const& copy_flock,
 // di metterlo nel file Boid.
 
 // update senza predatori e senza ostacoli (da sistemare!)
+// Overload di vel_correction con più predatori per i test (3)
+std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
+                                            std::vector<Predator> const& preds,
+                                            double boid_pred_detection,
+                                            double boid_pred_repulsion) {
+  assert(it >= f_flock.begin() && it < f_flock.end());
+
+  auto neighbours = get_neighbours(it);
+  std::valarray<double> delta_vel = {0., 0.};
+
+  // Eventuale separazione dai predatori
+  for (Predator pt : preds) {
+    (boid_dist(pt, *it) < boid_pred_detection * f_params.d)
+        ? delta_vel -=
+          boid_pred_repulsion * f_params.s * (pt.get_pos() - it->get_pos())
+        : delta_vel;
+  }
+
+  // Eventuale saparazione dai vicini:
+  if (neighbours.size() > 0) {
+    auto n_minus = neighbours.size();
+    std::valarray<double> local_com = {0., 0.};
+    for (Boid bd : neighbours) {
+      // separation
+      (boid_dist(bd, *it) < f_params.d_s)
+          ? delta_vel -= f_params.s * (bd.get_pos() - it->get_pos())
+          : delta_vel;
+      // alignment
+      delta_vel += f_params.a * (bd.get_vel() - it->get_vel()) / n_minus;
+
+      local_com += bd.get_pos();
+    }
+    // cohesion
+    delta_vel += f_params.c * (local_com / n_minus - it->get_pos());
+  }
+  return delta_vel;
+}
+
+// vel_correction con più predatori, parametri per il comportamento ai bordi e
+// ostacoli (4)
+std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
+                                            std::vector<Predator> const& preds,
+                                            std::vector<Obstacle> const& obs,
+                                            double boid_pred_detection,
+                                            double boid_pred_repulsion) {
+  assert(it >= f_flock.begin() && it < f_flock.end());
+
+  auto neighbours = get_neighbours(it);
+  std::valarray<double> delta_vel = {0., 0.};
+
+  // Eventuale separazione dagli ostacoli
+  delta_vel += it->avoid_obs(obs);
+
+  // Eventuale separazione dai predatori
+  for (Predator pt : preds) {
+    delta_vel +=
+        this->avoid_pred(*it, pt, boid_pred_detection, boid_pred_repulsion);
+  }
+
+  // Eventuale saparazione dai vicini:
+  if (neighbours.size() > 0) {
+    auto n_minus = neighbours.size();
+    std::valarray<double> local_com = {0., 0.};
+    for (Boid bd : neighbours) {
+      // separation
+      (boid_dist(bd, *it) < f_params.d_s)
+          ? delta_vel -= f_params.s * (bd.get_pos() - it->get_pos())
+          : delta_vel;
+      // alignment
+      delta_vel += f_params.a * (bd.get_vel() - it->get_vel()) / n_minus;
+
+      local_com += bd.get_pos();
+    }
+    // cohesion
+    delta_vel += f_params.c * (local_com / n_minus - it->get_pos());
+  }
+  return delta_vel;
+}
+
+// vel correction senza predatore e con copy flock: per l'update state (5)
+std::valarray<double> Flock::vel_correction(std::vector<Boid> const& copy_flock,
+                                            std::vector<Boid>::iterator it) {
+  assert(it >= copy_flock.begin() && it < copy_flock.end() &&
+         copy_flock.size() == f_flock.size());
+  auto neighbours = get_vector_neighbours(copy_flock, it, f_params.d);
+  std::valarray<double> delta_vel = {0., 0.};
+  if (neighbours.size() > 0) {
+    auto n_minus = neighbours.size();
+    // std::mutex mtx;
+    std::valarray<double> local_com = {0., 0.};
+    for (Boid bd : neighbours) {
+      // separation
+      (boid_dist(bd, *it) < f_params.d_s)
+          ? delta_vel -= f_params.s * (bd.get_pos() - it->get_pos())
+          : delta_vel;
+      // alignment
+      delta_vel += f_params.a * (bd.get_vel() - it->get_vel()) / n_minus;
+
+      local_com += bd.get_pos();
+    }
+    // cohesion
+    delta_vel += f_params.c * (local_com / n_minus - it->get_pos());
+  }
+  return delta_vel;
+}
+
+// vel correction con un predatore e copy flock: per l'update state (5)
+std::valarray<double> Flock::vel_correction(std::vector<Boid> const& copy_flock,
+                                            std::vector<Boid>::iterator it,
+                                            Predator const& pred) {
+  assert(it >= copy_flock.begin() && it < copy_flock.end() &&
+         copy_flock.size() == f_flock.size());
+  return vel_correction(copy_flock, it) + avoid_pred(*it, pred, 1., 1.);
+
+  // da qui in poi si era reimplementato come senza pred
+}
+
+std::valarray<double> Flock::avoid_pred(Boid const& bd, Predator const& pred,
+                                        double boid_pred_detection,
+                                        double boid_pred_repulsion) {
+  std::valarray<double> delta_vel = {0., 0.};
+  (boid_dist(pred, bd) < boid_pred_detection * f_params.d)
+      ? delta_vel -=
+        boid_pred_repulsion * f_params.s * (pred.get_pos() - bd.get_pos())
+      : delta_vel;
+  return delta_vel;
+}
+
+// update_flock_state senza predatori
 void Flock::update_flock_state(double const& delta_t, bool const& brd_bhv) {
   std::vector<Boid> copy_flock = f_flock;
   auto it = f_flock.begin();
@@ -438,6 +699,11 @@ void Flock::update_flock_state(double const& delta_t, bool const& brd_bhv) {
 
 void Flock::update_global_state(double const& delta_t, bool const& brd_bhv,
                                 Predator& pred) {
+// update_flock_state con un predatore
+void Flock::update_flock_pred_state(double delta_t, bool brd_bhv,
+                                    std::vector<Obstacle> obs, Predator& pred) {
+  std::vector<Boid> copy_flock = f_flock;
+  auto it = f_flock.begin();
   // boid su cui applica caccia = prede
   std::vector<Boid> preys;
 
@@ -492,6 +758,13 @@ void Flock::update_global_state(double const& delta_t, bool const& brd_bhv,
         delta_t, vel_correction(copy_flock, copy_flock.begin() + index, pred),
         brd_bhv);
     return f_flock[index];
+    (boid_dist(bd, pred) < 5 * f_params.d_s)
+        ? bd.update_state(delta_t,
+                          this->vel_correction(it, pred) + it->avoid_obs(obs),
+                          brd_bhv)
+        : bd.update_state(
+              delta_t, this->vel_correction(it) + it->avoid_obs(obs), brd_bhv);
+    ++it;
   };
 
   // modo più efficiente che sono riuscito a implementare: in questo modo non
@@ -629,6 +902,209 @@ void Flock::update_global_state(double delta_t, bool brd_bhv,
       corr += avoid_pred(bd, preds[idx]);
       if (is_visible(bd, preds[idx]) &&
           boid_dist(preds[idx], bd) < preds[idx].get_range()) {
+        // blocca il mutex prima della modifica di preys
+        std::lock_guard<std::mutex> lck(mtx);
+        preys.push_back({bd, idx});
+      }
+    }
+    f_flock[index].update_state(
+        delta_t,
+        vel_correction(copy_flock, copy_flock.begin() + index) +
+            bd.avoid_obs(obs) + corr,
+        brd_bhv);
+    return f_flock[index];
+  };
+
+  // modo più efficiente che sono riuscito a implementare: in questo modo non
+  // bisogna fare copie ma viene direttamente scritto su f_flock
+  std::transform(std::execution::par, indexes.begin(), indexes.end(),
+                 copy_flock.begin(), f_flock.begin(), boid_update);
+
+  update_com();
+  sort();
+  // aggiorna stato del vettore di predatori
+  update_predators_state(preds, delta_t, brd_bhv, preys, obs);
+}
+
+void Flock::update_flock_pred_obs_state(
+    double const& delta_t, bool const& brd_bhv, Predator& pred,
+    std::vector<Obstacle> const& obs, double boid_pred_detection,
+    double boid_pred_repulsion, double param_d, double repulsion_factor) {}
+
+// tentativo di implementazione alternativa per parallelizzare in modo
+// umano:
+
+void Flock::update_global_state(double const& delta_t, bool const& brd_bhv,
+                                Predator& pred) {
+  std::vector<Boid> copy_flock = f_flock;
+  std::vector<unsigned int> indexes;
+  for (unsigned int i = 0; i < f_flock.size(); ++i) {
+    indexes.push_back(i);
+  }
+  // boid su cui applica caccia = prede
+  std::vector<Boid> preys;
+  std::mutex mtx;
+  // boid mangiati (rimossi) = vittime
+  std::vector<unsigned int> victims;
+  auto boid_update = [&](unsigned int& index, Boid& bd) -> Boid {
+    if (is_visible(bd, pred)) {
+      if (boid_dist(bd, pred) < 0.3 * f_params.d_s) {
+        std::lock_guard<std::mutex> lck(mtx);
+        victims.push_back(index);
+        return bd;
+      } else if (boid_dist(bd, pred) < pred.get_range() &&
+                 boid_dist(bd, pred) >= 0.3 * f_params.d_s) {
+        std::lock_guard<std::mutex> lck(mtx);
+        preys.push_back(bd);
+      }
+    }
+    (boid_dist(bd, pred) < 5 * f_params.d_s)
+        ? copy_flock[index].update_state(
+              delta_t, vel_correction(f_flock.begin() + index, pred), brd_bhv)
+        : copy_flock[index].update_state(
+              delta_t, vel_correction(f_flock.begin() + index), brd_bhv);
+    return copy_flock[index];
+  };
+
+  std::transform(std::execution::par_unseq, indexes.begin(), indexes.end(),
+                 f_flock.begin(), copy_flock.begin(), boid_update);
+
+  // rimuove le vittime in modo un po' intricato perché sono iteratori di
+  // f_flock
+  for (auto it_n : victims) {
+    copy_flock.erase(copy_flock.begin() + it_n);
+  }
+
+  f_flock.resize(copy_flock.size());
+  f_flock = copy_flock;
+  update_com();
+  sort();
+  // aggiorna qui lo stato del predatore, passandogli le prede
+  pred.update_state(delta_t, pred.predate(preys), brd_bhv);
+}
+
+// NB: perché vettore di vittime? Così non si invalidano iteratori nel loop!
+
+// update globale con un predatore e ostacoli
+void Flock::update_global_state(double const& delta_t, bool const& brd_bhv,
+                                Predator& pred,
+                                std::vector<Obstacle> const& obs) {
+  if (obs.size() == 0) {
+    update_global_state(delta_t, brd_bhv, pred);
+    return;
+  }
+  // boid su cui applica caccia = prede
+  std::vector<Boid> preys;
+
+  // il mutex è necessario per evitare problemi in race condition
+  // ovvero prevenire l'accesso simultaneo da parte dei thread paralleli
+  // alle medesime risorse (in questo caso, il vettore delle prede)
+  std::mutex mtx;
+
+  // rimuove le vittime
+  auto bd_eaten = [&](Boid const& bd) {
+    if (boid_dist(bd, pred) <= 0.3 * f_params.d_s)
+      return true;
+    else
+      return false;
+  };
+
+  auto last = std::remove_if(std::execution::par, f_flock.begin(),
+                             f_flock.end(), bd_eaten);
+  f_flock.erase(last, f_flock.end());
+
+  // duplica il vettore per poter aggiornare tutti i boid in parallelo
+  // in base allo stato al frame precedente
+  std::vector<Boid> copy_flock = f_flock;
+
+  // utilizza il vettore di indici per accedere ai corrispondenti boid di
+  // f_flock ed in tal modo poter applicare la ricerca dei vicini tramite
+  // iteratore
+  std::vector<unsigned int> indexes;
+
+  for (unsigned int i = 0; i < f_flock.size(); ++i) {
+    indexes.push_back(i);
+  }
+
+  // lambda per aggiornare lo stato
+  auto boid_update = [&](unsigned int const& index, Boid const& bd) -> Boid {
+    if (is_visible(bd, pred)) {
+      if (boid_dist(bd, pred) < pred.get_range() &&
+          boid_dist(bd, pred) > 0.3 * f_params.d_s) {
+        // blocca il mutex prima della modifica di preys
+        std::lock_guard<std::mutex> lck(mtx);
+        preys.push_back(bd);
+      }
+    }
+    // aggiorna lo stato del boid
+    f_flock[index].update_state(
+        delta_t,
+        vel_correction(copy_flock, copy_flock.begin() + index, pred) +
+            bd.avoid_obs(obs),
+        brd_bhv);
+    return f_flock[index];
+  };
+
+  // modo più efficiente che sono riuscito a implementare: in questo modo non
+  // bisogna fare copie ma viene direttamente scritto su f_flock
+  std::transform(std::execution::par, indexes.begin(), indexes.end(),
+                 copy_flock.begin(), f_flock.begin(), boid_update);
+
+  update_com();
+  sort();
+  // aggiorna qui lo stato del predatore, passandogli le prede
+  pred.update_state(delta_t, pred.predate(preys) + pred.avoid_obs(obs),
+                    brd_bhv);
+  return;
+}
+
+// update globale con più predatori e ostacoli:
+void Flock::update_global_state(double delta_t, bool brd_bhv,
+                                std::vector<Predator>& preds,
+                                std::vector<Obstacle> const& obs) {
+  // boid su cui applica caccia = prede
+  std::vector<std::pair<Boid, unsigned int>> preys;
+
+  // il mutex è necessario per evitare problemi in race condition
+  // ovvero prevenire l'accesso simultaneo da parte dei thread paralleli
+  // alle medesime risorse (in questo caso, il vettore delle prede)
+  std::mutex mtx;
+
+  // rimuove le vittime
+  auto bd_eaten = [&](Boid const& bd) {
+    auto above = [&](Predator const& pred) {
+      return boid_dist(bd, pred) <= 0.3 * f_params.d_s;
+    };
+    return std::any_of(std::execution::par, preds.begin(), preds.end(), above);
+  };
+
+  // rimuove le prede mangiate
+  auto last = std::remove_if(std::execution::par, f_flock.begin(),
+                             f_flock.end(), bd_eaten);
+  f_flock.erase(last, f_flock.end());
+
+  // duplica il vettore per poter aggiornare tutti i boid in parallelo
+  // in base allo stato al frame precedente
+  std::vector<Boid> copy_flock = f_flock;
+
+  // utilizza il vettore di indici per accedere ai corrispondenti boid di
+  // f_flock ed in tal modo poter applicare la ricerca dei vicini tramite
+  // iteratore
+  std::vector<unsigned int> indexes;
+
+  for (unsigned int i = 0; i < f_flock.size(); ++i) {
+    indexes.push_back(i);
+  }
+
+  // lambda per aggiornare lo stato
+  auto boid_update = [&](unsigned int const& index, Boid const& bd) -> Boid {
+    // aggiorna lo stato del boid con o senza percezione predatore
+    std::valarray<double> corr = {0., 0.};
+    for (unsigned int idx = 0; idx < preds.size(); ++idx) {
+      corr += avoid_pred(bd, preds[idx], 1., 1.);
+      if (boid_dist(bd, preds[idx]) < preds[idx].get_range() &&
+          boid_dist(bd, preds[idx]) > 0.3 * f_params.d_s &&
+          is_visible(bd, preds[idx])) {
         // blocca il mutex prima della modifica di preys
         std::lock_guard<std::mutex> lck(mtx);
         preys.push_back({bd, idx});
