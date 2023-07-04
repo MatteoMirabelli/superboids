@@ -150,8 +150,11 @@ void update_predators_state(std::vector<Predator>& predators, double delta_t,
           7 * idx->get_par_s() * (neighbour_pred.get_pos() - idx->get_pos());
     }
     if (predation) {
+      // trova le prede di questo predatore nel vettore di (prede, indici)
+      // valutando che l'indice corrisponda all'indice del predatore
       std::vector<Boid> own_preys;
       for (auto prey : preys)
+      // valuta se l'indice della preda è uguale all'indice del predatore
         if (prey.second == idx - predators.begin())
           own_preys.push_back(prey.first);
       idx->update_state(

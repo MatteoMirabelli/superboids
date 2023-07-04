@@ -27,11 +27,11 @@ Multiflock::Multiflock(std::vector<Parameters> const& params,
              mf_params[index].s};
     x_max = 2.5 * (space[0] - 40.) / mf_params[index].d_s;
     y_max = 2.5 * (space[1] - 40.) / mf_params[index].d_s;
+    std::valarray<double> pos = {0., 0.};
     for (int i = 0; i < sizes[index];) {
-      std::valarray<double> pos = {
-          dist_pos_x(rd) * 0.4 * (mf_params[index].d_s) + 20.,
-          dist_pos_y(rd) * 0.4 * (mf_params[index].d_s) + 20.};
-      auto compare_bd = [&](std::pair<Boid, int> const& b1) {
+      pos = {dist_pos_x(rd) * 0.4 * (mf_params[index].d_s) + 20.,
+             dist_pos_y(rd) * 0.4 * (mf_params[index].d_s) + 20.};
+      auto compare_bd = [this, &pos, &index](std::pair<Boid, int> const& b1) {
         return vec_norm(std::valarray<double>(b1.first.get_pos() - pos)) <
                0.3 * mf_params[index].d_s;
       };
@@ -143,7 +143,9 @@ void Multiflock::set_space(double const& sx, double const& sy) {
     com.set_space(sx, sy);
   }
 }
+
 void Multiflock::update_coms() {
+  std::vector<int> sizes(mf_com.size());
   for (auto& com : mf_com) {
     com.get_pos() = {0., 0.};
     com.get_vel() = {0., 0.};
@@ -151,6 +153,11 @@ void Multiflock::update_coms() {
   for (auto& b : mf_flock) {
     mf_com[b.second].get_pos() += b.first.get_pos();
     mf_com[b.second].get_vel() += b.first.get_vel();
+    ++sizes[b.second];
+  }
+  for (int i = 0; i < mf_com.size(); ++i) {
+    mf_com[i].get_pos() /= sizes[i];
+    mf_com[i].get_vel() /= sizes[i];
   }
 }
 

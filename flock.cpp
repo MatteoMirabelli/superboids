@@ -594,10 +594,11 @@ void Flock::update_global_state(double delta_t, bool brd_bhv,
 
   // rimuove le vittime
   auto bd_eaten = [this, &preds](Boid const& bd) {
+    // valuta se è mangiato da (almeno) un predatore
     auto above = [this, &bd](Predator const& pred) -> bool {
       return boid_dist(pred, bd) < 0.3 * f_params.d_s;
     };
-    return std::any_of(std::execution::par_unseq, preds.begin(), preds.end(), above);
+    return std::any_of(preds.begin(), preds.end(), above);
   };
 
   // rimuove le prede mangiate
@@ -605,6 +606,7 @@ void Flock::update_global_state(double delta_t, bool brd_bhv,
                              f_flock.end(), bd_eaten);
   f_flock.erase(last, f_flock.end());
   // sort();
+  
   //  duplica il vettore per poter aggiornare tutti i boid in parallelo
   //  in base allo stato al frame precedente
   std::vector<Boid> copy_flock = f_flock;
