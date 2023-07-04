@@ -25,14 +25,23 @@ int main() {
     float video_y = window_y * 0.96;
     // margini
     float margin = (window_y - video_y) / 2;
+    std::vector<Obstacle> obstacles =
+        generate_obstacles(10, 20., {video_x, video_y});
 
     // inizializzo stormo
-    Flock bd_flock{params, 100, 120., {video_x, video_y}};
+    Flock bd_flock{params, 100, 120., {video_x, video_y}, obstacles};
     // vettore di oggetti grafici stormo:
     std::vector<Bird> tr_boids;
     // inizializzo predatore
-    Predator predator(600., 300., 100., 0., 140., 70., 0.6, video_x, video_y,
+    Predator predator(600., 300., 100., 0., 140., 30., 0.6, video_x, video_y,
                       90., 0.8);
+
+    sf::Texture backg;
+    /*if (!backg.loadFromFile("textures/sky.jpg")) {
+      return 0;
+    }
+    backg.setSmooth(true);*/
+
     // qui servirà per caricare le texture:
     sf::Texture bd_texture;
     if (!bd_texture.loadFromFile("textures/eagle.png")) {
@@ -44,23 +53,38 @@ int main() {
     // tr_predator.addTexture(bd_texture);
 
     // imposto colore, posizione e rotazione predatore
-    // tr_predator.setFillColor(sf::Color::Red);
     tr_predator.setPosition(predator.get_pos()[0] + margin,
                             predator.get_pos()[1] + margin);
-    tr_predator.setRotation(-predator.get_angle());
+    tr_predator.setRotation(180. - predator.get_angle());
+
     // trasformo gli oggetti boid in oggetti grafici bird
     std::transform(bd_flock.begin(), bd_flock.end(),
                    std::back_inserter(tr_boids), [&margin](Boid b) -> Bird {
-                     Bird tr_boid(15., true);
+                     Bird tr_boid(15.);
                      tr_boid.setPosition(b.get_pos()[0] + margin,
                                          b.get_pos()[1] + margin);
                      tr_boid.setRotation(b.get_angle());
                      return tr_boid;
                    });
 
+    // disegna ostacoli
+    std::vector<sf::CircleShape> obs_circles;
+    std::transform(
+        obstacles.begin(), obstacles.end(), std::back_inserter(obs_circles),
+        [&margin](Obstacle b) -> sf::CircleShape {
+          sf::CircleShape ob_circ(b.get_size());
+          ob_circ.setFillColor(sf::Color::Red);
+          ob_circ.setPosition(b.get_pos()[0] + margin, b.get_pos()[1] + margin);
+          return ob_circ;
+        });
+
+    // impostazioni di anti-aliasing
+    sf::ContextSettings settings;
+    settings.antialiasingLevel = 8;
+
     // inizializzo finestra
     sf::RenderWindow window(sf::VideoMode(window_x, window_y), "n-th boid test",
-                            sf::Style::Default);
+                            sf::Style::Default, settings);
     window.setFramerateLimit(60);
     // posiziona finestra in alto a sinistra
     window.setPosition(sf::Vector2i(0, window_x * 0.023));
@@ -76,6 +100,7 @@ int main() {
     // riquadro simulazione
     sf::RectangleShape rec_sim(sf::Vector2f(video_x, video_y));
     rec_sim.setFillColor(sf::Color::White);
+    // rec_sim.setTexture(&backg);
     rec_sim.setOutlineColor(sf::Color::Black);
     rec_sim.setOutlineThickness(2);
     rec_sim.setPosition(margin, margin);
@@ -92,7 +117,7 @@ int main() {
                         {pos_com_x, pos_com_y}, com_ratio, margin / 2);
     com_tracker.setPosition(sf::Vector2f{tracker_x, tracker_y});
     com_tracker.setFillColors(sf::Color::White, sf::Color(220, 220, 220),
-                              sf::Color::Magenta);
+                              sf::Color::Blue);
     com_tracker.setOutlineColors(sf::Color::Black, sf::Color::Black,
                                  sf::Color::Black);
     com_tracker.setOutlineThickness(2, 0, 0);
@@ -111,24 +136,19 @@ int main() {
                         {0., 350.});
     speed_bar.setPosition(sf::Vector2f{
         video_x + 2 * margin,
-        video_y * com_ratio + 3 * margin + 3 * comp_text.getCharacterSize()});
+        video_y * com_ratio + 3 * margin + 4.2 * comp_text.getCharacterSize()});
     Statistics flock_stats = bd_flock.get_stats();
-
-    // per lo sfondo:
-    /*sf::Texture bg_texture;
-    if (!bg_texture.loadFromFile("textures/backg.png")) {
-      return 0;
-    }
-    sf::Sprite backg;
-    backg.setTexture(bg_texture);
-    backg.setPosition(0., 0.);*/
 
     // calcolo tempi di computazione / disegno
     // inizializza init = istante di tempo
     auto init = std::chrono::steady_clock::now();
     // iniziali step = durata di tempo
-    std::chrono::duration<double, std::milli> step_cmpt;
-    std::chrono::duration<double, std::milli> step_draw;
+    std::chrono::duration<double, std::milli> step_cmpt{
+        std::chrono::duration<double, std::milli>::zero()};
+    std::chrono::duration<double, std::milli> step_draw{
+        std::chrono::duration<double, std::milli>::zero()};
+    std::chrono::duration<double, std::milli> step_update{
+        std::chrono::duration<double, std::milli>::zero()};
     // stringstream per convertire durate in stringhe
     std::ostringstream step_ss;
 
@@ -137,6 +157,7 @@ int main() {
 
     // game cicle
     while (window.isOpen()) {
+      init = std::chrono::steady_clock::now();
       // aggiorna vettore di oggetti grafici bird
       // da implementare in file separato per gestire aggiunta/rimozione
       tr_boids.erase(tr_boids.begin() + bd_flock.size(), tr_boids.end());
@@ -153,7 +174,7 @@ int main() {
                               predator.get_pos()[1] + margin);
       tr_predator.setRotation(180. - predator.get_angle());
       // aggiorna posizione com
-      if (counter % 10 == 0) {
+      if (counter % 4 == 0) {
         pos_com_x = bd_flock.get_com().get_pos()[0];
         pos_com_y = bd_flock.get_com().get_pos()[1];
         /*com_circle.setPosition(com_rec.getPosition().x + com_x * com_ratio,
@@ -165,28 +186,27 @@ int main() {
         flock_stats = bd_flock.get_stats();
         speed_bar.update_value(flock_stats.av_vel);
       }
+      step_update += std::chrono::steady_clock::now() - init;
       //  Process events
       sf::Event event;
       while (window.pollEvent(event)) {
         // Close window: exit
         if (event.type == sf::Event::Closed) window.close();
-        // non mi andava con la tastiera quindi ho messo il mouse
-        /*if (event.type == sf::Event::MouseButtonPressed) {
-          if (event.mouseButton.button == sf::Mouse::Left) {
-            window.close();
-          }
-        }*/
+        // eventualmente altri comandi qui:
       }
-      // stampa a schermo tempo di calcolo e disegno (mediato su 10 frame)
+      // stampa a schermo tempo di calcolo e disegno (mediato su 4 frame)
       if (counter % 4 == 0) {
         step_ss.str("");
         step_ss << "Computation time: " << std::setprecision(2) << std::fixed
                 << step_cmpt.count() / 4 << " ms \n";
         step_ss << "Drawing time: " << std::setprecision(2) << std::fixed
-                << step_draw.count() / 4 << " ms";
+                << step_draw.count() / 4 << " ms \n";
+        step_ss << "Update time: " << std::setprecision(2) << std::fixed
+                << step_update.count() / 4 << " ms";
         comp_text.setString(step_ss.str());
         step_cmpt = std::chrono::duration<double, std::milli>::zero();
         step_draw = std::chrono::duration<double, std::milli>::zero();
+        step_update = std::chrono::duration<double, std::milli>::zero();
       }
 
       // calcola tempo di computazione
@@ -195,14 +215,16 @@ int main() {
       window.clear(sf::Color(210, 210, 210));
       // disegna riquadro simulazione
       window.draw(rec_sim);
-      // disegna predatore
-      window.draw(tr_predator);
+      // disegna ostacoli
+      for (sf::CircleShape& obs : obs_circles) {
+        window.draw(obs);
+      }
       // disegna stormo
       for (Bird& tr_boid : tr_boids) {
         window.draw(tr_boid);
-        // tr_boid.animate();
-        //++i;
       }
+      // disegna predatore
+      window.draw(tr_predator);
       // disegna tracker centro di massa
       window.draw(com_tracker);
       // disegna testo
@@ -216,7 +238,7 @@ int main() {
       // avvia cronometro per computazione
       init = std::chrono::steady_clock::now();
       // aggiorna stato flock e predatore
-      bd_flock.update_flock_pred_state(0.016, true, predator);
+      bd_flock.update_flock_pred_state(0.0166, true, obstacles, predator);
       // ferma cronometro: calcola tempo di computazione
       step_cmpt += std::chrono::steady_clock::now() - init;
 

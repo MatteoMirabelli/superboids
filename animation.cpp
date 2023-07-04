@@ -112,7 +112,7 @@ void Tracker::setFillColors(sf::Color const& outer, sf::Color const& inner,
   t_inner.setFillColor(inner);
   t_circle.setFillColor(circle);
   for (int idx = 0; idx < t_path.getVertexCount(); ++idx) {
-    t_path[idx].color = circle;
+    t_path[idx].color = sf::Color(circle.r, circle.g, circle.b, 150);
   }
 }
 
@@ -138,7 +138,10 @@ void Tracker::update_pos(std::valarray<float> const& position) {
       t_pos[1] * t_inner.getSize().y / t_range[1] + t_inner.getPosition().y);
   if (t_pos[0] > 0. && t_pos[1] > 0. && t_pos[0] < t_range[0] &&
       t_pos[1] < t_range[1]) {
-    sf::Vertex vertex(t_circle.getPosition(), t_circle.getFillColor());
+    sf::Vertex vertex(
+        t_circle.getPosition(),
+        sf::Color(t_circle.getFillColor().r, t_circle.getFillColor().g,
+                  t_circle.getFillColor().b, 150));
     t_path.append(vertex);
   }
 }
@@ -162,8 +165,7 @@ StatusBar::StatusBar(std::string const& title, sf::Font const& font,
   s_text.setFillColor(sf::Color::Black);
   s_outer.setOutlineThickness(2);
   s_bar.setFillColor(sf::Color::Black);
-  s_outer.setPosition(
-      0, 1.7 * s_text.getCharacterSize());
+  s_outer.setPosition(0, 1.7 * s_text.getCharacterSize());
   s_bar.setPosition(s_outer.getPosition());
 }
 

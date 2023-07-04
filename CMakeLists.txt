@@ -27,7 +27,7 @@ find_package(SFML 2.5 COMPONENTS graphics REQUIRED)
 
 # link_directories(${X11_LIBRARIES})
 
-add_executable(Boids_engine main.cpp boid.cpp flock.cpp animation.cpp bird.cpp predator.cpp obstacles.cpp)
+add_executable(Boids_engine main.cpp boid.cpp flock.cpp animation.cpp bird.cpp predator.cpp obstacles.cpp multiflock.cpp)
 target_link_libraries(Boids_engine PRIVATE sfml-graphics)
 
 # se il testing e' abilitato...
@@ -35,7 +35,7 @@ target_link_libraries(Boids_engine PRIVATE sfml-graphics)
 if (BUILD_TESTING)
 
   # aggiungi l'eseguibile Boids.t
-  add_executable(Boids.t all_tests.cpp boids_tests.cpp flock_tests.cpp predator_tests.cpp boid.cpp flock.cpp animation.cpp predator.cpp obstacles.cpp)
+  add_executable(Boids.t all_tests.cpp boids_tests.cpp flock_tests.cpp predator_tests.cpp obstacles_tests.cpp boid.cpp flock.cpp predator.cpp multiflock.cpp obstacles.cpp)
   target_link_libraries(Boids.t PRIVATE sfml-graphics)
   #aggiungi l'eseguibile Boids.t alla lista dei test
   add_test(NAME Boids.t COMMAND Boids.t)

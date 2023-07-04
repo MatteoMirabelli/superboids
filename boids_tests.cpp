@@ -140,8 +140,9 @@ TEST_CASE("Testing the Boid::update_state method with periodic conditions") {
     CHECK(bd.get_pos()[1] == 21);
   }
 
-    SUBCASE(
-      "Testing the Boid::update_state method with periodic conditions on top left corner") {
+  SUBCASE(
+      "Testing the Boid::update_state method with periodic conditions on top "
+      "left corner") {
     std::valarray<double> space{1920, 1080};
     std::valarray<double> init_pos{1880., 100.};
     std::valarray<double> init_vel{20., -70.};
@@ -155,8 +156,9 @@ TEST_CASE("Testing the Boid::update_state method with periodic conditions") {
     CHECK(bd.get_pos()[1] == 1059);
   }
 
-    SUBCASE(
-      "Testing the Boid::update_state method with periodic conditions: boid exactly on top left corner, no correction needed") {
+  SUBCASE(
+      "Testing the Boid::update_state method with periodic conditions: boid "
+      "exactly on top left corner, no correction needed") {
     std::valarray<double> space{1920, 1080};
     std::valarray<double> init_pos{1880., 100.};
     std::valarray<double> init_vel{20., -70.};
@@ -168,6 +170,77 @@ TEST_CASE("Testing the Boid::update_state method with periodic conditions") {
     CHECK(bd.get_vel()[1] == -80);
     CHECK(bd.get_pos()[0] == 1900);
     CHECK(bd.get_pos()[1] == 20);
+  }
+}
+
+TEST_CASE("Testing the Boid::avoid_obs method") {
+  // BOID CONSTRUCTOR takes:
+  // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
+  // param_s
+
+  // OBSTACLE CONSTRUCTOR takes: pos{x,y}, size
+
+  SUBCASE(
+      "Testing the Boid::avoid_obs with two visible obstacles within range") {
+    Boid bd(8., 6., -2., 2., 120., 1920., 1080., 3., 1.);
+    Obstacle ob1(4., 4., 1.);
+    Obstacle ob2(8., 2., 1.);
+    std::vector<Obstacle> obstacles;
+    obstacles.push_back(ob1);
+    obstacles.push_back(ob2);
+
+    auto delta_vel = bd.avoid_obs(obstacles);
+
+    CHECK(delta_vel[0] == -6);
+    CHECK(delta_vel[1] == -9);
+  }
+
+  SUBCASE(
+      "Testing the Boid::avoid_obs with two visible obstacles not in the "
+      "range ") {
+    Boid bd(10., 10., -2., 2., 120., 1920., 1080., 1., 1.);
+    Obstacle ob1(4., 4., 1.);
+    Obstacle ob2(8., 2., 1.);
+    std::vector<Obstacle> obstacles;
+    obstacles.push_back(ob1);
+    obstacles.push_back(ob2);
+
+    auto delta_vel = bd.avoid_obs(obstacles);
+
+    CHECK(delta_vel[0] == 0);
+    CHECK(delta_vel[1] == 0);
+  }
+
+  SUBCASE(
+      "Testing the Boid::avoid_obs with two NOT visible obstacles within "
+      "5*param_s range ") {
+    Boid bd(8., 6., 2., 2., 90., 1920., 1080., 1., 1.);
+    Obstacle ob1(4., 4., 1.);
+    Obstacle ob2(8., 2., 1.);
+    std::vector<Obstacle> obstacles;
+    obstacles.push_back(ob1);
+    obstacles.push_back(ob2);
+
+    auto delta_vel = bd.avoid_obs(obstacles);
+
+    CHECK(delta_vel[0] == 0);
+    CHECK(delta_vel[1] == 0);
+  }
+
+  SUBCASE(
+      "Testing the Boid::avoid_obs with two visible obstacles, with just one "
+      "within range") {
+    Boid bd(8., 6., -2., 2., 120., 1920., 1080., 1., 1.);
+    Obstacle ob1(1., 1., 1.);
+    Obstacle ob2(8., 2., 1.);
+    std::vector<Obstacle> obstacles;
+    obstacles.push_back(ob1);
+    obstacles.push_back(ob2);
+
+    auto delta_vel = bd.avoid_obs(obstacles);
+
+    CHECK(delta_vel[0] == 0);
+    CHECK(delta_vel[1] == -6);
   }
 }
 
@@ -248,7 +321,11 @@ TEST_CASE("Testing auxiliary functions") {
     CHECK(angle_2 == doctest::Approx(165.963756));
     CHECK(angle_3 == doctest::Approx(194.036243));
   }
+}
 
+TEST_CASE("Testing the is_visible function") {
+  // The first boid passed is the one which we want to know whether or not is
+  // visible BY the second boid passed
   SUBCASE("Testing the is_visible function with view_angle 0") {
     Boid b1(1., 2., 2., 1., 0., 1920, 1080, 4, 1);
     Boid b2(3., 3., 2., 1., 0., 1920, 1080, 4, 1);
@@ -268,6 +345,36 @@ TEST_CASE("Testing auxiliary functions") {
     bool iv13 = is_visible(b1, b3);
     CHECK(iv12 == false);
     CHECK(iv13 == true);
+  }
+
+  SUBCASE("Testing the is_visible function") {
+    Boid b1(1., 2., 0., -4., 90., 1920, 1080, 4, 1);
+    Boid b2(4., 2., 0., +1., 90., 1920, 1080, 4, 1);
+
+    bool iv12 = is_visible(b1, b2);
+    bool iv21 = is_visible(b2, b1);
+    CHECK(iv12 == true);
+    CHECK(iv21 == true);
+  }
+
+  SUBCASE("Testing the is_visible function") {
+    Boid b1(1., 1., 0., -1., 90., 1920, 1080, 4, 1);
+    Boid b2(4., 3., 3., 2., 150., 1920, 1080, 4, 1);
+    Boid b3(1., 2., 1., 0., 150., 1920, 1080, 4, 1);
+
+    bool iv12 = is_visible(b1, b2);
+    bool iv21 = is_visible(b2, b1);
+    bool iv13 = is_visible(b1, b3);
+    bool iv31 = is_visible(b3, b1);
+    bool iv23 = is_visible(b2, b3);
+    bool iv32 = is_visible(b3, b2);
+
+    CHECK(iv12 == false);
+    CHECK(iv21 == false);
+    CHECK(iv13 == true);
+    CHECK(iv31 == false);
+    CHECK(iv23 == true);
+    CHECK(iv32 == false);
   }
 }
 
@@ -763,36 +870,5 @@ TEST_CASE("Testing the Flock::Update_stats method") {
     CHECK(flock_2.get_stats().dist_RMS == doctest::Approx(0.3272645));
     CHECK(flock_2.get_stats().av_vel == 0);
     CHECK(flock_2.get_stats().vel_RMS == 0);
-  }
-}
-
-TEST_CASE("Testing the Predator::Predate method") {
-  // PREDATOR CONSTRUCTOR takes:
-  // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
-  // param_s, p_range, p_hunger
-
-  SUBCASE("Testing the Predator::Predate method with two preys") {
-    Predator pr(2., 2., 5., 5., 50., 1920., 1080., 10., 2., 5., 2.);
-
-    Boid bd1(5., 3., 1., 1., 120., 1920., 1080., 10., 2.);
-    Boid bd2(3., 6., 1., 1., 120., 1920., 1080., 10., 2.);
-
-    std::vector<Boid> preys{bd1, bd2};
-
-    auto vel_correction = pr.predate(preys);
-
-    CHECK(vel_correction[0] == 10);
-    CHECK(vel_correction[1] == 7);
-  }
-
-  SUBCASE("Testing the Predator::Predate method with no preys") {
-    Predator pr(2., 2., 5., 5., 50., 1920., 1080., 10., 2., 5., 2.);
-
-    std::vector<Boid> preys{};
-
-    auto vel_correction = pr.predate(preys);
-
-    CHECK(vel_correction[0] == 0);
-    CHECK(vel_correction[1] == 0);
   }
 }
