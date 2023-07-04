@@ -13,13 +13,13 @@
 #include "bird.hpp"
 #include "boid.hpp"
 #include "flock.hpp"
-#include "predator.hpp"
 #include "multiflock.hpp"
+#include "predator.hpp"
 
 int main() {
   try {
     // inizializzo parametri stormo
-    Parameters params(60., 25., 0.9, 0.1, 0.01);
+    Parameters params(50., 25., 1.2, 0.1, 0.01);
     // parametri finestra e video tarati sul device
     float window_x = sf::VideoMode::getFullscreenModes()[0].width;
     float window_y = sf::VideoMode::getFullscreenModes()[0].height * 0.92;
@@ -33,44 +33,45 @@ int main() {
 
     // inizializzo stormo
     Flock bd_flock{params, 100, 120., {video_x, video_y}, obstacles};
-    // vettore di oggetti grafici stormo:
-    std::vector<Bird> tr_boids;
     // inizializzo predatore
-    Predator predator(600., 300., 100., 0., 140., 30., 0.6, video_x, video_y,
-                      90., 0.8);
-    std::vector<Predator> predators;
-    predators.push_back(predator);
+    /*Predator predator(600., 300., 100., 0., 140., 30., 0.6, video_x, video_y,
+                      90., 0.8);*/
+    std::vector<Predator> predators =
+        random_predators(2, {video_x, video_y}, 150., 30., 1., 70., 0.7);
+    // predators.push_back(predator);
 
-    sf::Texture backg;
-    /*if (!backg.loadFromFile("textures/sky.jpg")) {
+    /*sf::Texture backg;
+    if (!backg.loadFromFile("textures/sky.jpg")) {
       return 0;
     }
     backg.setSmooth(true);*/
 
     // qui servirà per caricare le texture:
     sf::Texture bd_texture;
-    if (!bd_texture.loadFromFile("textures/eagle.png")) {
+    if (!bd_texture.loadFromFile("textures/bomber.png")) {
       return 0;
     }
+    bd_texture.setSmooth(true);
+
+    // oggetti grafici stormo:
+    std::vector<Bird> tr_boids =
+        create_birds(bd_flock, sf::Color::Blue, margin);
+
     // oggetto grafico predatore:
-    Animate tr_predator(bd_texture);
+    std::vector<Animate> tr_predators;
+    Animate tr_predator1(bd_texture);
+    Animate tr_predator2(bd_texture);
+    tr_predators.push_back(tr_predator1);
+    tr_predators.push_back(tr_predator2);
 
     // tr_predator.addTexture(bd_texture);
 
     // imposto colore, posizione e rotazione predatore
-    tr_predator.setPosition(predators[0].get_pos()[0] + margin,
-                            predators[0].get_pos()[1] + margin);
-    tr_predator.setRotation(180.-predators[0].get_angle());
-
-    // trasformo gli oggetti boid in oggetti grafici bird
-    std::transform(bd_flock.begin(), bd_flock.end(),
-                   std::back_inserter(tr_boids), [&margin](Boid b) -> Bird {
-                     Bird tr_boid(15.);
-                     tr_boid.setPosition(b.get_pos()[0] + margin,
-                                         b.get_pos()[1] + margin);
-                     tr_boid.setRotation(b.get_angle());
-                     return tr_boid;
-                   });
+    for (int indx = 0; indx < predators.size(); ++indx) {
+      tr_predators[indx].setPosition(predators[indx].get_pos()[0] + margin,
+                                     predators[indx].get_pos()[1] + margin);
+      tr_predators[indx].setRotation(180. - predators[indx].get_angle());
+    }
 
     // disegna ostacoli
     std::vector<sf::CircleShape> obs_circles;
@@ -104,7 +105,7 @@ int main() {
 
     // riquadro simulazione
     sf::RectangleShape rec_sim(sf::Vector2f(video_x, video_y));
-    rec_sim.setFillColor(sf::Color::White);
+    rec_sim.setFillColor(sf::Color(203, 245, 255));
     // rec_sim.setTexture(&backg);
     rec_sim.setOutlineColor(sf::Color::Black);
     rec_sim.setOutlineThickness(2);
@@ -136,7 +137,7 @@ int main() {
                           video_y * com_ratio + 3 * margin);
 
     // indicatore velocità media
-    StatusBar speed_bar("Mean speed", font,
+    StatusBar speed_bar("Mean speed \n0           350", font,
                         com_tracker.getOuter().getGlobalBounds().width, 22.,
                         {0., 350.});
     speed_bar.setPosition(sf::Vector2f{
@@ -164,20 +165,13 @@ int main() {
     while (window.isOpen()) {
       init = std::chrono::steady_clock::now();
       // aggiorna vettore di oggetti grafici bird
-      // da implementare in file separato per gestire aggiunta/rimozione
-      tr_boids.erase(tr_boids.begin() + bd_flock.size(), tr_boids.end());
-      std::transform(bd_flock.begin(), bd_flock.end(), tr_boids.begin(),
-                     tr_boids.begin(),
-                     [&margin](Boid& b, Bird& tr_boid) -> Bird {
-                       tr_boid.setPosition(b.get_pos()[0] + margin,
-                                           b.get_pos()[1] + margin);
-                       tr_boid.setRotation(-b.get_angle());
-                       return tr_boid;
-                     });
-      // aggiorna oggetto grafico predatore
-      tr_predator.setPosition(predators[0].get_pos()[0] + margin,
-                              predators[0].get_pos()[1] + margin);
-      tr_predator.setRotation(180. - predators[0].get_angle());
+      update_birds(tr_boids, bd_flock, margin);
+      // aggiorna oggetti grafici predatori
+      for (int indx = 0; indx < predators.size(); ++indx) {
+        tr_predators[indx].setPosition(predators[indx].get_pos()[0] + margin,
+                                       predators[indx].get_pos()[1] + margin);
+        tr_predators[indx].setRotation(180. - predators[indx].get_angle());
+      }
       // aggiorna posizione com
       if (counter % 4 == 0) {
         pos_com_x = bd_flock.get_com().get_pos()[0];
@@ -229,7 +223,7 @@ int main() {
         window.draw(tr_boid);
       }
       // disegna predatore
-      window.draw(tr_predator);
+      for (Animate& tr_predator : tr_predators) window.draw(tr_predator);
       // disegna tracker centro di massa
       window.draw(com_tracker);
       // disegna testo
@@ -243,7 +237,7 @@ int main() {
       // avvia cronometro per computazione
       init = std::chrono::steady_clock::now();
       // aggiorna stato flock e predatore
-      bd_flock.update_global_state(0.0166, false, predators, obstacles);
+      bd_flock.update_global_state(0.0166, true, predators, obstacles);
       // ferma cronometro: calcola tempo di computazione
       step_cmpt += std::chrono::steady_clock::now() - init;
 

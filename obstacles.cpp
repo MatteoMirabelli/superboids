@@ -7,28 +7,25 @@
 #include <random>
 #include <valarray>
 
-// ENTITY
 
-Entity::~Entity() = default;
 
 // OBSTACLE
 
-char Obstacle::type() const { return 'o'; }
 
 Obstacle::Obstacle(std::valarray<double> const& pos, double const& size) {
   assert(size > 0 && pos.size() == 2);
   o_size = size;
-  b_pos = pos;
+  o_pos = pos;
 }
 
 Obstacle::Obstacle(double const& pos_x, double const& pos_y,
                    double const& size) {
   assert(pos_x >= 0 && pos_y >= 0 && size > 0);
   o_size = size;
-  b_pos = {pos_x, pos_y};
+  o_pos = {pos_x, pos_y};
 }
 
-std::valarray<double> const& Obstacle::get_pos() const { return b_pos; }
+std::valarray<double> const& Obstacle::get_pos() const { return o_pos; }
 
 double const& Obstacle::get_size() const { return o_size; }
 

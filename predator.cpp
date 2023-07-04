@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <random>
 
-char Predator::type() const { return 'p'; }
+
 
 Predator::Predator(std::valarray<double> const& pos,
                    std::valarray<double> const& vel, double const& view_ang,
