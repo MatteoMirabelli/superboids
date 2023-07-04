@@ -42,7 +42,7 @@ class Boid {
   void set_par_s(double const&);
 
   void update_state(double, std::valarray<double>);
-  void update_state(double, std::valarray<double>, bool const&, double, double);
+  void update_state(double, std::valarray<double>, bool const&);
   std::valarray<double> avoid_obs(std::vector<Obstacle> const&) const;
 };
 

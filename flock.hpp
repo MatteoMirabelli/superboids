@@ -76,7 +76,6 @@ class Flock {
   void update_com();
 
   std::vector<Boid> get_neighbours(std::vector<Boid>::iterator);
-  std::vector<Boid> get_neighbours(double const&, Boid const&);
 
   // vel_correction solo stormo (1)
   std::valarray<double> vel_correction(std::vector<Boid>::iterator);
@@ -85,11 +84,6 @@ class Flock {
   std::valarray<double> vel_correction(std::vector<Boid>::iterator,
                                        Predator const&);
 
-  // vel_correction con più predatori e parametri per il comportamento ai bordi
-  // (3)
-  std::valarray<double> vel_correction(std::vector<Boid>::iterator it,
-                                       std::vector<Predator> const& preds,
-                                       double, double);
 
   // vel_correction con più predatori, parametri per il comportamento ai bordi e
   // ostacoli (4)

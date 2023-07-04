@@ -84,7 +84,7 @@ TEST_CASE("Testing the Boid::update_state method with periodic conditions") {
     std::valarray<double> init_vel{-75., 75.};
     std::valarray<double> delta_vel{-30., +4.};
     Boid bd(init_pos, init_vel, 120., space, 4., 1.);
-    bd.update_state(1., delta_vel, true, 5., 1);
+    bd.update_state(1., delta_vel, true);
 
     CHECK(bd.get_vel()[0] == -105);
     CHECK(bd.get_vel()[1] == 79);
@@ -100,7 +100,7 @@ TEST_CASE("Testing the Boid::update_state method with periodic conditions") {
     std::valarray<double> init_vel{75., 75.};
     std::valarray<double> delta_vel{30., +4.};
     Boid bd(init_pos, init_vel, 120., space, 4., 1.);
-    bd.update_state(1., delta_vel, true, 5., 1);
+    bd.update_state(1., delta_vel, true);
 
     CHECK(bd.get_vel()[0] == 105);
     CHECK(bd.get_vel()[1] == 79);
@@ -116,7 +116,7 @@ TEST_CASE("Testing the Boid::update_state method with periodic conditions") {
     std::valarray<double> init_vel{100., 7.};
     std::valarray<double> delta_vel{30., -15.};
     Boid bd(init_pos, init_vel, 120., space, 4., 1.);
-    bd.update_state(1., delta_vel, true, 5., 1);
+    bd.update_state(1., delta_vel, true);
 
     CHECK(bd.get_vel()[0] == 130);
     CHECK(bd.get_vel()[1] == -8);
@@ -132,7 +132,7 @@ TEST_CASE("Testing the Boid::update_state method with periodic conditions") {
     std::valarray<double> init_vel{100., 7.};
     std::valarray<double> delta_vel{30., 15.};
     Boid bd(init_pos, init_vel, 120., space, 4., 1.);
-    bd.update_state(1., delta_vel, true, 5., 1);
+    bd.update_state(1., delta_vel, true);
 
     CHECK(bd.get_vel()[0] == 130);
     CHECK(bd.get_vel()[1] == 22);
@@ -148,7 +148,7 @@ TEST_CASE("Testing the Boid::update_state method with periodic conditions") {
     std::valarray<double> init_vel{20., -70.};
     std::valarray<double> delta_vel{30., -15.};
     Boid bd(init_pos, init_vel, 120., space, 4., 1.);
-    bd.update_state(1., delta_vel, true, 5., 1);
+    bd.update_state(1., delta_vel, true);
 
     CHECK(bd.get_vel()[0] == 50);
     CHECK(bd.get_vel()[1] == -85);
@@ -164,7 +164,7 @@ TEST_CASE("Testing the Boid::update_state method with periodic conditions") {
     std::valarray<double> init_vel{20., -70.};
     std::valarray<double> delta_vel{0., -10.};
     Boid bd(init_pos, init_vel, 120., space, 4., 1.);
-    bd.update_state(1., delta_vel, true, 5., 1);
+    bd.update_state(1., delta_vel, true);
 
     CHECK(bd.get_vel()[0] == 20);
     CHECK(bd.get_vel()[1] == -80);

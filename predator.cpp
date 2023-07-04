@@ -153,10 +153,10 @@ void update_predators_state(
       idx->update_state(
           delta_t,
           pred_separation + idx->predate(own_preys) + idx->avoid_obs(obstacles),
-          bhv, idx->get_range() / 2, idx->get_hunger());
+          bhv);
     } else {
       idx->update_state(delta_t, pred_separation + idx->avoid_obs(obstacles),
-                        bhv, idx->get_range() / 2, idx->get_hunger());
+                        bhv);
     }
   }
 

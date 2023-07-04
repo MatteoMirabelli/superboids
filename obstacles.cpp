@@ -35,12 +35,12 @@ std::vector<Obstacle> generate_obstacles(int n_obstacles, double max_size,
   std::vector<Obstacle> g_obstacles;
 
   std::random_device rd;
-  double x_max = (space[0] - max_size);
-  double y_max = (space[1] - max_size);
+  double x_max = (space[0] - 4.5 * max_size);
+  double y_max = (space[1] - 4.5 * max_size);
 
-  std::uniform_real_distribution<> dist_pos_x(max_size, x_max);
-  std::uniform_real_distribution<> dist_pos_y(max_size, y_max);
-  std::uniform_real_distribution<> size(5., max_size);
+  std::uniform_real_distribution<> dist_pos_x(4.5 * max_size, x_max);
+  std::uniform_real_distribution<> dist_pos_y(4.5 * max_size, y_max);
+  std::uniform_real_distribution<> size(15., max_size);
 
   for (auto n = 0; n < n_obstacles; ++n) {
     std::valarray<double> pos = {dist_pos_x(rd), dist_pos_y(rd)};

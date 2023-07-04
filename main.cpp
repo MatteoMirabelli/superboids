@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cassert>
 #include <chrono>
+#include <execution>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -13,11 +14,12 @@
 #include "boid.hpp"
 #include "flock.hpp"
 #include "predator.hpp"
+#include "multiflock.hpp"
 
 int main() {
   try {
     // inizializzo parametri stormo
-    Parameters params(80., 25., 0.2, 0.05, 0.009);
+    Parameters params(60., 25., 0.9, 0.1, 0.01);
     // parametri finestra e video tarati sul device
     float window_x = sf::VideoMode::getFullscreenModes()[0].width;
     float window_y = sf::VideoMode::getFullscreenModes()[0].height * 0.92;
@@ -25,6 +27,7 @@ int main() {
     float video_y = window_y * 0.96;
     // margini
     float margin = (window_y - video_y) / 2;
+
     std::vector<Obstacle> obstacles =
         generate_obstacles(10, 20., {video_x, video_y});
 
@@ -35,6 +38,8 @@ int main() {
     // inizializzo predatore
     Predator predator(600., 300., 100., 0., 140., 30., 0.6, video_x, video_y,
                       90., 0.8);
+    std::vector<Predator> predators;
+    predators.push_back(predator);
 
     sf::Texture backg;
     /*if (!backg.loadFromFile("textures/sky.jpg")) {
@@ -53,9 +58,9 @@ int main() {
     // tr_predator.addTexture(bd_texture);
 
     // imposto colore, posizione e rotazione predatore
-    tr_predator.setPosition(predator.get_pos()[0] + margin,
-                            predator.get_pos()[1] + margin);
-    tr_predator.setRotation(180. - predator.get_angle());
+    tr_predator.setPosition(predators[0].get_pos()[0] + margin,
+                            predators[0].get_pos()[1] + margin);
+    tr_predator.setRotation(180.-predators[0].get_angle());
 
     // trasformo gli oggetti boid in oggetti grafici bird
     std::transform(bd_flock.begin(), bd_flock.end(),
@@ -72,7 +77,7 @@ int main() {
     std::transform(
         obstacles.begin(), obstacles.end(), std::back_inserter(obs_circles),
         [&margin](Obstacle b) -> sf::CircleShape {
-          sf::CircleShape ob_circ(b.get_size());
+          sf::CircleShape ob_circ(b.get_size() * 0.7);
           ob_circ.setFillColor(sf::Color::Red);
           ob_circ.setPosition(b.get_pos()[0] + margin, b.get_pos()[1] + margin);
           return ob_circ;
@@ -170,9 +175,9 @@ int main() {
                        return tr_boid;
                      });
       // aggiorna oggetto grafico predatore
-      tr_predator.setPosition(predator.get_pos()[0] + margin,
-                              predator.get_pos()[1] + margin);
-      tr_predator.setRotation(180. - predator.get_angle());
+      tr_predator.setPosition(predators[0].get_pos()[0] + margin,
+                              predators[0].get_pos()[1] + margin);
+      tr_predator.setRotation(180. - predators[0].get_angle());
       // aggiorna posizione com
       if (counter % 4 == 0) {
         pos_com_x = bd_flock.get_com().get_pos()[0];
@@ -238,7 +243,7 @@ int main() {
       // avvia cronometro per computazione
       init = std::chrono::steady_clock::now();
       // aggiorna stato flock e predatore
-      bd_flock.update_flock_pred_state(0.0166, true, obstacles, predator);
+      bd_flock.update_global_state(0.0166, true, predators, obstacles);
       // ferma cronometro: calcola tempo di computazione
       step_cmpt += std::chrono::steady_clock::now() - init;
 

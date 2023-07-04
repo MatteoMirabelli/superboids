@@ -326,18 +326,6 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
   return neighbours;
 }
 
-// get neighbours per boid esterno: magari potrà servire
-std::vector<Boid> Flock::get_neighbours(double const& dist, Boid const& be) {
-  std::vector<Boid> neighbours;
-  auto ev_dist = [&](Boid bd_1) {
-    return boid_dist(bd_1, be) < dist && boid_dist(bd_1, be) > 0. &&
-           is_visible(bd_1, be);
-  };
-  std::copy_if(std::execution::par, f_flock.begin(), f_flock.end(),
-               std::back_inserter(neighbours), ev_dist);
-  return neighbours;
-}
-
 // vel correction senza predatori (1)
 std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
   assert(it >= f_flock.begin() && it < f_flock.end());
@@ -520,13 +508,12 @@ std::valarray<double> Flock::avoid_pred(Boid const& bd, Predator const& pred,
   return delta_vel;
 }
 
-// update_flock_state senza predatori 
+// update_flock_state senza predatori
 void Flock::update_flock_state(double const& delta_t, bool const& brd_bhv) {
   std::vector<Boid> copy_flock = f_flock;
   auto it = f_flock.begin();
   std::for_each(copy_flock.begin(), copy_flock.end(), [&](Boid& bd) {
-    bd.update_state(delta_t, this->vel_correction(it), brd_bhv, f_params.d_s,
-                    f_params.s);
+    bd.update_state(delta_t, this->vel_correction(it), brd_bhv);
     ++it;
   });
   f_flock = copy_flock;
@@ -535,8 +522,8 @@ void Flock::update_flock_state(double const& delta_t, bool const& brd_bhv) {
 }
 
 // update_flock_state con un predatore
-void Flock::update_flock_pred_state(double delta_t, bool brd_bhv, std::vector<Obstacle> obs,
-                                    Predator& pred) {
+void Flock::update_flock_pred_state(double delta_t, bool brd_bhv,
+                                    std::vector<Obstacle> obs, Predator& pred) {
   std::vector<Boid> copy_flock = f_flock;
   auto it = f_flock.begin();
   // boid su cui applica caccia = prede
@@ -557,10 +544,11 @@ void Flock::update_flock_pred_state(double delta_t, bool brd_bhv, std::vector<Ob
     }
 
     (boid_dist(bd, pred) < 5 * f_params.d_s)
-        ? bd.update_state(delta_t, this->vel_correction(it, pred)+ it->avoid_obs(obs), brd_bhv,
-                          f_params.d_s, f_params.s)
-        : bd.update_state(delta_t, this->vel_correction(it) + it->avoid_obs(obs), brd_bhv,
-                          f_params.d_s, f_params.s);
+        ? bd.update_state(delta_t,
+                          this->vel_correction(it, pred) + it->avoid_obs(obs),
+                          brd_bhv)
+        : bd.update_state(
+              delta_t, this->vel_correction(it) + it->avoid_obs(obs), brd_bhv);
     ++it;
   };
 
@@ -577,8 +565,7 @@ void Flock::update_flock_pred_state(double delta_t, bool brd_bhv, std::vector<Ob
   update_com();
   sort();
   // aggiorna qui lo stato del predatore, passandogli le prede
-  pred.update_state(delta_t, pred.predate(preys), brd_bhv, pred.get_range() / 2,
-                    pred.get_hunger());
+  pred.update_state(delta_t, pred.predate(preys), brd_bhv);
 }
 
 void Flock::update_flock_pred_obs_state(
@@ -615,11 +602,9 @@ void Flock::update_global_state(double const& delta_t, bool const& brd_bhv,
     }
     (boid_dist(bd, pred) < 5 * f_params.d_s)
         ? copy_flock[index].update_state(
-              delta_t, vel_correction(f_flock.begin() + index, pred), brd_bhv,
-              f_params.d_s, f_params.s)
+              delta_t, vel_correction(f_flock.begin() + index, pred), brd_bhv)
         : copy_flock[index].update_state(
-              delta_t, vel_correction(f_flock.begin() + index), brd_bhv,
-              f_params.d_s, f_params.s);
+              delta_t, vel_correction(f_flock.begin() + index), brd_bhv);
     return copy_flock[index];
   };
 
@@ -637,8 +622,7 @@ void Flock::update_global_state(double const& delta_t, bool const& brd_bhv,
   update_com();
   sort();
   // aggiorna qui lo stato del predatore, passandogli le prede
-  pred.update_state(delta_t, pred.predate(preys), brd_bhv, pred.get_range() / 2,
-                    pred.get_hunger());
+  pred.update_state(delta_t, pred.predate(preys), brd_bhv);
 }
 
 // NB: perché vettore di vittime? Così non si invalidano iteratori nel loop!
@@ -699,7 +683,7 @@ void Flock::update_global_state(double const& delta_t, bool const& brd_bhv,
         delta_t,
         vel_correction(copy_flock, copy_flock.begin() + index, pred) +
             bd.avoid_obs(obs),
-        brd_bhv, f_params.d_s, f_params.s);
+        brd_bhv);
     return f_flock[index];
   };
 
@@ -711,8 +695,8 @@ void Flock::update_global_state(double const& delta_t, bool const& brd_bhv,
   update_com();
   sort();
   // aggiorna qui lo stato del predatore, passandogli le prede
-  pred.update_state(delta_t, pred.predate(preys) + pred.avoid_obs(obs), brd_bhv,
-                    pred.get_range() / 2, pred.get_hunger());
+  pred.update_state(delta_t, pred.predate(preys) + pred.avoid_obs(obs),
+                    brd_bhv);
   return;
 }
 
@@ -772,7 +756,7 @@ void Flock::update_global_state(double delta_t, bool brd_bhv,
         delta_t,
         vel_correction(copy_flock, copy_flock.begin() + index) +
             bd.avoid_obs(obs) + corr,
-        brd_bhv, f_params.d_s, f_params.s);
+        brd_bhv);
     return f_flock[index];
   };
 

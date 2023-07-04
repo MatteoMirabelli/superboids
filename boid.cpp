@@ -74,8 +74,7 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel) {
 }
 
 void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
-                        bool const& brd_bhv, double param_d,
-                        double repulsion_factor) {
+                        bool const& brd_bhv) {
   b_vel += delta_vel;
   b_pos += (b_vel * delta_t);
   if (brd_bhv == true) {
@@ -86,22 +85,16 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
     (b_pos[1] < 20.) ? b_pos[1] = b_space[1] - 21. : b_pos[1];
   } else {
     // implementazione con bordi
-    (b_pos[0] > b_space[0] - 3. * param_d)
-        ? b_vel[0] -= repulsion_factor * b_param_s * (b_space[0] - b_pos[0])
+    (b_pos[0] > b_space[0] - 2.2 * b_param_ds)
+        ? b_vel[0] -= 3.5 * b_param_s / (b_space[0] - b_pos[0])
         : b_vel[0];
-    (b_pos[0] < 3. * param_d)
-        ? b_vel[0] += repulsion_factor * b_param_s * b_pos[0]
-        : b_vel[0];
-    (b_pos[1] > b_space[1] - 3. * param_d)
-        ? b_vel[1] -= repulsion_factor * b_param_s * (b_space[1] - b_pos[1])
+    (b_pos[0] < 2.2 * b_param_ds) ? b_vel[0] += 3.5 * b_param_s / b_pos[0]
+                                  : b_vel[0];
+    (b_pos[1] > b_space[1] - 2.2 * b_param_ds)
+        ? b_vel[1] -= 3.5 * b_param_s / (b_space[1] - b_pos[1])
         : b_vel[1];
-    (b_pos[1] < 3. * param_d) ? b_vel[1] += 3.5 * repulsion_factor * b_pos[1]
-                              : b_vel[1];
-
-    (b_pos[0] < b_space[0] + 23. && b_pos[0] < b_space[0] - 23. &&
-     b_pos[1] < b_space[1] + 23. && b_pos[1] > b_space[1] - 23.)
-        ? b_vel *= -1.
-        : b_vel;
+    (b_pos[1] < 2.2 * b_param_ds) ? b_vel[1] += 3.5 * b_param_s / b_pos[1]
+                                  : b_vel[1];
   }
 
   // calcola l'angolo di orientamento dalla velocità:
@@ -118,16 +111,14 @@ std::valarray<double> Boid::avoid_obs(
     return std::valarray<double>{0., 0.};
   } else {
     std::valarray<double> delta_vel{0., 0.};
-    std::mutex mtx;
-    auto avoid_lambda = [&](Obstacle const& ob) {
+    for (auto const& ob : obstacles) {
       std::valarray<double> dist = ob.get_pos() - b_pos;
-      std::lock_guard<std::mutex> lck(mtx);
-
-      (vec_norm(dist) < ob.get_size() + 5 * b_param_ds)
-          ? delta_vel += 1.5 * b_param_s * dist
-          : delta_vel;
-    };
-    std::for_each(obstacles.begin(), obstacles.end(), avoid_lambda);
+      if (vec_norm(dist) < ob.get_size() + b_param_ds &&
+          std::abs(compute_angle<double>(ob.get_pos() - get_pos()) -
+                   get_angle()) <= get_view_angle()) {
+        delta_vel -= 1.5 * b_param_s * (ob.get_pos() - b_pos);
+      }
+    }
     return delta_vel;
   }
 }
@@ -155,7 +146,7 @@ T compute_angle(std::valarray<T> const& vec) {
   // assert(vec.size() == 2);
   double angle{0.};
   if (vec[1] == 0. && vec[0] < 0.) {
-    angle = 270.;
+    angle = -90.;
   } else if (vec[1] == 0. && vec[0] > 0.) {
     angle = 90.;
   } else if (vec[1] == 0. && vec[0] == 0.) {  // rimediato allo spiacevole baco
@@ -165,8 +156,9 @@ T compute_angle(std::valarray<T> const& vec) {
   } else if (vec[0] == 0. && vec[1] < 0.) {
     angle = 180.;
   } else {
-    angle = std::atan(vec[0] / vec[1]) / M_PI * 180;
-    (vec[1] < 0.) ? angle += 180. : angle;
+    angle = std::atan(vec[0] / vec[1]) / M_PI * 180.;
+    (vec[1] < 0. && vec[0] < 0.) ? angle -= 180. : angle;
+    (vec[1] < 0. && vec[0] > 0.) ? angle += 180. : angle;
   }
   return angle;
 }
