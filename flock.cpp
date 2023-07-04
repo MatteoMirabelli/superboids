@@ -172,8 +172,8 @@ Flock::Flock(Parameters const& params, int bd_n, double view_ang,
 
 void Flock::add_boid() {
   std::random_device rd;
-  int x_max = 2.5 * (f_flock[0].get_space()[0] - 40.) / f_params.d_s;
-  int y_max = 2.5 * (f_flock[0].get_space()[1] - 40.) / f_params.d_s;
+  int x_max = 2.5 * (f_com.get_space()[0] - 40.) / f_params.d_s;
+  int y_max = 2.5 * (f_com.get_space()[1] - 40.) / f_params.d_s;
 
   std::uniform_int_distribution<> dist_pos_x(0, x_max);
   std::uniform_int_distribution<> dist_pos_y(0, y_max);
@@ -393,7 +393,7 @@ std::valarray<double> Flock::avoid_pred(Boid const& bd, Predator const& pred) {
   std::valarray<double> delta_vel = {0., 0.};
   // valuta subito se applicare separazione al predatore
   (boid_dist(pred, bd) < f_params.d)
-      ? delta_vel -= f_params.s * (pred.get_pos() - bd.get_pos())
+      ? delta_vel -= 1.5 * f_params.s * (pred.get_pos() - bd.get_pos())
       : delta_vel;
   return delta_vel;
 }
@@ -585,7 +585,7 @@ void Flock::update_global_state(double delta_t, bool brd_bhv,
                                 std::vector<Predator>& preds,
                                 std::vector<Obstacle> const& obs) {
   // boid su cui applica caccia = prede
-  std::vector<std::pair<Boid, unsigned int>> preys;
+  std::vector<std::pair<Boid, int>> preys;
 
   // il mutex è necessario per evitare problemi in race condition
   // ovvero prevenire l'accesso simultaneo da parte dei thread paralleli
@@ -593,40 +593,40 @@ void Flock::update_global_state(double delta_t, bool brd_bhv,
   std::mutex mtx;
 
   // rimuove le vittime
-  auto bd_eaten = [&](Boid const& bd) {
-    auto above = [&](Predator const& pred) {
-      return boid_dist(bd, pred) <= 0.3 * f_params.d_s;
+  auto bd_eaten = [this, &preds](Boid const& bd) {
+    auto above = [this, &bd](Predator const& pred) -> bool {
+      return boid_dist(pred, bd) < 0.3 * f_params.d_s;
     };
-    return std::any_of(std::execution::par, preds.begin(), preds.end(), above);
+    return std::any_of(std::execution::par_unseq, preds.begin(), preds.end(), above);
   };
 
   // rimuove le prede mangiate
   auto last = std::remove_if(std::execution::par, f_flock.begin(),
                              f_flock.end(), bd_eaten);
   f_flock.erase(last, f_flock.end());
-
-  // duplica il vettore per poter aggiornare tutti i boid in parallelo
-  // in base allo stato al frame precedente
+  // sort();
+  //  duplica il vettore per poter aggiornare tutti i boid in parallelo
+  //  in base allo stato al frame precedente
   std::vector<Boid> copy_flock = f_flock;
 
   // utilizza il vettore di indici per accedere ai corrispondenti boid di
   // f_flock ed in tal modo poter applicare la ricerca dei vicini tramite
   // iteratore
-  std::vector<unsigned int> indexes;
+  std::vector<int> indexes;
 
-  for (unsigned int i = 0; i < f_flock.size(); ++i) {
+  for (int i = 0; i < f_flock.size(); ++i) {
     indexes.push_back(i);
   }
 
   // lambda per aggiornare lo stato
-  auto boid_update = [&](unsigned int const& index, Boid const& bd) -> Boid {
+  auto boid_update = [&mtx, &preds, &preys, this, delta_t, brd_bhv, &copy_flock,
+                      &obs](int const& index, Boid const& bd) -> Boid {
     // aggiorna lo stato del boid con o senza percezione predatore
     std::valarray<double> corr = {0., 0.};
-    for (unsigned int idx = 0; idx < preds.size(); ++idx) {
+    for (int idx = 0; idx < preds.size(); ++idx) {
       corr += avoid_pred(bd, preds[idx]);
       if (is_visible(bd, preds[idx]) &&
-          boid_dist(bd, preds[idx]) < preds[idx].get_range() &&
-          boid_dist(bd, preds[idx]) > 0.3 * f_params.d_s) {
+          boid_dist(preds[idx], bd) < preds[idx].get_range()) {
         // blocca il mutex prima della modifica di preys
         std::lock_guard<std::mutex> lck(mtx);
         preys.push_back({bd, idx});
@@ -693,7 +693,7 @@ void Flock::update_stats() {
   if (this->size() == 0) {
     f_stats.av_dist = 0.;
     f_stats.dist_RMS = 0.;
-    f_stats.av_dist = 0.;
+    f_stats.av_vel = 0.;
     f_stats.vel_RMS = 0.;
   } else {
     mean_vel /= this->size();

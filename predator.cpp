@@ -38,7 +38,7 @@ std::valarray<double> Predator::predate(std::vector<Boid>& preys) {
       return boid_dist(b1, *this) < boid_dist(b2, *this);
     };
 
-    std::sort(std::execution::par, preys.begin(), preys.end(), nearest);
+    std::sort(preys.begin(), preys.end(), nearest);
     for (auto const& prey : preys) {
       prey_com_pos += prey.get_pos();
     }
@@ -46,7 +46,7 @@ std::valarray<double> Predator::predate(std::vector<Boid>& preys) {
     prey_com_pos /= preys.size();
 
     return p_hunger * (prey_com_pos - get_pos()) +
-           p_hunger * (preys.size()) * (preys[0].get_pos() - get_pos());
+           2 * p_hunger * (preys.size()) * (preys[0].get_pos() - get_pos());
   } else {
     return std::valarray<double>{0., 0.};
     // chiaramente no prede = no correzione
@@ -79,8 +79,7 @@ std::vector<Predator> random_predators(int pred_num,
                     pred_s, pred_space, pred_range, pred_hunger};
   };
 
-  std::generate_n(std::execution::par, std::back_insert_iterator(predators),
-                  pred_num, generator);
+  std::generate_n(std::back_insert_iterator(predators), pred_num, generator);
 
   auto sort_pred = [](Predator const& pred1, Predator const& pred2) {
     if (pred1.get_pos()[0] == pred2.get_pos()[0]) {
@@ -136,17 +135,19 @@ std::vector<Predator> get_vector_neighbours(std::vector<Predator> const& flock,
   return neighbours;
 }
 
-void update_predators_state(
-    std::vector<Predator>& predators, double delta_t, bool bhv,
-    std::vector<std::pair<Boid, unsigned int>> const& preys,
-    std::vector<Obstacle> const& obstacles) {
-  bool predation = preys.size() > 0;
+void update_predators_state(std::vector<Predator>& predators, double delta_t,
+                            bool bhv,
+                            std::vector<std::pair<Boid, int>> const& preys,
+                            std::vector<Obstacle> const& obstacles) {
+  std::vector<Predator> copy_predators = predators;
+  bool predation = (preys.size() > 0);
   for (auto idx = predators.begin(); idx != predators.end(); ++idx) {
     std::valarray<double> pred_separation = {0., 0.};
-    for (auto neighbour_pred :
-         get_vector_neighbours(predators, idx, idx->get_par_ds())) {
+    for (auto neighbour_pred : get_vector_neighbours(
+             copy_predators, copy_predators.begin() + (idx - predators.begin()),
+             idx->get_par_ds())) {
       pred_separation -=
-          idx->get_par_s() * (neighbour_pred.get_pos() - idx->get_pos());
+          7 * idx->get_par_s() * (neighbour_pred.get_pos() - idx->get_pos());
     }
     if (predation) {
       std::vector<Boid> own_preys;

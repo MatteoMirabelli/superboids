@@ -111,27 +111,25 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
   (vec_norm(b_vel) < 80.) ? b_vel *= (80. / vec_norm(b_vel)) : b_vel;
 }
 
-std::valarray<double> Boid::avoid_obs(std::vector<Obstacle> const& obstacles) const {
+std::valarray<double> Boid::avoid_obs(
+    std::vector<Obstacle> const& obstacles) const {
   if (obstacles.size() == 0) {
     return std::valarray<double>{0., 0.};
   } else {
     std::valarray<double> delta_vel{0., 0.};
-    std::mutex mtx;
-    auto avoid_lambda = [&](Obstacle const& ob) {
+    for (auto const& ob : obstacles) {
       std::valarray<double> dist = ob.get_pos() - b_pos;
-      std::lock_guard<std::mutex> lck(mtx);
-      (vec_norm(dist) < ob.get_size() + 2 * b_param_ds)
-          ? delta_vel -= 1.5 * b_param_s * (ob.get_pos() - b_pos)
-          : delta_vel;
-    };
-    std::for_each(obstacles.begin(), obstacles.end(), avoid_lambda);
+      if (vec_norm(dist) < ob.get_size() + b_param_ds) {
+        delta_vel -= 1.5 * b_param_s * (ob.get_pos() - b_pos);
+      }
+    }
     return delta_vel;
   }
 }
 
 template <typename T>
 T vec_norm(std::valarray<T> vec) {
-  return std::sqrt(std::pow(vec, {2, 2}).sum());
+  return std::sqrt(std::pow(vec, {2., 2.}).sum());
 }
 
 double boid_dist(Boid const& bd_1, Boid const& bd_2) {
@@ -162,7 +160,6 @@ bool is_visible(Boid const& bd_1, Boid const& bd_2) {
   return std::abs(compute_angle<double>(bd_1.get_pos() - bd_2.get_pos()) -
                   bd_2.get_angle()) <= angle;
 }
-
 
 // inizialmente speravo di poterlo sfruttare per i predatori, invece ho dovuto
 // reimplementare. Si può anche riportare in flock
