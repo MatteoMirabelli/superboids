@@ -5,14 +5,21 @@
 #include <cmath>
 #include <valarray>
 
-class Boid {
-  std::valarray<double> b_pos;
+#include "obstacles.hpp"
+
+class Boid : public Entity {
   std::valarray<double> b_vel;
   double b_angle;
+  double b_view_angle;
+  std::valarray<double> b_space;
+  double b_param_ds;
+  double b_param_s;
 
  public:
-  explicit Boid(std::valarray<double> pos, std::valarray<double> vel);
-  Boid(double, double, double, double);
+  char type() const override;
+  Boid(std::valarray<double>, std::valarray<double>, double,
+       std::valarray<double>, double, double);
+  Boid(double, double, double, double, double, double, double, double, double);
   Boid() = default;
 
   std::valarray<double>& get_pos();
@@ -24,8 +31,20 @@ class Boid {
   double& get_angle();
   double const& get_angle() const;
 
-  void update_state(double, std::valarray<double>);
-  void update_state(double, std::valarray<double>, bool const&, double, double);
+  double const& get_view_angle() const;
+
+  double const& get_par_ds() const;
+  double const& get_par_s() const;
+
+  std::valarray<double> const& get_space() const;
+  void set_space(double const&, double const&);
+  void set_space(std::valarray<double> const&);
+
+  void set_par_ds(double const&);
+  void set_par_s(double const&);
+
+  void update_state(double, std::valarray<double>, bool const&);
+  std::valarray<double> avoid_obs(std::vector<Obstacle> const&) const;
 };
 
 template <typename T>
@@ -36,6 +55,9 @@ double boid_dist(Boid const& bd_1, Boid const& bd_2);
 template <typename T>
 T compute_angle(std::valarray<T> const&);
 
-bool is_visible(Boid const&, Boid const&, double const&);
+bool is_visible(Boid const&, Boid const&);
+
+std::vector<Boid> get_vector_neighbours(std::vector<Boid> const&,
+                                        std::vector<Boid>::iterator, double);
 
 #endif
