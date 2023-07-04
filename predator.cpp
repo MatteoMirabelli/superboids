@@ -3,10 +3,6 @@
 #include <algorithm>
 #include <random>
 
-
-
-#include <random>
-
 Predator::Predator(std::valarray<double> const& pos,
                    std::valarray<double> const& vel, double const& view_ang,
                    double const& param_d_s, double const& param_s,
@@ -137,10 +133,10 @@ std::vector<Predator> get_predator_neighbours(
   return neighbours;
 }
 
-void update_predators_state(
-    std::vector<Predator>& predators, double delta_t, bool bhv,
-    std::vector<std::pair<Boid, unsigned int>> const& preys,
-    std::vector<Obstacle> const& obstacles) {
+void update_predators_state(std::vector<Predator>& predators, double delta_t,
+                            bool bhv,
+                            std::vector<std::pair<Boid, int>> const& preys,
+                            std::vector<Obstacle> const& obstacles) {
   bool predation = preys.size() > 0;
   for (auto idx = predators.begin(); idx != predators.end(); ++idx) {
     std::valarray<double> pred_separation = {0., 0.};

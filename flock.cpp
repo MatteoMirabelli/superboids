@@ -207,6 +207,8 @@ std::vector<Boid>::iterator Flock::end() { return f_flock.end(); }
 
 double Flock::size() const { return f_flock.size(); }
 
+void Flock::push_back(Boid const& boid) { f_flock.push_back(boid); }
+
 Boid const& Flock::get_boid(int n) const { return f_flock[n - 1]; }
 
 Boid const& Flock::get_com() const { return f_com; }
@@ -264,30 +266,67 @@ void Flock::update_com() {
 }
 
 std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
-  /*std::vector<Boid> neighbours;
-  assert(it >= f_flock.begin() && it < f_flock.end());
-  auto et = it;
-  for (; et != f_flock.end() &&
-         std::abs(it->get_pos()[0] - et->get_pos()[0]) < f_params.d;
-       ++et) {
-    if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
-        is_visible(*et, *it) == true) {
-      neighbours.push_back(*et);
+  std::vector<Boid> neighbours;
+  if (it >= f_flock.begin() && it < f_flock.end()) {
+    if (it == f_flock.begin()) {
+      auto et = it;
+      for (; et < --f_flock.end() &&
+             std::abs(it->get_pos()[0] - et->get_pos()[0]) < f_params.d;
+           ++et) {
+        if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+            is_visible(*et, *it) == true) {
+          neighbours.push_back(*et);
+        }
+      }
+      if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+          is_visible(*et, *it) == true) {
+        neighbours.push_back(*et);
+      }
+    } else if (it == --f_flock.end()) {
+      auto et = it;
+      for (; et > f_flock.begin() &&
+             std::abs(it->get_pos()[0] - et->get_pos()[0]) < f_params.d;
+           --et) {
+        if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+            is_visible(*et, *it) == true) {
+          neighbours.push_back(*et);
+        }
+      }
+      if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+          is_visible(*et, *it) == true) {
+        neighbours.push_back(*et);
+      }
+    } else {
+      auto et = it;
+      for (; et < --f_flock.end() &&
+             std::abs(it->get_pos()[0] - et->get_pos()[0]) < f_params.d;
+           ++et) {
+        if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+            is_visible(*et, *it) == true) {
+          neighbours.push_back(*et);
+        }
+      }
+      if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+          is_visible(*et, *it) == true) {
+        neighbours.push_back(*et);
+      }
+      et = it;
+      for (; et > f_flock.begin() &&
+             std::abs(it->get_pos()[0] - et->get_pos()[0]) < f_params.d;
+           --et) {
+        if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+            is_visible(*et, *it) == true) {
+          neighbours.push_back(*et);
+        }
+      }
+      if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
+          is_visible(*et, *it) == true) {
+        neighbours.push_back(*et);
+      }
     }
   }
-  et = it;
-  for (; et != f_flock.begin() &&
-         std::abs(it->get_pos()[0] - et->get_pos()[0]) < f_params.d;
-       --et) {
-    if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
-        is_visible(*et, *it) == true) {
-      neighbours.push_back(*et);
-    }
-  }
-  return neighbours;*/
-  return get_vector_neighbours(f_flock, it, f_params.d);
+  return neighbours;
 }
-
 
 // vel correction senza predatori
 std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
@@ -372,6 +411,44 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
   return delta_vel;
 }
 
+// Overload di vel_correction con più predatori per i test (3)
+std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
+                                            std::vector<Predator> const& preds,
+                                            double boid_pred_detection,
+                                            double boid_pred_repulsion) {
+  assert(it >= f_flock.begin() && it < f_flock.end());
+
+  auto neighbours = get_neighbours(it);
+  std::valarray<double> delta_vel = {0., 0.};
+
+  // Eventuale separazione dai predatori
+  for (Predator pt : preds) {
+    (boid_dist(pt, *it) < boid_pred_detection * f_params.d)
+        ? delta_vel -=
+          boid_pred_repulsion * f_params.s * (pt.get_pos() - it->get_pos())
+        : delta_vel;
+  }
+
+  // Eventuale saparazione dai vicini:
+  if (neighbours.size() > 0) {
+    auto n_minus = neighbours.size();
+    std::valarray<double> local_com = {0., 0.};
+    for (Boid bd : neighbours) {
+      // separation
+      (boid_dist(bd, *it) < f_params.d_s)
+          ? delta_vel -= f_params.s * (bd.get_pos() - it->get_pos())
+          : delta_vel;
+      // alignment
+      delta_vel += f_params.a * (bd.get_vel() - it->get_vel()) / n_minus;
+
+      local_com += bd.get_pos();
+    }
+    // cohesion
+    delta_vel += f_params.c * (local_com / n_minus - it->get_pos());
+  }
+  return delta_vel;
+}
+
 // per evitare ogni predatore. Più elegante anche per il vel correction.
 // anzi, lo rende quasi inutile
 std::valarray<double> Flock::avoid_pred(Boid const& bd, Predator const& pred) {
@@ -382,7 +459,6 @@ std::valarray<double> Flock::avoid_pred(Boid const& bd, Predator const& pred) {
       : delta_vel;
   return delta_vel;
 }
-
 
 // NOTA SULL'IMPLEMENTAZIONE CON COPY FLOCK
 // La ratio del tutto è che quando aggiorniamo lo stato conviene usare copy
@@ -395,12 +471,8 @@ std::valarray<double> Flock::avoid_pred(Boid const& bd, Predator const& pred) {
 // senso) mentre il get vector neighbours è più ampio. Anzi, sarei quasi tentato
 // di metterlo nel file Boid.
 
-
-
 // update con un predatore
 // tentativo di implementazione alternativa per parallelizzare in modo umano:
-
-
 
 // update globale con più predatori e ostacoli:
 void Flock::update_global_state(double delta_t, bool brd_bhv,
@@ -428,7 +500,7 @@ void Flock::update_global_state(double delta_t, bool brd_bhv,
                              f_flock.end(), bd_eaten);
   f_flock.erase(last, f_flock.end());
   // sort();
-  
+
   //  duplica il vettore per poter aggiornare tutti i boid in parallelo
   //  in base allo stato al frame precedente
   std::vector<Boid> copy_flock = f_flock;
