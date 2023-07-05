@@ -4,7 +4,7 @@
 #include "obstacles.hpp"
 #include "predator.hpp"
 
-TEST_CASE("Testing the Boid::update_state method") {
+TEST_CASE("Testing the Boid::update_state method without any conditions on border") {
   SUBCASE("Testing the Boid::update_state method with positive values") {
     std::valarray<double> pos{2., 2.};
     std::valarray<double> vel{2., 2.};
@@ -32,11 +32,11 @@ TEST_CASE("Testing the Boid::update_state method") {
     Boid boid(pos, vel, view_angle, window, 4, 1);
     boid.update_state(1., delta_vel);
 
-    CHECK(boid.get_vel()[0] == doctest::Approx(1.));
-    CHECK(boid.get_vel()[1] == doctest::Approx(1.));
-    CHECK(boid.get_pos()[0] == doctest::Approx(3.));
-    CHECK(boid.get_pos()[1] == doctest::Approx(3.));
-    CHECK(boid.get_angle() == doctest::Approx(45.));
+    CHECK(boid.get_vel()[0] == 1.);
+    CHECK(boid.get_vel()[1] == 1.);
+    CHECK(boid.get_pos()[0] == 3.);
+    CHECK(boid.get_pos()[1] == 3.);
+    CHECK(boid.get_angle() == 45.);
   }
 
   SUBCASE("Testing the Boid::update_state method with negative values") {
@@ -49,10 +49,10 @@ TEST_CASE("Testing the Boid::update_state method") {
     Boid boid(pos, vel, view_angle, window, 4, 1);
     boid.update_state(1., delta_vel);
 
-    CHECK(boid.get_vel()[0] == doctest::Approx(5.));
-    CHECK(boid.get_vel()[1] == doctest::Approx(-5.));
-    CHECK(boid.get_pos()[0] == doctest::Approx(8.));
-    CHECK(boid.get_pos()[1] == doctest::Approx(5.));
+    CHECK(boid.get_vel()[0] == 5.);
+    CHECK(boid.get_vel()[1] == -5.);
+    CHECK(boid.get_pos()[0] == 8.);
+    CHECK(boid.get_pos()[1] == 5.);
   }
 }
 
@@ -176,9 +176,19 @@ TEST_CASE("Testing the Boid::avoid_obs method") {
 
   // OBSTACLE CONSTRUCTOR takes: pos{x,y}, size
 
+  SUBCASE("Testing the Boid::avoid_obs with no obstacles") {
+    Boid bd(8., 6., -2., 2., 120., 1920., 1080., 3., 1.);
+    std::vector<Obstacle> obstacles;
+    auto delta_vel = bd.avoid_obs(obstacles);
+
+    CHECK(delta_vel[0] == 0);
+    CHECK(delta_vel[1] == 0);
+  }
+
   SUBCASE(
       "Testing the Boid::avoid_obs with two visible obstacles within range") {
-    Boid bd(8., 6., -2., 2., 120., 1920., 1080., 3., 1.);
+    // b_param_d_s = 6;
+    Boid bd(8., 6., -2., -2., 120., 1920., 1080., 5., 1.);
     Obstacle ob1(4., 4., 1.);
     Obstacle ob2(8., 2., 1.);
     std::vector<Obstacle> obstacles;
@@ -187,14 +197,16 @@ TEST_CASE("Testing the Boid::avoid_obs method") {
 
     auto delta_vel = bd.avoid_obs(obstacles);
 
-    CHECK(delta_vel[0] == -6);
-    CHECK(delta_vel[1] == -9);
+    CHECK(delta_vel[0] == 6);
+    CHECK(delta_vel[1] == 9);
   }
 
   SUBCASE(
       "Testing the Boid::avoid_obs with two visible obstacles not in the "
       "range ") {
-    Boid bd(10., 10., -2., 2., 120., 1920., 1080., 1., 1.);
+    // b_param_d_s = 0;
+    // both obstacles in range;
+    Boid bd(10., 10., -2., -2., 120., 1920., 1080., 1., 1.);
     Obstacle ob1(4., 4., 1.);
     Obstacle ob2(8., 2., 1.);
     std::vector<Obstacle> obstacles;
@@ -226,7 +238,10 @@ TEST_CASE("Testing the Boid::avoid_obs method") {
   SUBCASE(
       "Testing the Boid::avoid_obs with two visible obstacles, with just one "
       "within range") {
-    Boid bd(8., 6., -2., 2., 120., 1920., 1080., 1., 1.);
+    // b_param_d_s = 5;
+    // ob_1 not in range;
+    // ob_2 in range;
+    Boid bd(8., 6., 0., -2., 120., 1920., 1080., 5., 1.);
     Obstacle ob1(1., 1., 1.);
     Obstacle ob2(8., 2., 1.);
     std::vector<Obstacle> obstacles;
@@ -236,7 +251,7 @@ TEST_CASE("Testing the Boid::avoid_obs method") {
     auto delta_vel = bd.avoid_obs(obstacles);
 
     CHECK(delta_vel[0] == 0);
-    CHECK(delta_vel[1] == -6);
+    CHECK(delta_vel[1] == 6);
   }
 }
 
@@ -308,14 +323,32 @@ TEST_CASE("Testing auxiliary functions") {
     std::valarray<double> vec_1{1, 4};
     std::valarray<double> vec_2{1, -4};
     std::valarray<double> vec_3{-1, -4};
+    std::valarray<double> vec_4{-1., -6};
+    std::valarray<double> vec_5{0., 0.};
+    std::valarray<double> vec_6{0., 6.};
+    std::valarray<double> vec_7{0., -4.};
+    std::valarray<double> vec_8{-3., 2.};
+    std::valarray<double> vec_9{4., 1};
 
     double angle_1 = compute_angle<double>(vec_1);
     double angle_2 = compute_angle<double>(vec_2);
     double angle_3 = compute_angle<double>(vec_3);
+    double angle_4 = compute_angle<double>(vec_4);
+    double angle_5 = compute_angle<double>(vec_5);
+    double angle_6 = compute_angle<double>(vec_6);
+    double angle_7 = compute_angle<double>(vec_7);
+    double angle_8 = compute_angle<double>(vec_8);
+    double angle_9 = compute_angle<double>(vec_9);
 
     CHECK(angle_1 == doctest::Approx(14.036243));
     CHECK(angle_2 == doctest::Approx(165.963756));
-    CHECK(angle_3 == doctest::Approx(194.036243));
+    CHECK(angle_3 == doctest::Approx(-165.9637565));
+    CHECK(angle_4 == doctest::Approx(-170.53767779));
+    CHECK(angle_5 == 0.);
+    CHECK(angle_6 == 0.);
+    CHECK(angle_7 == 180.);
+    CHECK(angle_8 == doctest::Approx(-56.30994327));
+    CHECK(angle_9 == doctest::Approx(75.96375653));
   }
 }
 
@@ -373,4 +406,3 @@ TEST_CASE("Testing the is_visible function") {
     CHECK(iv32 == false);
   }
 }
-

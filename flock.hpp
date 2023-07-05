@@ -48,9 +48,9 @@ class Flock {
   Statistics f_stats;
 
  public:
-  Flock(Parameters const&, int const&, Boid const&, double const&,
+  Flock(Parameters const&, int, Boid const&, double,
         std::valarray<double> const&);
-  Flock(Parameters const&, int const&, double const&,
+  Flock(Parameters const&, int, double,
         std::valarray<double> const&);
   Flock(Parameters const&, int, double, std::valarray<double> const&,
         std::vector<Obstacle> const&);
@@ -64,8 +64,8 @@ class Flock {
   Boid const& get_boid(int) const;
   Boid const& get_com() const;
   Parameters const& get_params() const;
-  void set_parameter(int const&, double const&);
-  void set_space(double const&, double const&);
+  void set_parameter(int, double);
+  void set_space(double, double);
   void erase(std::vector<Boid>::iterator);
   void update_com();
 
@@ -73,12 +73,11 @@ class Flock {
 
   // per i test:
   std::valarray<double> vel_correction(std::vector<Boid>::iterator);
-  std::valarray<double> vel_correction(std::vector<Boid>::iterator,
-                                       Predator const&);
   std::valarray<double> vel_correction(std::vector<Boid>::iterator it,
                                        std::vector<Predator> const& preds,
                                        double boid_pred_detection,
                                        double boid_pred_repulsion);
+                                       
   // per aggiornare lo stato:
   std::valarray<double> vel_correction(std::vector<Boid> const&,
                                        std::vector<Boid>::iterator);

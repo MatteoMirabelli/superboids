@@ -4,19 +4,17 @@
 #include <random>
 
 Predator::Predator(std::valarray<double> const& pos,
-                   std::valarray<double> const& vel, double const& view_ang,
-                   double const& param_d_s, double const& param_s,
-                   std::valarray<double> const& space, double const& range,
-                   double const& hunger)
+                   std::valarray<double> const& vel, double view_ang,
+                   double param_d_s, double param_s,
+                   std::valarray<double> const& space, double range,
+                   double hunger)
     : Boid(pos, vel, view_ang, space, param_d_s, param_s),
       p_range(range),
       p_hunger(hunger) {}
 
-Predator::Predator(double const& x, double const& y, double const& vx,
-                   double const& vy, double const& view_ang,
-                   double const& param_d_s, double const& param_s,
-                   double const& sx, double const& sy, double const& range,
-                   double const& hunger)
+Predator::Predator(double x, double y, double vx, double vy, double view_ang,
+                   double param_d_s, double param_s, double sx, double sy,
+                   double range, double hunger)
     : Boid(x, y, vx, vy, view_ang, sx, sy, param_d_s, param_s),
       p_range(range),
       p_hunger(hunger) {}

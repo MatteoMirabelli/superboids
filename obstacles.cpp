@@ -7,14 +7,13 @@
 #include <random>
 #include <valarray>
 
-Obstacle::Obstacle(std::valarray<double> const& pos, double const& size) {
+Obstacle::Obstacle(std::valarray<double> const& pos, double size) {
   assert(size > 0 && pos.size() == 2);
   o_size = size;
   o_pos = pos;
 }
 
-Obstacle::Obstacle(double const& pos_x, double const& pos_y,
-                   double const& size) {
+Obstacle::Obstacle(double pos_x, double pos_y, double size) {
   assert(pos_x >= 0 && pos_y >= 0 && size > 0);
   o_size = size;
   o_pos = {pos_x, pos_y};
@@ -22,7 +21,7 @@ Obstacle::Obstacle(double const& pos_x, double const& pos_y,
 
 std::valarray<double> const& Obstacle::get_pos() const { return o_pos; };
 
-double const& Obstacle::get_size() const { return o_size; };
+double Obstacle::get_size() const { return o_size; };
 
 // VECTOR OF OBSTACLES
 

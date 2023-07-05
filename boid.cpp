@@ -47,16 +47,14 @@ std::valarray<double>& Boid::get_vel() { return b_vel; }
 
 std::valarray<double> const& Boid::get_vel() const { return b_vel; }
 
-double& Boid::get_angle() { return b_angle; }
+double Boid::get_angle() const { return b_angle; }
 
-double const& Boid::get_angle() const { return b_angle; }
-
-double const& Boid::get_view_angle() const { return b_view_angle; }
+double Boid::get_view_angle() const { return b_view_angle; }
 
 std::valarray<double> const& Boid::get_space() const { return b_space; }
 
 // per cambiare range (overloadato)
-void Boid::set_space(double const& sx, double const& sy) {
+void Boid::set_space(double sx, double sy) {
          assert(sx > 0 && sy > 0);
          b_space[0] = sx;
          b_space[1] = sy;
@@ -74,7 +72,7 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel) {
 }
 
 void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
-                        bool const& brd_bhv) {
+                        bool brd_bhv) {
          b_vel += delta_vel;
          b_pos += (b_vel * delta_t);
          if (brd_bhv == true) {
@@ -117,7 +115,7 @@ std::valarray<double> Boid::avoid_obs(
              std::valarray<double> dist = ob.get_pos() - b_pos;
              if (vec_norm(dist) < ob.get_size() + b_param_ds &&
                  std::abs(compute_angle<double>(ob.get_pos() - get_pos()) -
-                          get_angle()) <= get_view_angle()) {
+                          this->get_angle()) <= this->get_view_angle()) {
                delta_vel -= 1.5 * b_param_s * (ob.get_pos() - b_pos);
              }
            }
@@ -125,13 +123,13 @@ std::valarray<double> Boid::avoid_obs(
          }
 }
 
-double const& Boid::get_par_ds() const { return b_param_ds; }
+double Boid::get_par_ds() const { return b_param_ds; }
 
-double const& Boid::get_par_s() const { return b_param_s; }
+double Boid::get_par_s() const { return b_param_s; }
 
-void Boid::set_par_ds(double const& new_ds) { b_param_ds = new_ds; }
+void Boid::set_par_ds(double new_ds) { b_param_ds = new_ds; }
 
-void Boid::set_par_s(double const& new_s) { b_param_s = new_s; }
+void Boid::set_par_s(double new_s) { b_param_s = new_s; }
 
 template <typename T>
 T vec_norm(std::valarray<T> vec) {

@@ -8,8 +8,8 @@
 #include <random>
 #include <utility>
 
-Flock::Flock(Parameters const& params, int const& bd_n, Boid const& com,
-             double const& view_ang, std::valarray<double> const& space)
+Flock::Flock(Parameters const& params, int bd_n, Boid const& com,
+             double view_ang, std::valarray<double> const& space)
     : f_com{com}, f_params{params}, f_stats{}, f_flock{} {
   // Genera casualmente, secondo distribuzioni uniformi attorno al centro di
   // massa, lo stormo
@@ -55,7 +55,7 @@ Flock::Flock(Parameters const& params, int const& bd_n, Boid const& com,
   sort();
 }
 
-Flock::Flock(Parameters const& params, int const& bd_n, double const& view_ang,
+Flock::Flock(Parameters const& params, int bd_n, double view_ang,
              std::valarray<double> const& space)
     : f_params{params}, f_stats{}, f_flock{} {
   // Genera casualmente, secondo distribuzioni uniformi, i boids
@@ -159,6 +159,7 @@ Flock::Flock(Parameters const& params, int bd_n, double view_ang,
     };
     return std::any_of(std::execution::par, obs.begin(), obs.end(), overlap);
   };
+
   last = std::remove_if(std::execution::par, f_flock.begin(), f_flock.end(),
                         avoid_obs);
   while (last != f_flock.end()) {
@@ -215,7 +216,7 @@ Boid const& Flock::get_com() const { return f_com; }
 
 Parameters const& Flock::get_params() const { return f_params; }
 
-void Flock::set_parameter(int const& index, double const& value) {
+void Flock::set_parameter(int index, double value) {
   assert(index >= 0 && index < 5);
   switch (index) {
     case 0:
@@ -244,7 +245,7 @@ void Flock::set_parameter(int const& index, double const& value) {
   }
 }
 
-void Flock::set_space(double const& sx, double const& sy) {
+void Flock::set_space(double sx, double sy) {
   assert(sx > 0 && sy > 0);
   f_com.set_space(sx, sy);
   for (auto& bd : f_flock) {
@@ -380,36 +381,6 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid> const& copy_flock,
   return delta_vel;
 }
 
-// vel correction con un predatore
-std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
-                                            Predator const& pred) {
-  assert(it >= f_flock.begin() && it < f_flock.end());
-  auto neighbours = get_neighbours(it);
-  std::valarray<double> delta_vel = {0., 0.};
-  // valuta subito se applicare separazione al predatore
-  (boid_dist(pred, *it) < f_params.d)
-      ? delta_vel -= f_params.s * (pred.get_pos() - it->get_pos())
-      : delta_vel;
-  // da qui in poi come caso no predatore:
-  if (neighbours.size() > 0) {
-    auto n_minus = neighbours.size();
-    std::valarray<double> local_com = {0., 0.};
-    // std::mutex mtx;
-    for (Boid bd : neighbours) {
-      // separation
-      (boid_dist(bd, *it) < f_params.d_s)
-          ? delta_vel -= f_params.s * (bd.get_pos() - it->get_pos())
-          : delta_vel;
-      // alignment
-      delta_vel += f_params.a * (bd.get_vel() - it->get_vel()) / n_minus;
-
-      local_com += bd.get_pos();
-    }
-    // cohesion
-    delta_vel += f_params.c * (local_com / n_minus - it->get_pos());
-  }
-  return delta_vel;
-}
 
 // Overload di vel_correction con più predatori per i test (3)
 std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,

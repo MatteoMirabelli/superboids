@@ -10,21 +10,23 @@ class Obstacle {
   double o_size;
 
  public:
-  Obstacle(std::valarray<double> const&, double const&);
-  Obstacle(double const&, double const&, double const&);
+  Obstacle(std::valarray<double> const&, double);
+  Obstacle(double, double, double);
   Obstacle() = default;
   std::valarray<double> const& get_pos() const;
   double const& get_size() const;
 };
 
 // Genera il vettore di ostacoli
-std::vector<Obstacle> generate_obstacles(int n, double size, std::valarray<double> const& space);
+std::vector<Obstacle> generate_obstacles(int n, double size,
+                                         std::valarray<double> const& space);
 
 // Ordina il vettore di ostacoli
 void sort_obstacles(std::vector<Obstacle>&);
 
 // Aggiungi un ostacolo
-void add_obstacle(std::vector<Obstacle>& g_obstacles, std::valarray<double> const& pos,
-                  double size, std::valarray<double> const& space);
+void add_obstacle(std::vector<Obstacle>& g_obstacles,
+                  std::valarray<double> const& pos, double size,
+                  std::valarray<double> const& space);
 
 #endif

@@ -525,12 +525,14 @@ TEST_CASE("Testing the Flock::vel_correction method with predator") {
   }
 }
 
+TEST_CASE("Testing the Flock::avoid_pred method") {}
+
 TEST_CASE("Testing the Flock::Update_stats method") {
   // BOID CONSTRUCTOR takes:
   // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
   // param_s
   // PARAMS are f_params.d, f_params.d_s, f_params.s, f_params.a, f_params.c
-  
+
   SUBCASE("Testing the Flock::update_stats method with no neighbours") {
     Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
     Boid bd_2(10, 6, 2, 0, 120., 1920, 1080, 4, 1);
