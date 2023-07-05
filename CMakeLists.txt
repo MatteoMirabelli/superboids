@@ -19,8 +19,8 @@ string(APPEND CMAKE_CXX_FLAGS
 " -Wnon-virtual-dtor -Wold-style-cast")
 
 # abilita l'address sanitizer e l'undefined-behaviour sanitizer in debug mode
-string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=address,-fsanitize=thread, undefined -fno-omit-frame-pointer")
-string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " -fsanitize=address,-fsanitize=thread, undefined -fno-omit-frame-pointer")
+string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=address,-fsanitize=thread,undefined -fno-omit-frame-pointer")
+string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " -fsanitize=address,-fsanitize=thread,undefined -fno-omit-frame-pointer")
 
 find_package(X11 REQUIRED)
 find_package(SFML 2.5 COMPONENTS graphics REQUIRED)
@@ -29,7 +29,7 @@ find_package(TBB REQUIRED)
 
 # link_directories(${X11_LIBRARIES})
 
-add_executable(Boids_engine main.cpp boid.cpp flock.cpp bird.cpp predator.cpp animation.cpp obstacles.cpp multiflock.cpp)
+add_executable(Boids_engine main.cpp boid.cpp flock.cpp bird.cpp predator.cpp animation.cpp obstacles.cpp)
 target_link_libraries(Boids_engine PRIVATE sfml-graphics TBB::tbb)
 target_link_libraries(Boids_engine PRIVATE ${OPENGL_LIBRARIES} ${X11_LIBRARIES})
 
@@ -37,10 +37,11 @@ target_link_libraries(Boids_engine PRIVATE ${OPENGL_LIBRARIES} ${X11_LIBRARIES})
 #   per disabilitare il testing, passare -DBUILD_TESTING=OFF a cmake durante la fase di configurazione
 if (BUILD_TESTING)
 
-  # aggiungi l'eseguibile statistics.t
-  # add_executable(statistics.t statistics.test.cpp statistics.cpp)
-  # aggiungi l'eseguibile statistics.t alla lista dei test
-  add_test(NAME statistics.t COMMAND statistics.t)
+  # aggiungi l'eseguibile Boids.t
+  add_executable(Boids.t all_tests.cpp boids_tests.cpp flock_tests.cpp predator_tests.cpp boid.cpp flock.cpp predator.cpp obstacles.cpp)
+  target_link_libraries(Boids.t PRIVATE sfml-graphics TBB::tbb)
+  #aggiungi l'eseguibile Boids.t alla lista dei test
+  add_test(NAME Boids.t COMMAND Boids.t)
 
 endif()
 

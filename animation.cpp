@@ -113,8 +113,8 @@ void Tracker::setFillColors(sf::Color const& outer, sf::Color const& inner,
   t_outer.setFillColor(outer);
   t_inner.setFillColor(inner);
   t_circle.setFillColor(circle);
-  for (int idx = 0; idx < t_path.getVertexCount(); ++idx) {
-    t_path[idx].color = sf::Color(circle.r, circle.g, circle.b, 150);
+  for (int idx = 0; static_cast<unsigned int>(idx) < t_path.getVertexCount(); ++idx) {
+    t_path[idx].color = sf::Color(circle.r, circle.g, circle.b, 100);
   }
 }
 
@@ -140,11 +140,20 @@ void Tracker::update_pos(std::valarray<float> const& position) {
       t_pos[1] * t_inner.getSize().y / t_range[1] + t_inner.getPosition().y);
   if (t_pos[0] > 0. && t_pos[1] > 0. && t_pos[0] < t_range[0] &&
       t_pos[1] < t_range[1]) {
-    sf::Vertex vertex(
-        t_circle.getPosition(),
-        sf::Color(t_circle.getFillColor().r, t_circle.getFillColor().g,
-                  t_circle.getFillColor().b, 150));
-    t_path.append(vertex);
+    if (t_path.getVertexCount() < 30) {
+      sf::Vertex vertex(
+          t_circle.getPosition(),
+          sf::Color(t_circle.getFillColor().r, t_circle.getFillColor().g,
+                    t_circle.getFillColor().b, 100));
+      t_path.append(vertex);
+    } else {
+      for (int idx = 0;
+           static_cast<unsigned int>(idx) < t_path.getVertexCount() - 1;
+           ++idx) {
+        t_path[static_cast<unsigned int>(idx)].position = t_path[static_cast<unsigned int>(idx) + 1].position;
+      }
+      t_path[t_path.getVertexCount() - 1].position = t_circle.getPosition();
+    }
   }
 }
 
