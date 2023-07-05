@@ -49,8 +49,8 @@ std::vector<Obstacle> generate_obstacles(int n_obstacles, double max_size,
   auto overlap = [&](Obstacle& obs1, Obstacle& obs2) {
     return (std::abs(obs1.get_pos()[0] - obs2.get_pos()[0]) <
                 obs1.get_size() + obs2.get_size() ||
-            std::abs((obs1.get_pos()[1] - obs2.get_pos()[1]) <
-                     obs1.get_size() + obs2.get_size()));
+            std::abs((obs1.get_pos()[1] - obs2.get_pos()[1])) <
+                obs1.get_size() + obs2.get_size());
   };
 
   // verifica la prima volta che non ci siano ostacoli coincidenti
@@ -60,7 +60,7 @@ std::vector<Obstacle> generate_obstacles(int n_obstacles, double max_size,
   // se ce n'erano, rigenera e ripulisce fino a quando ho n_obstacles ostacoli
   // non sovrapposti
   while (g_obstacles.size() < n_obstacles) {
-    for (int i = 0; i < g_obstacles.size() - n_obstacles; ++i) {
+    for (int i = 0; i < n_obstacles - g_obstacles.size(); ++i) {
       std::valarray<double> pos = {dist_pos_x(rd), dist_pos_y(rd)};
       g_obstacles.push_back(Obstacle{pos, size(rd)});
     }

@@ -29,7 +29,7 @@ int main() {
     float margin = (window_y - video_y) / 2;
 
     std::vector<Obstacle> obstacles =
-        generate_obstacles(10, 20., {video_x, video_y});
+        generate_obstacles(20, 20., {video_x, video_y});
 
     // inizializzo stormo
     Flock bd_flock{params, 100, 120., {video_x, video_y}, obstacles};
@@ -176,8 +176,6 @@ int main() {
       if (counter % 4 == 0) {
         pos_com_x = bd_flock.get_com().get_pos()[0];
         pos_com_y = bd_flock.get_com().get_pos()[1];
-        /*com_circle.setPosition(com_rec.getPosition().x + com_x * com_ratio,
-                               com_rec.getPosition().y + com_y * com_ratio);*/
         com_tracker.update_pos({pos_com_x, pos_com_y});
 
         // aggiorna velocità media
