@@ -14,6 +14,7 @@
 #include "boid.hpp"
 #include "flock.hpp"
 #include "multiflock.hpp"
+#include "obstacles.hpp"
 #include "predator.hpp"
 
 int main() {
@@ -89,7 +90,7 @@ int main() {
     settings.antialiasingLevel = 8;
 
     // inizializzo finestra
-    sf::RenderWindow window(sf::VideoMode(window_x, window_y), "n-th boid test",
+    sf::RenderWindow window(sf::VideoMode(window_x, window_y), "Star Boids",
                             sf::Style::Default, settings);
     window.setFramerateLimit(60);
     // posiziona finestra in alto a sinistra
