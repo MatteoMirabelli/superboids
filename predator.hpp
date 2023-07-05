@@ -21,8 +21,10 @@ class Predator : public Boid {
   std::valarray<double> predate(std::vector<Boid>&);
 };
 
-std::vector<Predator> random_predators(int, std::valarray<double> const&,
-                                       double, double, double, double, double);
+
+std::vector<Predator> random_predators(std::vector<Obstacle> const&, int,
+                                       std::valarray<double> const&, double,
+                                       double, double, double, double);
 void update_predators_state(std::vector<Predator>&, double, bool,
                             std::vector<std::pair<Boid, int>> const&,
                             std::vector<Obstacle> const&);

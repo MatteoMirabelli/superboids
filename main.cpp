@@ -14,6 +14,7 @@
 #include "boid.hpp"
 #include "flock.hpp"
 #include "multiflock.hpp"
+#include "obstacles.hpp"
 #include "predator.hpp"
 
 int main() {
@@ -29,15 +30,13 @@ int main() {
     float margin = (window_y - video_y) / 2;
 
     std::vector<Obstacle> obstacles =
-        generate_obstacles(20, 20., {video_x, video_y});
+        generate_obstacles(10, 20., {video_x, video_y});
 
     // inizializzo stormo
     Flock bd_flock{params, 100, 120., {video_x, video_y}, obstacles};
-    // inizializzo predatore
-    /*Predator predator(600., 300., 100., 0., 140., 30., 0.6, video_x, video_y,
-                      90., 0.8);*/
-    std::vector<Predator> predators =
-        random_predators(2, {video_x, video_y}, 150., 30., 1., 70., 0.7);
+    // inizializzo vettore di predatori
+    std::vector<Predator> predators = random_predators(
+        obstacles, 2, {video_x, video_y}, 150., 30., 1., 70., 0.7);
     // predators.push_back(predator);
 
     /*sf::Texture backg;
@@ -66,11 +65,14 @@ int main() {
 
     // tr_predator.addTexture(bd_texture);
 
-    // imposto colore, posizione e rotazione predatore
-    for (int indx = 0; indx < predators.size(); ++indx) {
-      tr_predators[indx].setPosition(predators[indx].get_pos()[0] + margin,
-                                     predators[indx].get_pos()[1] + margin);
-      tr_predators[indx].setRotation(180. - predators[indx].get_angle());
+    // imposto posizione e rotazione predatore
+    for (int indx = 0; static_cast<unsigned int>(indx) < predators.size();
+         ++indx) {
+      tr_predators[static_cast<unsigned int>(indx)].setPosition(
+          predators[static_cast<unsigned int>(indx)].get_pos()[0] + margin,
+          predators[static_cast<unsigned int>(indx)].get_pos()[1] + margin);
+      tr_predators[static_cast<unsigned int>(indx)].setRotation(
+          180. - predators[static_cast<unsigned int>(indx)].get_angle());
     }
 
     // disegna ostacoli
@@ -89,11 +91,12 @@ int main() {
     settings.antialiasingLevel = 8;
 
     // inizializzo finestra
-    sf::RenderWindow window(sf::VideoMode(window_x, window_y), "n-th boid test",
-                            sf::Style::Default, settings);
+    sf::RenderWindow window(sf::VideoMode(static_cast<float>(window_x),
+                                          static_cast<float>(window_y)),
+                            "Star Boids", sf::Style::Default, settings);
     window.setFramerateLimit(60);
     // posiziona finestra in alto a sinistra
-    window.setPosition(sf::Vector2i(0, window_x * 0.023));
+    window.setPosition(sf::Vector2i(0, static_cast<float>(window_x) * 0.023));
     // ottimizza il framerate per quello del computer
     window.setVerticalSyncEnabled(true);
 
@@ -122,7 +125,7 @@ int main() {
     Tracker com_tracker(std::valarray<float>{video_x, video_y},
                         {pos_com_x, pos_com_y}, com_ratio, margin / 2);
     com_tracker.setPosition(sf::Vector2f{tracker_x, tracker_y});
-    com_tracker.setFillColors(sf::Color::White, sf::Color(220, 220, 220),
+    com_tracker.setFillColors(sf::Color::White, sf::Color(240, 240, 240),
                               sf::Color::Blue);
     com_tracker.setOutlineColors(sf::Color::Black, sf::Color::Black,
                                  sf::Color::Black);
@@ -176,6 +179,8 @@ int main() {
       if (counter % 4 == 0) {
         pos_com_x = bd_flock.get_com().get_pos()[0];
         pos_com_y = bd_flock.get_com().get_pos()[1];
+        /*com_circle.setPosition(com_rec.getPosition().x + com_x * com_ratio,
+                               com_rec.getPosition().y + com_y * com_ratio);*/
         com_tracker.update_pos({pos_com_x, pos_com_y});
 
         // aggiorna velocità media
@@ -184,13 +189,18 @@ int main() {
         speed_bar.update_value(flock_stats.av_vel);
       }
       step_update += std::chrono::steady_clock::now() - init;
+
       //  Process events
       sf::Event event;
       while (window.pollEvent(event)) {
         // Close window: exit
-        if (event.type == sf::Event::Closed) window.close();
-        // eventualmente altri comandi qui:
+        if (event.type == sf::Event::Closed) {
+          window.close();
+        } else if (event.type == sf::Event::KeyPressed) {
+          if (event.key.code == sf::Keyboard::Escape) window.close();
+        }
       }
+
       // stampa a schermo tempo di calcolo e disegno (mediato su 4 frame)
       if (counter % 4 == 0) {
         step_ss.str("");
@@ -209,7 +219,7 @@ int main() {
       // calcola tempo di computazione
       init = std::chrono::steady_clock::now();
       // clear window
-      window.clear(sf::Color(210, 210, 210));
+      window.clear(sf::Color(240, 240, 240));
       // disegna riquadro simulazione
       window.draw(rec_sim);
       // disegna ostacoli

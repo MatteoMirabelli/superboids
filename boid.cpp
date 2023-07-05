@@ -214,11 +214,15 @@ bool is_visible(Boid const& bd_1, Boid const& bd_2) {
   double relative_angle =
       compute_angle<double>(bd_1.get_pos() - bd_2.get_pos());
 
-  if (relative_angle == 180. && bd_2.get_angle() < 0) {
-    return std::abs(relative_angle + bd_2.get_angle()) <= angle;
-  } else {
-    return std::abs(relative_angle - bd_2.get_angle()) <= angle;
-  }
+  /* if (relative_angle == 180. && bd_2.get_angle() < 0) {
+     return std::abs(relative_angle + bd_2.get_angle()) <= angle;
+   } else {
+     return std::abs(relative_angle - bd_2.get_angle()) <= angle;
+   } */
+
+  return std::abs(
+             std::abs(compute_angle<double>(bd_1.get_pos() - bd_2.get_pos()) -
+                      std::abs(bd_2.get_angle()))) <= angle;
 }
 
 bool is_obs_visible(Obstacle const& obs, Boid const& bd) {
@@ -236,24 +240,28 @@ bool is_obs_visible(Obstacle const& obs, Boid const& bd) {
 // inizialmente speravo di poterlo sfruttare per i predatori, invece ho dovuto
 // reimplementare. Si può anche riportare in flock
 
-std::vector<Boid> get_vector_neighbours(std::vector<Boid> const& flock,
+std::vector<Boid> get_vector_neighbours(std::vector<Boid> const& full_vec,
                                         std::vector<Boid>::iterator it,
                                         double dist) {
   std::vector<Boid> neighbours;
-  assert(it >= flock.begin() && it < flock.end());
-  auto et = it;
-  for (; et != flock.end() &&
-         std::abs(it->get_pos()[0] - et->get_pos()[0]) < dist;
-       ++et) {
-    if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
-        is_visible(*et, *it) == true) {
-      neighbours.push_back(*et);
+  assert(it >= full_vec.begin() && it <= full_vec.end());
+  if (it >= full_vec.begin() && it < full_vec.end()) {
+    auto et = it;
+    for (; et != full_vec.end(); ++et) {
+      if (std::abs(it->get_pos()[0] - et->get_pos()[0]) > dist) break;
+      if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
+          is_visible(*et, *it) == true) {
+        neighbours.push_back(*et);
+      }
     }
-  }
-  et = it;
-  for (; et != flock.begin() &&
-         std::abs(it->get_pos()[0] - et->get_pos()[0]) < dist;
-       --et) {
+    et = it;
+    for (; et != full_vec.begin(); --et) {
+      if (std::abs(it->get_pos()[0] - et->get_pos()[0]) > dist) break;
+      if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
+          is_visible(*et, *it) == true) {
+        neighbours.push_back(*et);
+      }
+    }
     if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
         is_visible(*et, *it) == true) {
       neighbours.push_back(*et);

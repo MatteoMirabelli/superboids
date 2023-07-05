@@ -267,7 +267,7 @@ void Flock::update_com() {
 }
 
 std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
-  std::vector<Boid> neighbours;
+  /* std::vector<Boid> neighbours;
   if (it >= f_flock.begin() && it < f_flock.end()) {
     if (it == f_flock.begin()) {
       auto et = it;
@@ -326,8 +326,11 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
       }
     }
   }
-  return neighbours;
+  return neighbours; */
+
+  return get_vector_neighbours(f_flock, it, f_params.d);
 }
+
 
 // Avoid_pred for tests
 std::valarray<double> Flock::avoid_pred(Boid const& bd, Predator const& pred,
@@ -437,17 +440,6 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
   }
   return delta_vel;
 }
-
-// NOTA SULL'IMPLEMENTAZIONE CON COPY FLOCK
-// La ratio del tutto è che quando aggiorniamo lo stato conviene usare copy
-// flock per tenere lo stato all'istante precedente e da lì stampare su f_flock.
-// Viceversa se usassimo f_flock per lo stato precedente alla fine dovremmo fare
-// la copia di copy_flock su f_flock, che significherebbe di nuovo scorrere due
-// vettori. L'uso degli indici nell'update state è per questo e per non perdere
-// la coerenza quando si parallelizza. Ragionevolmente per i nuovi vel
-// correction passo i parametri dello stormo (in quanto solo per esso hanno
-// senso) mentre il get vector neighbours è più ampio. Anzi, sarei quasi tentato
-// di metterlo nel file Boid.
 
 // update con un predatore
 // tentativo di implementazione alternativa per parallelizzare in modo umano:

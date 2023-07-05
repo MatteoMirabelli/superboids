@@ -380,7 +380,7 @@ TEST_CASE("Testing the is_visible function") {
     CHECK(iv21 == false);
   }
 
-  SUBCASE("Testing the is_visible function") {
+  SUBCASE("Testing the is_visible function (I)") {
     Boid b1({1., 2.}, {3., 4.}, 150., space, 4, 1);
     Boid b2({4., 3.}, {2., 1.}, 150., space, 4, 1);
     Boid b3({1., 1.}, {1., 1.}, 150., space, 4, 1);
@@ -391,7 +391,7 @@ TEST_CASE("Testing the is_visible function") {
     CHECK(iv13 == true);
   }
 
-  SUBCASE("Testing the is_visible function") {
+  SUBCASE("Testing the is_visible function (II)") {
     Boid b1({1., 2.}, {0., -4.}, 90., space, 4, 1);
     Boid b2({4., 2.}, {0., +1.}, 90., space, 4, 1);
 
@@ -401,7 +401,7 @@ TEST_CASE("Testing the is_visible function") {
     CHECK(iv21 == true);
   }
 
-  SUBCASE("Testing the is_visible function") {
+  SUBCASE("Testing the is_visible function (III)") {
     Boid b1({1., 1.}, {0., -1.}, 90., space, 4, 1);
     Boid b2({4., 3.}, {3., 2.}, 150., space, 4, 1);
     Boid b3({1., 2.}, {1., 0.}, 150., space, 4, 1);
@@ -428,7 +428,7 @@ TEST_CASE("Testing the is_visible function") {
   SUBCASE(
       "Testing the is_visible function with boids with same x_position "
       "configurations") {
-    Boid bd1({7., 3.}, {1., -1.}, 120., space, 5., 1.);
+    Boid bd1({7., 3.}, {3., -1.}, 120., space, 5., 1.);
     Boid bd2({7., 8.}, {-2., -3.}, 120., space, 5., 1.);
     Boid bd3({7., 6.}, {-1., 0.}, 30., space, 5., 1.);
 
