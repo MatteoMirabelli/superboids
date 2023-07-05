@@ -439,10 +439,10 @@ TEST_CASE("Testing the is_visible function") {
     bool iv23 = is_visible(bd2, bd3);
     bool iv32 = is_visible(bd3, bd2);
 
-    CHECK(iv12 == true);  //
+    CHECK(iv12 == true);  
     CHECK(iv21 == true);
     CHECK(iv13 == false);
-    CHECK(iv31 == true);  //
+    CHECK(iv31 == true);  
     CHECK(iv23 == false);
     CHECK(iv32 == true);
   }

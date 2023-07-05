@@ -71,6 +71,35 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel) {
   (vec_norm(b_vel) > 350.) ? b_vel *= (350. / vec_norm(b_vel)) : b_vel;
 }
 
+// Update_state for tests
+void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
+                        bool brd_bhv, double border_detection,
+                        double border_repulsion) {
+  b_vel += delta_vel;
+  b_pos += (b_vel * delta_t);
+  if (brd_bhv == true) {
+    // implementazione con periodiche
+    (b_pos[0] > b_space[0] - 20.) ? b_pos[0] = 21. : b_pos[0];
+    (b_pos[0] < 20.) ? b_pos[0] = b_space[0] - 21. : b_pos[0];
+    (b_pos[1] > b_space[1] - 20) ? b_pos[1] = 21. : b_pos[1];
+    (b_pos[1] < 20.) ? b_pos[1] = b_space[1] - 21. : b_pos[1];
+  } else {
+    // implementazione con bordi
+    (b_pos[0] > b_space[0] - border_detection * b_param_ds)
+        ? b_vel[0] -= border_repulsion * b_param_s / (b_space[0] - b_pos[0])
+        : b_vel[0];
+    (b_pos[0] < border_detection * b_param_ds)
+        ? b_vel[0] += 3.5 * b_param_s / b_pos[0]
+        : b_vel[0];
+    (b_pos[1] > b_space[1] - border_detection * b_param_ds)
+        ? b_vel[1] -= border_repulsion * b_param_s / (b_space[1] - b_pos[1])
+        : b_vel[1];
+    (b_pos[1] < border_detection * b_param_ds)
+        ? b_vel[1] += border_repulsion * b_param_s / b_pos[1]
+        : b_vel[1];
+  }
+}
+
 void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
                         bool brd_bhv) {
   b_vel += delta_vel;
@@ -101,6 +130,24 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
   // velocità massima e minima:
   (vec_norm(b_vel) > 350.) ? b_vel *= (350. / vec_norm(b_vel)) : b_vel;
   (vec_norm(b_vel) < 70.) ? b_vel *= (70. / vec_norm(b_vel)) : b_vel;
+}
+
+// Avoid_obs for tests
+std::valarray<double> Boid::avoid_obs(std::vector<Obstacle> const& obstacles,
+                                      double d, double k) const {
+  if (obstacles.size() == 0) {
+    return std::valarray<double>{0., 0.};
+  } else {
+    std::valarray<double> delta_vel{0., 0.};
+    for (auto const& ob : obstacles) {
+      std::valarray<double> dist = ob.get_pos() - b_pos;
+      if (vec_norm(dist) < ob.get_size() + d * b_param_ds &&
+          is_obs_visible(ob, *this)) {
+        delta_vel -= k * b_param_s * (ob.get_pos() - b_pos);
+      }
+    }
+    return delta_vel;
+  }
 }
 
 std::valarray<double> Boid::avoid_obs(
@@ -189,24 +236,28 @@ bool is_obs_visible(Obstacle const& obs, Boid const& bd) {
 // inizialmente speravo di poterlo sfruttare per i predatori, invece ho dovuto
 // reimplementare. Si può anche riportare in flock
 
-std::vector<Boid> get_vector_neighbours(std::vector<Boid> const& flock,
+std::vector<Boid> get_vector_neighbours(std::vector<Boid> const& full_vec,
                                         std::vector<Boid>::iterator it,
                                         double dist) {
   std::vector<Boid> neighbours;
-  assert(it >= flock.begin() && it < flock.end());
-  auto et = it;
-  for (; et != flock.end() &&
-         std::abs(it->get_pos()[0] - et->get_pos()[0]) < dist;
-       ++et) {
-    if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
-        is_visible(*et, *it) == true) {
-      neighbours.push_back(*et);
+  assert(it >= full_vec.begin() && it <= full_vec.end());
+  if (it >= full_vec.begin() && it < full_vec.end()) {
+    auto et = it;
+    for (; et != full_vec.end(); ++et) {
+      if (std::abs(it->get_pos()[0] - et->get_pos()[0]) > dist) break;
+      if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
+          is_visible(*et, *it) == true) {
+        neighbours.push_back(*et);
+      }
     }
-  }
-  et = it;
-  for (; et != flock.begin() &&
-         std::abs(it->get_pos()[0] - et->get_pos()[0]) < dist;
-       --et) {
+    et = it;
+    for (; et != full_vec.begin(); --et) {
+      if (std::abs(it->get_pos()[0] - et->get_pos()[0]) > dist) break;
+      if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
+          is_visible(*et, *it) == true) {
+        neighbours.push_back(*et);
+      }
+    }
     if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
         is_visible(*et, *it) == true) {
       neighbours.push_back(*et);

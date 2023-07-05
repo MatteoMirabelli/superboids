@@ -43,6 +43,12 @@ class Boid {
 
   void update_state(double, std::valarray<double>);
   void update_state(double, std::valarray<double>, bool);
+  // update_state for tests
+  void update_state(double, std::valarray<double>, bool, double, double);
+
+  // Avoid_obs for tests
+  std::valarray<double> avoid_obs(std::vector<Obstacle> const&, double,
+                                  double) const;
   std::valarray<double> avoid_obs(std::vector<Obstacle> const&) const;
 };
 
