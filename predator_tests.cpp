@@ -19,8 +19,8 @@ TEST_CASE("Testing the Predator::Predate method") {
 
     auto vel_correction = pr.predate(preys);
 
-    CHECK(vel_correction[0] == 10);
-    CHECK(vel_correction[1] == 7);
+    CHECK(vel_correction[0] == 16);
+    CHECK(vel_correction[1] == 9);
   }
 
   SUBCASE("Testing the Predator::Predate method with no preys") {

@@ -1,21 +1,20 @@
 #include "predator.hpp"
 
+#include <algorithm>
 #include <random>
 
 Predator::Predator(std::valarray<double> const& pos,
-                   std::valarray<double> const& vel, double const& view_ang,
-                   double const& param_d_s, double const& param_s,
-                   std::valarray<double> const& space, double const& range,
-                   double const& hunger)
+                   std::valarray<double> const& vel, double view_ang,
+                   double param_d_s, double param_s,
+                   std::valarray<double> const& space, double range,
+                   double hunger)
     : Boid(pos, vel, view_ang, space, param_d_s, param_s),
       p_range(range),
       p_hunger(hunger) {}
 
-Predator::Predator(double const& x, double const& y, double const& vx,
-                   double const& vy, double const& view_ang,
-                   double const& param_d_s, double const& param_s,
-                   double const& sx, double const& sy, double const& range,
-                   double const& hunger)
+Predator::Predator(double x, double y, double vx, double vy, double view_ang,
+                   double param_d_s, double param_s, double sx, double sy,
+                   double range, double hunger)
     : Boid(x, y, vx, vy, view_ang, sx, sy, param_d_s, param_s),
       p_range(range),
       p_hunger(hunger) {}
@@ -31,20 +30,19 @@ std::valarray<double> Predator::predate(std::vector<Boid>& preys) {
   std::valarray<double> prey_com_pos(2);
 
   if (preys.size() > 0) {
-    auto nearest = [&](Boid& b1, Boid& b2) {
+    auto nearest = [&](Boid const& b1, Boid const& b2) {
       return boid_dist(b1, *this) < boid_dist(b2, *this);
     };
 
-    std::sort(preys.begin(), preys.end(), nearest);
+    std::sort(std::execution::par, preys.begin(), preys.end(), nearest);
     for (auto const& prey : preys) {
       prey_com_pos += prey.get_pos();
     }
 
     prey_com_pos /= preys.size();
 
-    return p_hunger * (prey_com_pos - this->get_pos()) +
-           p_hunger * (preys.size() / 2) *
-               (preys[0].get_pos() - this->get_pos());
+    return p_hunger * (prey_com_pos - get_pos()) +
+           p_hunger * (preys.size()) * (preys[0].get_pos() - get_pos());
   } else {
     return std::valarray<double>{0., 0.};
     // chiaramente no prede = no correzione
@@ -133,10 +131,10 @@ std::vector<Predator> get_predator_neighbours(
   return neighbours;
 }
 
-void update_predators_state(
-    std::vector<Predator>& predators, double delta_t, bool bhv,
-    std::vector<std::pair<Boid, unsigned int>> const& preys,
-    std::vector<Obstacle> const& obstacles) {
+void update_predators_state(std::vector<Predator>& predators, double delta_t,
+                            bool bhv,
+                            std::vector<std::pair<Boid, int>> const& preys,
+                            std::vector<Obstacle> const& obstacles) {
   bool predation = preys.size() > 0;
   for (auto idx = predators.begin(); idx != predators.end(); ++idx) {
     std::valarray<double> pred_separation = {0., 0.};

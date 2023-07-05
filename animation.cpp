@@ -10,6 +10,8 @@
 Animate::Animate(sf::Texture const& texture)
     : a_scale(0.), a_state(0), a_textures(), a_sprite(texture) {
   a_textures.push_back(texture);
+  a_sprite.setOrigin(sf::Vector2f(a_sprite.getGlobalBounds().width / 2,
+                                  a_sprite.getGlobalBounds().height / 2));
 }
 
 Animate::Animate(float const& scale, sf::Texture const& texture)
@@ -165,7 +167,9 @@ StatusBar::StatusBar(std::string const& title, sf::Font const& font,
   s_text.setFillColor(sf::Color::Black);
   s_outer.setOutlineThickness(2);
   s_bar.setFillColor(sf::Color::Black);
-  s_outer.setPosition(0, 1.7 * s_text.getCharacterSize());
+  s_outer.setPosition(0, s_text.getGlobalBounds().top +
+                             s_text.getGlobalBounds().height +
+                             s_text.getCharacterSize() / 2);
   s_bar.setPosition(s_outer.getPosition());
 }
 

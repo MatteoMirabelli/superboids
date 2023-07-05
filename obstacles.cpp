@@ -7,16 +7,13 @@
 #include <random>
 #include <valarray>
 
-// OBSTACLE
-
-Obstacle::Obstacle(std::valarray<double> const& pos, double const& size) {
+Obstacle::Obstacle(std::valarray<double> const& pos, double size) {
   assert(size > 0 && pos.size() == 2);
   o_size = size;
   o_pos = pos;
 }
 
-Obstacle::Obstacle(double const& pos_x, double const& pos_y,
-                   double const& size) {
+Obstacle::Obstacle(double pos_x, double pos_y, double size) {
   assert(pos_x >= 0 && pos_y >= 0 && size > 0);
   o_size = size;
   o_pos = {pos_x, pos_y};
@@ -24,7 +21,7 @@ Obstacle::Obstacle(double const& pos_x, double const& pos_y,
 
 std::valarray<double> const& Obstacle::get_pos() const { return o_pos; };
 
-double const& Obstacle::get_size() const { return o_size; };
+double Obstacle::get_size() const { return o_size; };
 
 // VECTOR OF OBSTACLES
 
@@ -52,8 +49,8 @@ std::vector<Obstacle> generate_obstacles(int n_obstacles, double max_size,
   auto overlap = [&](Obstacle& obs1, Obstacle& obs2) {
     return (std::abs(obs1.get_pos()[0] - obs2.get_pos()[0]) <
                 obs1.get_size() + obs2.get_size() ||
-            std::abs((obs1.get_pos()[1] - obs2.get_pos()[1]) <
-                     obs1.get_size() + obs2.get_size()));
+            std::abs((obs1.get_pos()[1] - obs2.get_pos()[1])) <
+                obs1.get_size() + obs2.get_size());
   };
 
   // verifica la prima volta che non ci siano ostacoli coincidenti
@@ -63,7 +60,7 @@ std::vector<Obstacle> generate_obstacles(int n_obstacles, double max_size,
   // se ce n'erano, rigenera e ripulisce fino a quando ho n_obstacles ostacoli
   // non sovrapposti
   while (g_obstacles.size() < n_obstacles) {
-    for (int i = 0; i < g_obstacles.size() - n_obstacles; ++i) {
+    for (int i = 0; i < n_obstacles - g_obstacles.size(); ++i) {
       std::valarray<double> pos = {dist_pos_x(rd), dist_pos_y(rd)};
       g_obstacles.push_back(Obstacle{pos, size(rd)});
     }
@@ -96,13 +93,13 @@ void add_obstacle(std::vector<Obstacle>& g_obstacles,
 }
 
 void sort_obstacles(std::vector<Obstacle>& g_obstacles) {
-  auto is_less = [](Obstacle& obs1, Obstacle& obs2) {
+  auto is_less = [](Obstacle const& obs1, Obstacle const& obs2) {
     if (obs1.get_pos()[0] != obs2.get_pos()[0]) {
       return obs1.get_pos()[0] < obs2.get_pos()[0];
     } else {
       return obs1.get_pos()[1] < obs2.get_pos()[1];
     }
   };
-
-  std::sort(g_obstacles.begin(), g_obstacles.end(), is_less);
+  std::sort(std::execution::par, g_obstacles.begin(), g_obstacles.end(),
+            is_less);
 }
