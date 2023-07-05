@@ -195,10 +195,14 @@ TEST_CASE("Testing the Boid::avoid_obs method") {
     obstacles.push_back(ob1);
     obstacles.push_back(ob2);
 
+    Boid bdx(8., 2., 0., 0., 120., 1920., 1080., 5., 1.);
+    
+
     auto delta_vel = bd.avoid_obs(obstacles);
 
     CHECK(delta_vel[0] == 6);
     CHECK(delta_vel[1] == 9);
+    CHECK(is_visible(bdx, bd) == true);
   }
 
   SUBCASE(

@@ -55,6 +55,7 @@ template <typename T>
 T compute_angle(std::valarray<T> const&);
 
 bool is_visible(Boid const&, Boid const&);
+bool is_obs_visible(Obstacle const& obs, Boid const& bd);
 
 std::vector<Boid> get_vector_neighbours(std::vector<Boid> const&,
                                         std::vector<Boid>::iterator, double);
