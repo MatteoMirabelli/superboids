@@ -316,6 +316,28 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
   return get_vector_neighbours(f_flock, it, f_params.d);
 }
 
+// Avoid_pred for tests
+std::valarray<double> Flock::avoid_pred(Boid const& bd, Predator const& pred,
+                                        double boid_pred_detection,
+                                        double boid_pred_repulsion) {
+  std::valarray<double> delta_vel = {0., 0.};
+  // valuta subito se applicare separazione al predatore
+  (boid_dist(pred, bd) < boid_pred_detection * f_params.d)
+      ? delta_vel -=
+        boid_pred_repulsion * f_params.s * (pred.get_pos() - bd.get_pos())
+      : delta_vel;
+  return delta_vel;
+}
+
+std::valarray<double> Flock::avoid_pred(Boid const& bd, Predator const& pred) {
+  std::valarray<double> delta_vel = {0., 0.};
+  // valuta subito se applicare separazione al predatore
+  (boid_dist(pred, bd) < f_params.d)
+      ? delta_vel -= 1.5 * f_params.s * (pred.get_pos() - bd.get_pos())
+      : delta_vel;
+  return delta_vel;
+}
+
 // vel correction senza predatori
 std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
   assert(it >= f_flock.begin() && it < f_flock.end());
@@ -412,16 +434,6 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
   return delta_vel;
 }
 
-// per evitare ogni predatore. Più elegante anche per il vel correction.
-// anzi, lo rende quasi inutile
-std::valarray<double> Flock::avoid_pred(Boid const& bd, Predator const& pred) {
-  std::valarray<double> delta_vel = {0., 0.};
-  // valuta subito se applicare separazione al predatore
-  (boid_dist(pred, bd) < f_params.d)
-      ? delta_vel -= 1.5 * f_params.s * (pred.get_pos() - bd.get_pos())
-      : delta_vel;
-  return delta_vel;
-}
 
 // NOTA SULL'IMPLEMENTAZIONE CON COPY FLOCK
 // La ratio del tutto è che quando aggiorniamo lo stato conviene usare copy
