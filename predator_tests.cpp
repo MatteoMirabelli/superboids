@@ -10,7 +10,7 @@ TEST_CASE("Testing the Predator::Predate method") {
   // param_s, p_range, p_hunger
 
   SUBCASE("Testing the Predator::Predate method with two preys") {
-    Predator pr(2., 2., 5., 5., 50., 1920., 1080., 10., 2., 5., 2.);
+    Predator pr(2., 2., 5., 5., 50., 10., 2., 1920., 1080., 5., 2.);
 
     Boid bd1(5., 3., 1., 1., 120., 1920., 1080., 10., 2.);
     Boid bd2(3., 6., 1., 1., 120., 1920., 1080., 10., 2.);
@@ -24,7 +24,7 @@ TEST_CASE("Testing the Predator::Predate method") {
   }
 
   SUBCASE("Testing the Predator::Predate method with no preys") {
-    Predator pr(2., 2., 5., 5., 50., 1920., 1080., 10., 2., 5., 2.);
+    Predator pr(2., 2., 5., 5., 50., 10., 2., 1920., 1080., 5., 2.);
 
     std::vector<Boid> preys{};
 
@@ -35,7 +35,49 @@ TEST_CASE("Testing the Predator::Predate method") {
   }
 }
 
-TEST_CASE("Testing the update_predator_state with two predators") {}
+TEST_CASE("Testing the update_predator_state with two predators") {
+  // PREDATOR CONSTRUCTOR takes:
+  // Pos {x,y}, Vel{x,y}, view_angle,  param_ds_,
+  // param_s, window_space{1920, 1080}, p_range, p_hunger
+  // BOID CONSTRUCTOR takes:
+  // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
+  // param_s
+  // OBSTACLE CONSTRUCTOR takes: pos{x,y}, size;
+
+  Predator pd1({156., 108.}, {-1., -1.}, 120., 10., 2., {1920., 1080.}, 10.,
+               2.);
+  Predator pd2({152., 114.}, {-1., -1.}, 120., 10., 2., {1920., 1080.}, 10.,
+               2.);
+
+  Boid bd1({156., 108.}, {1., -2.}, 120., {1920., 1080.}, 5., 4.);
+  Boid bd2({148., 113.}, {2., -1}, 120., {1920., 1080.}, 5., 4.);
+
+  Obstacle ob1({145., 110.}, 1);
+  Obstacle ob2({150., 105.}, 1.);
+
+  std::vector<Predator> preds;
+  preds.push_back(pd1);
+  preds.push_back(pd2);
+
+  std::vector<std::pair<Boid, int>> preys{
+      {bd1, 1}, {bd1, 2}, {bd2, 1}, {bd2, 2}};
+  std::vector<Obstacle> g_obstacles;
+  g_obstacles.push_back(ob1);
+  g_obstacles.push_back(ob2);
+
+  update_predators_state(preds, 1., true, preys, g_obstacles, 4., 1., 1., 1.,
+                         1.);
+
+  CHECK(pd1.get_pos()[0] == 201);
+  CHECK(pd1.get_pos()[1] == 91);
+  CHECK(pd1.get_vel()[0] == 45.);
+  CHECK(pd1.get_vel()[1] == -18);
+
+  CHECK(pd2.get_pos()[0] == 118);
+  CHECK(pd2.get_pos()[1] == 158);
+  CHECK(pd1.get_vel()[0] == -15);
+  CHECK(pd1.get_vel()[1] == 44);
+}
 
 TEST_CASE("Testing the random_predators generation") {
   // PREDATOR CONSTRUCTOR takes:

@@ -446,9 +446,6 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
   return delta_vel;
 }
 
-// update con un predatore
-// tentativo di implementazione alternativa per parallelizzare in modo umano:
-
 // update globale con più predatori e ostacoli:
 void Flock::update_global_state(double delta_t, bool brd_bhv,
                                 std::vector<Predator>& preds,
@@ -520,6 +517,89 @@ void Flock::update_global_state(double delta_t, bool brd_bhv,
   sort();
   // aggiorna stato del vettore di predatori
   update_predators_state(preds, delta_t, brd_bhv, preys, obs);
+}
+
+// Update_global per i test e per trovare i parametri giusti
+void Flock::update_global_state(
+    double delta_t, bool brd_bhv, std::vector<Predator>& preds,
+    std::vector<Obstacle> const& obs, double border_detection,
+    double border_repulsion, double boid_pred_detection,
+    double boid_pred_repulsion, double boid_obs_detection,
+    double boid_obs_repulsion, double pred_pred_repulsion) {
+  // boid su cui applica caccia = prede
+  std::vector<std::pair<Boid, int>> preys;
+
+  // il mutex è necessario per evitare problemi in race condition
+  // ovvero prevenire l'accesso simultaneo da parte dei thread paralleli
+  // alle medesime risorse (in questo caso, il vettore delle prede)
+  std::mutex mtx;
+
+  // rimuove le vittime
+  auto bd_eaten = [this, &preds](Boid const& bd) {
+    // valuta se è mangiato da (almeno) un predatore
+    auto above = [this, &bd](Predator const& pred) -> bool {
+      return boid_dist(pred, bd) < 0.3 * f_params.d_s;
+    };
+    return std::any_of(preds.begin(), preds.end(), above);
+  };
+
+  // rimuove le prede mangiate
+  auto last = std::remove_if(std::execution::par, f_flock.begin(),
+                             f_flock.end(), bd_eaten);
+  f_flock.erase(last, f_flock.end());
+  // sort();
+
+  //  duplica il vettore per poter aggiornare tutti i boid in parallelo
+  //  in base allo stato al frame precedente
+  std::vector<Boid> copy_flock = f_flock;
+
+  // utilizza il vettore di indici per accedere ai corrispondenti boid di
+  // f_flock ed in tal modo poter applicare la ricerca dei vicini tramite
+  // iteratore
+  std::vector<int> indexes;
+
+  for (int i = 0; i < f_flock.size(); ++i) {
+    indexes.push_back(i);
+  }
+
+  // lambda per aggiornare lo stato
+  auto boid_update = [&mtx, &preds, &preys, this, delta_t, brd_bhv, &copy_flock,
+                      &obs, border_detection, border_repulsion,
+                      boid_pred_detection, boid_pred_repulsion,
+                      boid_obs_detection, boid_obs_repulsion](
+                         int const& index, Boid const& bd) -> Boid {
+    // aggiorna lo stato del boid con o senza percezione predatore
+    std::valarray<double> corr = {0., 0.};
+    for (int idx = 0; idx < preds.size(); ++idx) {
+      corr +=
+          avoid_pred(bd, preds[idx], boid_pred_detection, boid_pred_repulsion);
+      if (is_visible(bd, preds[idx]) &&
+          boid_dist(preds[idx], bd) < preds[idx].get_range()) {
+        // blocca il mutex prima della modifica di preys
+        std::lock_guard<std::mutex> lck(mtx);
+        preys.push_back({bd, idx});
+      }
+    }
+    f_flock[index].update_state(
+        delta_t,
+        vel_correction(copy_flock, copy_flock.begin() + index) +
+            bd.avoid_obs(obs, boid_obs_detection, boid_obs_repulsion) + corr,
+        brd_bhv, border_detection, border_repulsion);
+    return f_flock[index];
+  };
+
+  // modo più efficiente che sono riuscito a implementare: in questo modo non
+  // bisogna fare copie ma viene direttamente scritto su f_flock
+  std::transform(std::execution::par, indexes.begin(), indexes.end(),
+                 copy_flock.begin(), f_flock.begin(), boid_update);
+
+  update_com();
+  sort();
+  // aggiorna stato del vettore di predatori
+  update_predators_state(preds, delta_t, brd_bhv, preys, obs,
+                         pred_pred_repulsion, boid_obs_detection,
+                         boid_obs_repulsion, border_detection,
+                         border_repulsion);
 }
 
 void Flock::sort() {

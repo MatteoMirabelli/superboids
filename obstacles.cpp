@@ -75,6 +75,7 @@ std::vector<Obstacle> generate_obstacles(int n_obstacles, double max_size,
 void add_obstacle(std::vector<Obstacle>& g_obstacles,
                   std::valarray<double> const& pos, double size,
                   std::valarray<double> const& space) {
+  sort_obstacles(g_obstacles);
   auto overlap = [&](Obstacle& obs) {
     return (std::abs(pos[0] - obs.get_pos()[0]) < obs.get_size() + size ||
             std::abs((pos[1] - obs.get_pos()[1])) < obs.get_size() + size ||

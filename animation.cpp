@@ -113,7 +113,8 @@ void Tracker::setFillColors(sf::Color const& outer, sf::Color const& inner,
   t_outer.setFillColor(outer);
   t_inner.setFillColor(inner);
   t_circle.setFillColor(circle);
-  for (int idx = 0; static_cast<unsigned int>(idx) < t_path.getVertexCount(); ++idx) {
+  for (int idx = 0; static_cast<unsigned int>(idx) < t_path.getVertexCount();
+       ++idx) {
     t_path[idx].color = sf::Color(circle.r, circle.g, circle.b, 100);
   }
 }
@@ -150,7 +151,8 @@ void Tracker::update_pos(std::valarray<float> const& position) {
       for (int idx = 0;
            static_cast<unsigned int>(idx) < t_path.getVertexCount() - 1;
            ++idx) {
-        t_path[static_cast<unsigned int>(idx)].position = t_path[static_cast<unsigned int>(idx) + 1].position;
+        t_path[static_cast<unsigned int>(idx)].position =
+            t_path[static_cast<unsigned int>(idx) + 1].position;
       }
       t_path[t_path.getVertexCount() - 1].position = t_circle.getPosition();
     }

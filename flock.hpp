@@ -87,6 +87,17 @@ class Flock {
   std::valarray<double> vel_correction(std::vector<Boid> const&,
                                        std::vector<Boid>::iterator);
 
+  // update_global_state for tests
+  // Parameters in order: border_detection, border_repulsion,
+  // boid_pred_detection, boid_pred_repulsion, boid_obs_detection,
+  // boid_obs_repulsion, pred_pred_repulsion
+  void update_global_state(double, bool, std::vector<Predator>&,
+                           std::vector<Obstacle> const&,
+                           double border_detection, double border_repulsion,
+                           double boid_pred_detection,
+                           double boid_pred_repulsion,
+                           double boid_obs_detection, double boid_obs_repulsion,
+                           double pred_pred_repulsion);
   void update_global_state(double, bool, std::vector<Predator>&,
                            std::vector<Obstacle> const&);
 
