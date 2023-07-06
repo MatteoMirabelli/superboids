@@ -10,7 +10,7 @@
 
 Flock::Flock(Parameters const& params, int bd_n, Boid const& com,
              double view_ang, std::valarray<double> const& space)
-    : f_com{com}, f_params{params}, f_stats{}, f_flock{} {
+    : f_com{com}, f_flock{}, f_params{params}, f_stats{} {
   // Genera casualmente, secondo distribuzioni uniformi attorno al centro di
   // massa, lo stormo
   assert(bd_n >= 0);

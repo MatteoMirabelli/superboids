@@ -2,10 +2,8 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cmath>
 #include <iostream>
 #include <random>
-#include <valarray>
 
 Obstacle::Obstacle(std::valarray<double> const& pos, double size) {
   assert(size > 0 && pos.size() == 2);
@@ -60,7 +58,8 @@ std::vector<Obstacle> generate_obstacles(int n_obstacles, double max_size,
   // se ce n'erano, rigenera e ripulisce fino a quando ho n_obstacles ostacoli
   // non sovrapposti
   while (g_obstacles.size() < static_cast<unsigned int>(n_obstacles)) {
-    for (int i = 0; i < n_obstacles - static_cast<int>(g_obstacles.size()); ++i) {
+    for (int i = 0; i < n_obstacles - static_cast<int>(g_obstacles.size());
+         ++i) {
       std::valarray<double> pos = {dist_pos_x(rd), dist_pos_y(rd)};
       g_obstacles.push_back(Obstacle{pos, size(rd)});
     }
@@ -72,25 +71,40 @@ std::vector<Obstacle> generate_obstacles(int n_obstacles, double max_size,
   return g_obstacles;
 }
 
-void add_obstacle(std::vector<Obstacle>& g_obstacles,
-                  std::valarray<double> const& pos, double size,
+bool add_obstacle(std::vector<Obstacle>& g_obstacles,
+                  std::valarray<double> const& pos, double max_size,
                   std::valarray<double> const& space) {
-  auto overlap = [&](Obstacle& obs) {
-    return (std::abs(pos[0] - obs.get_pos()[0]) < obs.get_size() + size ||
-            std::abs((pos[1] - obs.get_pos()[1])) < obs.get_size() + size ||
+  std::random_device rd;
+  std::uniform_real_distribution<> ran_size(15., max_size);
+  double size = ran_size(rd);
+  auto overlap = [&](Obstacle const& obs) {
+    return (vec_norm<double>(obs.get_pos() - pos) < obs.get_size() + size ||
             pos[0] < size || pos[1] < size ||
             std::abs(pos[0] - space[0]) < size ||
             std::abs(pos[1] - space[1]) < size);
   };
-
-  auto it = std::find_if(g_obstacles.begin(), g_obstacles.end(), overlap);
-  if (it == g_obstacles.end()) {
+  if (std::none_of(g_obstacles.begin(), g_obstacles.end(), overlap)) {
     g_obstacles.push_back(Obstacle(pos, size));
     sort_obstacles(g_obstacles);
+    return true;
   } else {
-    std::cout << "Impossible to add this obstacle" << '\n';
+    return false;
   }
 }
+
+/*bool remove_obstacle(std::vector<Obstacle>& g_obstacles,
+                     std::valarray<double> const& pos) {
+  auto cover = [&](Obstacle const& obs) {
+    return (vec_norm<double>(obs.get_pos() - pos) < obs.get_size());
+  };
+  auto it = std::find_if(g_obstacles.begin(), g_obstacles.end(), cover);
+  if (it != g_obstacles.end()) {
+    g_obstacles.erase(it);
+    return true;
+  } else {
+    return false;
+  }
+}*/
 
 void sort_obstacles(std::vector<Obstacle>& g_obstacles) {
   auto is_less = [](Obstacle const& obs1, Obstacle const& obs2) {

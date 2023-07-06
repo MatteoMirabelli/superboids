@@ -59,7 +59,8 @@ std::vector<Predator> random_predators(std::vector<Obstacle> const& obs,
                                        double pred_s, double pred_range,
                                        double pred_hunger) {
   std::vector<Predator> predators;
-  assert(pred_num >= 0);
+  assert(pred_num >= 0 && pred_ang > 0. && pred_ds > 0. && pred_s > 0. &&
+         pred_range > 0. && pred_hunger > 0.);
   if (pred_num == 0) return predators;
   std::random_device rd;
   int x_max = 2.5 * (pred_space[0] - 40.) / pred_ds;
@@ -128,6 +129,8 @@ void add_predator(std::vector<Predator>& predators,
                   std::valarray<double> const& pred_space, double pred_ang,
                   double pred_ds, double pred_s, double pred_range,
                   double pred_hunger) {
+  assert(pred_space[0] > 0 && pred_space[1] > 0 && pred_ang > 0. &&
+         pred_ds > 0. && pred_s >= 0. && pred_range > 0. && pred_hunger > 0.);
   std::random_device rd;
   int x_max = static_cast<int>(2.5 * (pred_space[0] - 40.) / pred_ds);
   int y_max = static_cast<int>(2.5 * (pred_space[1] - 40.) / pred_ds);
