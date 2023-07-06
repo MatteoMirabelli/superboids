@@ -112,8 +112,10 @@ std::valarray<double> Boid::avoid_obs(
     for (auto const& ob : obstacles) {
       std::valarray<double> dist = ob.get_pos() - b_pos;
       if (vec_norm(dist) < ob.get_size() + b_param_ds &&
-          is_obs_visible(ob, *this)) {
+          is_obs_visible(ob, *this) && vec_norm(dist) > ob.get_size()) {
         delta_vel -= 1.5 * b_param_s * (ob.get_pos() - b_pos);
+      } else if (vec_norm(dist) <= ob.get_size()) {
+        delta_vel -= 5. * b_param_s * (ob.get_pos() - b_pos);
       }
     }
     return delta_vel;
@@ -128,37 +130,10 @@ void Boid::set_par_ds(double new_ds) { b_param_ds = new_ds; }
 
 void Boid::set_par_s(double new_s) { b_param_s = new_s; }
 
-template <typename T>
-T vec_norm(std::valarray<T> vec) {
-  return std::sqrt(std::pow(vec, {2., 2.}).sum());
-  return std::sqrt(std::pow(vec, {2, 2}).sum());
-}
 
 double boid_dist(Boid const& bd_1, Boid const& bd_2) {
   // distanza = norma della differenza
   return vec_norm<double>(bd_1.get_pos() - bd_2.get_pos());
-}
-
-template <typename T>
-T compute_angle(std::valarray<T> const& vec) {
-  // assert(vec.size() == 2);
-  double angle{0.};
-  if (vec[1] == 0. && vec[0] < 0.) {
-    angle = -90.;
-  } else if (vec[1] == 0. && vec[0] > 0.) {
-    angle = 90.;
-  } else if (vec[1] == 0. && vec[0] == 0.) {  // rimediato allo spiacevole baco
-    angle = 0.;
-  } else if (vec[0] == 0. && vec[1] > 0.) {
-    angle = 0.;
-  } else if (vec[0] == 0. && vec[1] < 0.) {
-    angle = 180.;
-  } else {
-    angle = std::atan(vec[0] / vec[1]) / M_PI * 180;
-    (vec[1] < 0. && vec[0] < 0.) ? angle -= 180. : angle;
-    (vec[1] < 0. && vec[0] > 0.) ? angle += 180. : angle;
-  }
-  return angle;
 }
 
 bool is_visible(Boid const& bd_1, Boid const& bd_2) {
@@ -189,24 +164,28 @@ bool is_obs_visible(Obstacle const& obs, Boid const& bd) {
 // inizialmente speravo di poterlo sfruttare per i predatori, invece ho dovuto
 // reimplementare. Si può anche riportare in flock
 
-std::vector<Boid> get_vector_neighbours(std::vector<Boid> const& flock,
+std::vector<Boid> get_vector_neighbours(std::vector<Boid> const& full_vec,
                                         std::vector<Boid>::iterator it,
                                         double dist) {
   std::vector<Boid> neighbours;
-  assert(it >= flock.begin() && it < flock.end());
-  auto et = it;
-  for (; et != flock.end() &&
-         std::abs(it->get_pos()[0] - et->get_pos()[0]) < dist;
-       ++et) {
-    if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
-        is_visible(*et, *it) == true) {
-      neighbours.push_back(*et);
+  assert(it >= full_vec.begin() && it <= full_vec.end());
+  if (it >= full_vec.begin() && it < full_vec.end()) {
+    auto et = it;
+    for (; et != full_vec.end(); ++et) {
+      if (std::abs(it->get_pos()[0] - et->get_pos()[0]) > dist) break;
+      if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
+          is_visible(*et, *it) == true) {
+        neighbours.push_back(*et);
+      }
     }
-  }
-  et = it;
-  for (; et != flock.begin() &&
-         std::abs(it->get_pos()[0] - et->get_pos()[0]) < dist;
-       --et) {
+    et = it;
+    for (; et != full_vec.begin(); --et) {
+      if (std::abs(it->get_pos()[0] - et->get_pos()[0]) > dist) break;
+      if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
+          is_visible(*et, *it) == true) {
+        neighbours.push_back(*et);
+      }
+    }
     if (boid_dist(*et, *it) < dist && boid_dist(*et, *it) > 0. &&
         is_visible(*et, *it) == true) {
       neighbours.push_back(*et);

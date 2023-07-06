@@ -17,7 +17,7 @@ Animate::Animate(sf::Texture const& texture)
 Animate::Animate(float const& scale, sf::Texture const& texture)
     : a_scale(scale), a_state(0), a_textures(), a_sprite(texture) {
   a_textures.push_back(texture);
-  a_sprite.setScale(.3, .5);
+  a_sprite.setScale(scale, scale);
   a_sprite.setOrigin(sf::Vector2f(a_sprite.getGlobalBounds().width / 2,
                                   a_sprite.getGlobalBounds().height / 2));
 }
@@ -113,8 +113,9 @@ void Tracker::setFillColors(sf::Color const& outer, sf::Color const& inner,
   t_outer.setFillColor(outer);
   t_inner.setFillColor(inner);
   t_circle.setFillColor(circle);
-  for (int idx = 0; idx < t_path.getVertexCount(); ++idx) {
-    t_path[idx].color = sf::Color(circle.r, circle.g, circle.b, 150);
+  for (int idx = 0; static_cast<unsigned int>(idx) < t_path.getVertexCount();
+       ++idx) {
+    t_path[idx].color = sf::Color(circle.r, circle.g, circle.b, 100);
   }
 }
 
@@ -140,11 +141,21 @@ void Tracker::update_pos(std::valarray<float> const& position) {
       t_pos[1] * t_inner.getSize().y / t_range[1] + t_inner.getPosition().y);
   if (t_pos[0] > 0. && t_pos[1] > 0. && t_pos[0] < t_range[0] &&
       t_pos[1] < t_range[1]) {
-    sf::Vertex vertex(
-        t_circle.getPosition(),
-        sf::Color(t_circle.getFillColor().r, t_circle.getFillColor().g,
-                  t_circle.getFillColor().b, 150));
-    t_path.append(vertex);
+    if (t_path.getVertexCount() < 30) {
+      sf::Vertex vertex(
+          t_circle.getPosition(),
+          sf::Color(t_circle.getFillColor().r, t_circle.getFillColor().g,
+                    t_circle.getFillColor().b, 100));
+      t_path.append(vertex);
+    } else {
+      for (int idx = 0;
+           static_cast<unsigned int>(idx) < t_path.getVertexCount() - 1;
+           ++idx) {
+        t_path[static_cast<unsigned int>(idx)].position =
+            t_path[static_cast<unsigned int>(idx) + 1].position;
+      }
+      t_path[t_path.getVertexCount() - 1].position = t_circle.getPosition();
+    }
   }
 }
 
@@ -155,10 +166,10 @@ sf::RectangleShape const& Tracker::getOuter() const { return t_outer; }
 StatusBar::StatusBar(std::string const& title, sf::Font const& font,
                      float width, float height,
                      std::valarray<float> const& range)
-    : s_text(title, font),
-      s_outer(sf::Vector2f{width, height}),
-      s_bar(sf::Vector2f{width, height}) {
-  assert(range.size() == 2 && range[0] < range[1]);
+    : s_text(title, font) {
+  assert(range.size() == 2 && range[0] < range[1] && width > 0 && height > 0);
+  s_outer = sf::RectangleShape(sf::Vector2f{width, height});
+  s_bar = sf::RectangleShape(sf::Vector2f{width, height});
   s_range = range;
   s_value = range[0];
   s_text.setCharacterSize(height);
@@ -171,12 +182,31 @@ StatusBar::StatusBar(std::string const& title, sf::Font const& font,
                              s_text.getGlobalBounds().height +
                              s_text.getCharacterSize() / 2);
   s_bar.setPosition(s_outer.getPosition());
+  std::ostringstream s_min_max;
+  s_min_max << std::setprecision(1) << std::fixed << s_range[0];
+  s_min = sf::Text(s_min_max.str(), font, height);
+  s_min.setFillColor(sf::Color::Black);
+  s_min_max.str("");
+  s_min_max << std::setprecision(1) << std::fixed << s_range[1];
+  s_max = sf::Text(s_min_max.str(), font, height);
+  s_max.setFillColor(sf::Color::Black);
+  s_min_max.str("");
+  s_text.setOrigin(0, 0);
+  s_min.setPosition(0.05 * s_min.getLocalBounds().width, s_outer.getPosition().y +
+                           s_outer.getGlobalBounds().height +
+                           s_min.getCharacterSize() / 7);
+  s_max.setOrigin(1.1 * s_max.getLocalBounds().width, 0);
+  s_max.setPosition(s_outer.getGlobalBounds().width,
+                    s_outer.getPosition().y + s_outer.getGlobalBounds().height +
+                        s_max.getCharacterSize() / 7);
 }
 
 void StatusBar::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   target.draw(s_text, states);
   target.draw(s_bar, states);
   target.draw(s_outer, states);
+  target.draw(s_min, states);
+  target.draw(s_max, states);
 }
 
 void StatusBar::setPosition(sf::Vector2f const& position) {
@@ -184,11 +214,15 @@ void StatusBar::setPosition(sf::Vector2f const& position) {
   s_text.setPosition(position);
   s_outer.move(displacement);
   s_bar.move(displacement);
+  s_min.move(displacement);
+  s_max.move(displacement);
 }
 
 void StatusBar::setColors(sf::Color const& text_color,
                           sf::Color const& bar_color) {
   s_text.setFillColor(text_color);
+  s_min.setFillColor(text_color);
+  s_max.setFillColor(text_color);
   s_bar.setFillColor(bar_color);
   s_outer.setOutlineColor(text_color);
 }
@@ -198,6 +232,13 @@ void StatusBar::setOutlineThickness(float thickness) {
 void StatusBar::setRange(std::valarray<float> const& new_range) {
   assert(new_range.size() == 2 && new_range[0] < new_range[1]);
   s_range = new_range;
+  std::ostringstream s_min_max;
+  s_min_max << std::setprecision(1) << std::fixed << s_range[0];
+  s_min.setString(s_min_max.str());
+  s_min_max.str("");
+  s_min_max << std::setprecision(1) << std::fixed << s_range[1];
+  s_max.setString(s_min_max.str());
+  s_min_max.str("");
 }
 
 void StatusBar::update_value(float new_value) {
@@ -207,4 +248,12 @@ void StatusBar::update_value(float new_value) {
 }
 void StatusBar::set_text(std::string const& new_text) {
   s_text.setString(new_text);
+  s_outer.setPosition(s_text.getGlobalBounds().left,
+                      s_text.getGlobalBounds().top +
+                          s_text.getGlobalBounds().height +
+                          s_text.getCharacterSize() / 2);
+  auto displacement = s_outer.getPosition() - s_bar.getPosition();
+  s_bar.move(displacement);
+  s_min.move(displacement);
+  s_max.move(displacement);
 }

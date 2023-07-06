@@ -50,13 +50,13 @@ class Flock {
  public:
   Flock(Parameters const&, int, Boid const&, double,
         std::valarray<double> const&);
-  Flock(Parameters const&, int, double,
-        std::valarray<double> const&);
+  Flock(Parameters const&, int, double, std::valarray<double> const&);
   Flock(Parameters const&, int, double, std::valarray<double> const&,
         std::vector<Obstacle> const&);
   Flock() = default;
   void add_boid();
-  double size() const;
+  void add_boid(std::vector<Obstacle> const&);
+  int size() const;
   void push_back(Boid const& boid);
   std::vector<Boid>::iterator begin();
   std::vector<Boid>::iterator end();
@@ -77,7 +77,6 @@ class Flock {
                                        std::vector<Predator> const& preds,
                                        double boid_pred_detection,
                                        double boid_pred_repulsion);
-                                       
   // per aggiornare lo stato:
   std::valarray<double> vel_correction(std::vector<Boid> const&,
                                        std::vector<Boid>::iterator);

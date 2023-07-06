@@ -2,9 +2,8 @@
 #define BOID_HPP
 
 #include <cassert>
-#include <cmath>
-#include <valarray>
 
+#include "math.hpp"
 #include "obstacles.hpp"
 
 class Boid {
@@ -46,13 +45,7 @@ class Boid {
   std::valarray<double> avoid_obs(std::vector<Obstacle> const&) const;
 };
 
-template <typename T>
-T vec_norm(std::valarray<T> vec);
-
 double boid_dist(Boid const& bd_1, Boid const& bd_2);
-
-template <typename T>
-T compute_angle(std::valarray<T> const&);
 
 bool is_visible(Boid const&, Boid const&);
 bool is_obs_visible(Obstacle const& obs, Boid const& bd);

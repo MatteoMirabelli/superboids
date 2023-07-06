@@ -10,9 +10,11 @@ class Predator : public Boid {
   double p_hunger;  // fattore di coesione verso com locale prede
 
  public:
-  Predator(std::valarray<double> const&, std::valarray<double> const&, double,
-           double, double, std::valarray<double> const&, double, double);
-  Predator(double, double, double, double, double, double, double, double,
+  Predator(std::valarray<double> const&, std::valarray<double> const&,
+           double, double, double,
+           std::valarray<double> const&, double, double);
+  Predator(double, double, double, double,
+           double, double, double, double,
            double, double, double);
   Predator() = default;
   double get_angle() const;
@@ -21,8 +23,18 @@ class Predator : public Boid {
   std::valarray<double> predate(std::vector<Boid>&);
 };
 
-std::vector<Predator> random_predators(int, std::valarray<double> const&,
-                                       double, double, double, double, double);
+std::vector<Predator> random_predators(std::vector<Obstacle> const&, int,
+                                       std::valarray<double> const&, double,
+                                       double, double, double, double);
+
+void add_predator(std::vector<Predator>&, std::vector<Obstacle> const&,
+                  std::valarray<double> const&, double, double, double, double,
+                  double);
+
+std::vector<Predator> get_vector_neighbours(std::vector<Predator> const&,
+                                            std::vector<Predator>::iterator,
+                                            double);
+
 void update_predators_state(std::vector<Predator>&, double, bool,
                             std::vector<std::pair<Boid, int>> const&,
                             std::vector<Obstacle> const&);

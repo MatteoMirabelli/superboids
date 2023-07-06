@@ -31,6 +31,7 @@ class Tracker : public sf::Drawable, public sf::Transformable {
   sf::RectangleShape t_inner;
   sf::CircleShape t_circle;
   sf::VertexArray t_path;
+  int index;
   std::valarray<float> t_range;
   std::valarray<float> t_pos;
 
@@ -54,6 +55,8 @@ class StatusBar : public sf::Drawable, public sf::Transformable {
   sf::RectangleShape s_bar;
   std::valarray<float> s_range;
   float s_value;
+  sf::Text s_min;
+  sf::Text s_max;
 
  protected:
   virtual void draw(sf::RenderTarget&, sf::RenderStates) const;

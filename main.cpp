@@ -5,6 +5,7 @@
 #include <cassert>
 #include <chrono>
 #include <execution>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -14,10 +15,14 @@
 #include "boid.hpp"
 #include "flock.hpp"
 #include "multiflock.hpp"
+#include "obstacles.hpp"
 #include "predator.hpp"
 
 int main() {
   try {
+    // booleano per scelta periodiche / bordi
+    bool behaviour = true;
+
     // inizializzo parametri stormo
     Parameters params(50., 25., 1.2, 0.1, 0.01);
     // parametri finestra e video tarati sul device
@@ -33,15 +38,12 @@ int main() {
 
     // inizializzo stormo
     Flock bd_flock{params, 100, 120., {video_x, video_y}, obstacles};
-    // inizializzo predatore
-    /*Predator predator(600., 300., 100., 0., 140., 30., 0.6, video_x, video_y,
-                      90., 0.8);*/
-    std::vector<Predator> predators =
-        random_predators(2, {video_x, video_y}, 150., 30., 1., 70., 0.7);
-    // predators.push_back(predator);
+    // inizializzo vettore di predatori
+    std::vector<Predator> predators = random_predators(
+        obstacles, 2, {video_x, video_y}, 150., 30., 1., 70., 1.2);
 
     /*sf::Texture backg;
-    if (!backg.loadFromFile("textures/sky.jpg")) {
+    if (!backg.loadFromFile("textures/wowo.jpg")) {
       return 0;
     }
     backg.setSmooth(true);*/
@@ -55,31 +57,35 @@ int main() {
 
     // oggetti grafici stormo:
     std::vector<Bird> tr_boids =
-        create_birds(bd_flock, sf::Color::Blue, margin);
+        create_birds(bd_flock, sf::Color::White, margin);
 
     // oggetto grafico predatore:
     std::vector<Animate> tr_predators;
-    Animate tr_predator1(bd_texture);
-    Animate tr_predator2(bd_texture);
-    tr_predators.push_back(tr_predator1);
-    tr_predators.push_back(tr_predator2);
-
-    // tr_predator.addTexture(bd_texture);
-
-    // imposto colore, posizione e rotazione predatore
-    for (int indx = 0; indx < predators.size(); ++indx) {
-      tr_predators[indx].setPosition(predators[indx].get_pos()[0] + margin,
-                                     predators[indx].get_pos()[1] + margin);
-      tr_predators[indx].setRotation(180. - predators[indx].get_angle());
+    for (int i = 0; static_cast<unsigned int>(i) < predators.size(); ++i) {
+      Animate tr_predator(
+          predators[static_cast<unsigned int>(i)].get_par_ds() / 24.,
+          bd_texture);
+      tr_predators.push_back(tr_predator);
     }
 
-    // disegna ostacoli
+    // imposto posizione e rotazione predatore
+    for (int indx = 0; static_cast<unsigned int>(indx) < predators.size();
+         ++indx) {
+      tr_predators[static_cast<unsigned int>(indx)].setPosition(
+          predators[static_cast<unsigned int>(indx)].get_pos()[0] + margin,
+          predators[static_cast<unsigned int>(indx)].get_pos()[1] + margin);
+      tr_predators[static_cast<unsigned int>(indx)].setRotation(
+          180. - predators[static_cast<unsigned int>(indx)].get_angle());
+    }
+
+    // oggetti grafici ostacoli
     std::vector<sf::CircleShape> obs_circles;
     std::transform(
         obstacles.begin(), obstacles.end(), std::back_inserter(obs_circles),
         [&margin](Obstacle b) -> sf::CircleShape {
           sf::CircleShape ob_circ(b.get_size() * 0.7);
-          ob_circ.setFillColor(sf::Color::Red);
+          ob_circ.setFillColor(sf::Color(210, 210, 210));
+          ob_circ.setOrigin(ob_circ.getRadius(), ob_circ.getRadius());
           ob_circ.setPosition(b.get_pos()[0] + margin, b.get_pos()[1] + margin);
           return ob_circ;
         });
@@ -89,8 +95,9 @@ int main() {
     settings.antialiasingLevel = 8;
 
     // inizializzo finestra
-    sf::RenderWindow window(sf::VideoMode(window_x, window_y), "n-th boid test",
-                            sf::Style::Default, settings);
+    sf::RenderWindow window(sf::VideoMode(static_cast<float>(window_x),
+                                          static_cast<float>(window_y)),
+                            "STAR BOIDS", sf::Style::Default, settings);
     window.setFramerateLimit(60);
     // posiziona finestra in alto a sinistra
     window.setPosition(sf::Vector2i(0, window_x * 0.023));
@@ -105,9 +112,9 @@ int main() {
 
     // riquadro simulazione
     sf::RectangleShape rec_sim(sf::Vector2f(video_x, video_y));
-    rec_sim.setFillColor(sf::Color(203, 245, 255));
+    rec_sim.setFillColor(sf::Color::Blue);
     // rec_sim.setTexture(&backg);
-    rec_sim.setOutlineColor(sf::Color::Black);
+    rec_sim.setOutlineColor(sf::Color::White);
     rec_sim.setOutlineThickness(2);
     rec_sim.setPosition(margin, margin);
 
@@ -122,28 +129,61 @@ int main() {
     Tracker com_tracker(std::valarray<float>{video_x, video_y},
                         {pos_com_x, pos_com_y}, com_ratio, margin / 2);
     com_tracker.setPosition(sf::Vector2f{tracker_x, tracker_y});
-    com_tracker.setFillColors(sf::Color::White, sf::Color(220, 220, 220),
-                              sf::Color::Blue);
+    com_tracker.setFillColors(sf::Color::White, sf::Color(240, 240, 240),
+                              sf::Color::Black);
     com_tracker.setOutlineColors(sf::Color::Black, sf::Color::Black,
                                  sf::Color::Black);
     com_tracker.setOutlineThickness(2, 0, 0);
 
     // inizializza e sistema testo a schermo
     sf::Text comp_text;
-    comp_text.setFillColor(sf::Color::Black);
+    comp_text.setFillColor(sf::Color::White);
     comp_text.setFont(font);
-    comp_text.setCharacterSize(22);
+    comp_text.setCharacterSize(20);
     comp_text.setPosition(video_x + 2 * margin,
                           video_y * com_ratio + 3 * margin);
 
     // indicatore velocità media
-    StatusBar speed_bar("Mean speed \n0           350", font,
-                        com_tracker.getOuter().getGlobalBounds().width, 22.,
+    StatusBar speed_bar("Mean speed", font,
+                        com_tracker.getOuter().getGlobalBounds().width, 20.,
                         {0., 350.});
+    speed_bar.setColors(sf::Color::White, sf::Color::White);
     speed_bar.setPosition(sf::Vector2f{
         video_x + 2 * margin,
         video_y * com_ratio + 3 * margin + 4.2 * comp_text.getCharacterSize()});
     Statistics flock_stats = bd_flock.get_stats();
+
+    // testo per messaggi a schermo
+    sf::Text message_text("ciao", font, 20);
+    message_text.setFillColor(sf::Color::Black);
+    message_text.setOrigin(0, message_text.getLocalBounds().height);
+    // rettangolo di sfondo
+    sf::RectangleShape message_rect(sf::Vector2f(
+        video_x * com_ratio, message_text.getGlobalBounds().height + margin));
+    message_rect.setFillColor(sf::Color::White);
+    message_rect.setOrigin(0, message_rect.getLocalBounds().height);
+    message_rect.setPosition(video_x + 2 * margin, window_y - margin);
+    message_text.setPosition(
+        video_x + 2.5 * margin,
+        window_y - margin - 0.4 * message_rect.getGlobalBounds().height);
+
+    // testo per guida ai comandi
+    sf::Text commands_text("", font, 20);
+    commands_text.setFillColor(sf::Color::White);
+    commands_text.setString(
+        "COMMANDS:\n"
+        " > CTRL + B : generate boid\n"
+        "    (hold for loop generation)\n"
+        " > CTRL + P : generate predator\n"
+        " > CTRL + O : toggle place obstacle\n"
+        "    (place with left click)\n"
+        " > CTRL + A : pause / resume sim\n"
+        " > esc : close program");
+    commands_text.setOrigin(0, commands_text.getLocalBounds().height);
+    commands_text.setPosition(message_rect.getPosition().x,
+                              message_rect.getPosition().y -
+                                  message_rect.getGlobalBounds().height -
+                                  0.7 * commands_text.getCharacterSize());
 
     // calcolo tempi di computazione / disegno
     // inizializza init = istante di tempo
@@ -161,16 +201,62 @@ int main() {
     // counter per operazioni a intervalli discreti
     int counter = 0;
 
+    // booleano per la generazione in loop di boid
+    bool boid_gen = false;
+    // booleano per il posizionamento di ostacoli
+    bool obstacle_gen = false;
+    // booleano per sospendere la simulazione
+    bool pause = false;
+
+    // create data output file
+    /*auto now = std::chrono::system_clock::now();
+    auto present_time = std::chrono::system_clock::to_time_t(now);
+    step_ss << "output/boids " << std::setw(18) << std::ctime(&present_time)
+            << ".txt";*/
+    step_ss << "output/boids.txt";
+    std::ofstream output_file{step_ss.str()};
+    if (!output_file) {
+      throw std::runtime_error("Cannot open output file");
+    }
+    step_ss.str("");
+    output_file
+        << "Mean distance + / - Mean d RMS    Mean speed + / - Mean s RMS\n";
+
     // game cicle
     while (window.isOpen()) {
       init = std::chrono::steady_clock::now();
       // aggiorna vettore di oggetti grafici bird
       update_birds(tr_boids, bd_flock, margin);
-      // aggiorna oggetti grafici predatori
-      for (int indx = 0; indx < predators.size(); ++indx) {
-        tr_predators[indx].setPosition(predators[indx].get_pos()[0] + margin,
-                                       predators[indx].get_pos()[1] + margin);
-        tr_predators[indx].setRotation(180. - predators[indx].get_angle());
+      // aggiorna oggetti grafici predator
+      for (int i = 0;
+           i < static_cast<int>(predators.size() - tr_predators.size()); ++i) {
+        Animate tr_predator(
+            predators[static_cast<unsigned int>(i)].get_par_ds() / 24.,
+            bd_texture);
+        tr_predators.push_back(tr_predator);
+      }
+      // aggiorna proprietà oggetti grafici predatori
+      for (int indx = 0; static_cast<unsigned int>(indx) < predators.size();
+           ++indx) {
+        tr_predators[static_cast<unsigned int>(indx)].setPosition(
+            predators[indx].get_pos()[0] + margin,
+            predators[static_cast<unsigned int>(indx)].get_pos()[1] + margin);
+        tr_predators[static_cast<unsigned int>(indx)].setRotation(
+            180. - predators[static_cast<unsigned int>(indx)].get_angle());
+      }
+      // aggiorna ostacoli
+      if (obs_circles.size() != obstacles.size()) {
+        obs_circles.resize(obstacles.size());
+        std::transform(obstacles.begin(), obstacles.end(), obs_circles.begin(),
+                       [&margin](Obstacle const& b) -> sf::CircleShape {
+                         sf::CircleShape ob_circ(b.get_size() * 0.7);
+                         ob_circ.setFillColor(sf::Color(210, 210, 210));
+                         ob_circ.setOrigin(ob_circ.getRadius(),
+                                           ob_circ.getRadius());
+                         ob_circ.setPosition(b.get_pos()[0] + margin,
+                                             b.get_pos()[1] + margin);
+                         return ob_circ;
+                       });
       }
       // aggiorna posizione com
       if (counter % 4 == 0) {
@@ -182,15 +268,127 @@ int main() {
         bd_flock.update_stats();
         flock_stats = bd_flock.get_stats();
         speed_bar.update_value(flock_stats.av_vel);
+        step_ss.str("");
+        step_ss << "Mean distance (px): " << std::setw(8)
+                << std::setprecision(1) << std::fixed << flock_stats.av_dist
+                << " +/- " << std::setprecision(1) << std::fixed
+                << flock_stats.dist_RMS << '\n';
+        step_ss << "Mean speed (px/s): " << std::setw(8) << std::setprecision(1)
+                << std::fixed << flock_stats.av_vel << " +/- "
+                << std::setprecision(1) << std::fixed << flock_stats.vel_RMS;
+        speed_bar.set_text(step_ss.str());
+      }
+      if (counter % 60 == 0) {
+        output_file << std::setw(13) << std::setprecision(3) << std::fixed
+                    << flock_stats.av_dist << "       " << std::setw(10)
+                    << std::setprecision(3) << std::fixed
+                    << flock_stats.dist_RMS << "    " << std::setw(10)
+                    << std::setprecision(3) << std::fixed << flock_stats.av_vel
+                    << "       " << std::setw(10) << std::setprecision(3)
+                    << std::fixed << flock_stats.vel_RMS << '\n';
       }
       step_update += std::chrono::steady_clock::now() - init;
+
       //  Process events
       sf::Event event;
       while (window.pollEvent(event)) {
-        // Close window: exit
-        if (event.type == sf::Event::Closed) window.close();
-        // eventualmente altri comandi qui:
+        switch (event.type) {
+          case sf::Event::Closed:
+            window.close();
+            break;
+          case sf::Event::KeyPressed:
+            if (event.key.code == sf::Keyboard::Escape)
+              window.close();
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)) {
+              if (sf::Keyboard::isKeyPressed(sf::Keyboard::B)) {
+                // attiva la generazione di Boid
+                if (boid_gen == false) {
+                  boid_gen = true;
+                  message_text.setString("Add boid");
+                } else {
+                  message_text.setString("Add boid (loop)");
+                }
+              } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::P)) {
+                // aggiunge predatore (no generazione continua!)
+                message_text.setString("Add predator");
+                init = std::chrono::steady_clock::now();
+                add_predator(predators, obstacles, {video_x, video_y}, 150.,
+                             30., 1., 70., 0.7);
+                step_cmpt += std::chrono::steady_clock::now() - init;
+              } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+                pause = !pause;
+              } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::O)) {
+                // attiva la possibilità di posizionare un ostacolo sullo
+                // schermo
+                if (obstacle_gen == false) {
+                  message_text.setString("Add obstacle");
+                  obstacle_gen = true;
+                  pause = true;
+                } else {
+                  obstacle_gen = false;
+                  pause = false;
+                  if (message_text.getString() == "Add obstacle" ||
+                      message_text.getString() ==
+                          "Impossible to add obstacle" ||
+                      message_text.getString() == "Obstacle added")
+                    message_text.setString("");
+                }
+              }
+            }
+            break;
+          case sf::Event::KeyReleased:
+            if (event.key.code == sf::Keyboard::B ||
+                event.key.code == sf::Keyboard::LControl) {
+              // disattiva la generazione di Boid
+              boid_gen = false;
+              // pulisce messaggio
+              if (message_text.getString() == "Add boid" ||
+                  message_text.getString() == "Add boid (loop)")
+                message_text.setString("");
+              // pulisce anche per predatori in quanto si attiva al rilascio
+              // di LControl
+              if (message_text.getString() == "Add predator")
+                message_text.setString("");
+            } else if (event.key.code == sf::Keyboard::P) {
+              if (message_text.getString() == "Add predator")
+                message_text.setString("");
+            }
+            break;
+          case sf::Event::MouseButtonPressed:
+            if (event.mouseButton.button == sf::Mouse::Left && obstacle_gen) {
+              init = std::chrono::steady_clock::now();
+              if (add_obstacle(
+                      obstacles,
+                      {static_cast<double>(sf::Mouse::getPosition(window).x) -
+                           static_cast<double>(margin),
+                       static_cast<double>(sf::Mouse::getPosition(window).y) -
+                           static_cast<double>(margin)},
+                      20., {video_x, video_y})) {
+                message_text.setString("Obstacle added");
+                step_cmpt += std::chrono::steady_clock::now() - init;
+              } else {
+                message_text.setString("Impossible to add obstacle");
+                step_cmpt += std::chrono::steady_clock::now() - init;
+              }
+            }
+            break;
+          case sf::Event::MouseButtonReleased:
+            if (event.mouseButton.button == sf::Mouse::Left && obstacle_gen) {
+              if (message_text.getString() == "Obstacle added" ||
+                  message_text.getString() == "Impossible to add obstacle")
+                message_text.setString("Add obstacle");
+            }
+            break;
+          default:
+            break;
+        }
       }
+      if (boid_gen) {
+        init = std::chrono::steady_clock::now();
+        bd_flock.add_boid(obstacles);
+        step_cmpt += std::chrono::steady_clock::now() - init;
+      }
+
       // stampa a schermo tempo di calcolo e disegno (mediato su 4 frame)
       if (counter % 4 == 0) {
         step_ss.str("");
@@ -206,42 +404,51 @@ int main() {
         step_update = std::chrono::duration<double, std::milli>::zero();
       }
 
-      // calcola tempo di computazione
+      // avvia cronometro per calcolo tempo di disegno
       init = std::chrono::steady_clock::now();
       // clear window
-      window.clear(sf::Color(210, 210, 210));
+      window.clear(sf::Color::Black);
       // disegna riquadro simulazione
       window.draw(rec_sim);
-      // disegna ostacoli
-      for (sf::CircleShape& obs : obs_circles) {
-        window.draw(obs);
-      }
       // disegna stormo
       for (Bird& tr_boid : tr_boids) {
         window.draw(tr_boid);
       }
       // disegna predatore
       for (Animate& tr_predator : tr_predators) window.draw(tr_predator);
+      // disegna ostacoli
+      for (sf::CircleShape& obs : obs_circles) {
+        window.draw(obs);
+      }
       // disegna tracker centro di massa
       window.draw(com_tracker);
       // disegna testo
       window.draw(comp_text);
       // disegna barra velocità media
       window.draw(speed_bar);
+      // disegna riquadro messaggi
+      window.draw(message_rect);
+      // disegna messaggio per l'utente
+      window.draw(message_text);
+      // disegna istruzioni
+      window.draw(commands_text);
       // taaac TAAAAAAC
       window.display();
       // calcola tempo di disegno
       step_draw += std::chrono::steady_clock::now() - init;
+
       // avvia cronometro per computazione
       init = std::chrono::steady_clock::now();
       // aggiorna stato flock e predatore
-      bd_flock.update_global_state(0.0166, true, predators, obstacles);
+      if (!pause)
+        bd_flock.update_global_state(0.0166, behaviour, predators, obstacles);
       // ferma cronometro: calcola tempo di computazione
       step_cmpt += std::chrono::steady_clock::now() - init;
 
       // incrementa counter
       (counter == 1000) ? counter = 0 : ++counter;
     }
+
     return EXIT_SUCCESS;
   } catch (std::exception& e) {
     // eccezione standard (x metodi SL)
