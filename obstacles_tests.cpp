@@ -2,6 +2,7 @@
 #include "obstacles.hpp"
 
 TEST_CASE("Testing the generate_obstacles function") {
+  // generate_obstacles tales: number_of_obstacles, max_size, space{x,y};
   SUBCASE("Testing the generate_obstacles function") {
     auto obstacles = generate_obstacles(4, 45., {1920., 1080.});
 
@@ -44,6 +45,7 @@ TEST_CASE("Testing the generate_obstacles function") {
 
 TEST_CASE("Testing the add_obstacle function") {
   // OBSTACLE CONSTRUCTOR takes: pos{x,y}, size;
+  // add_obstacle takes: vector_of_obstacles, pos {x,y}, size, space{x,y};
 
   SUBCASE("Testing the add_obstacle with two not overlapping obstacles") {
     std::valarray<double> space{1920., 1080};

@@ -112,8 +112,8 @@ Flock::Flock(Parameters const& params, int bd_n, double view_ang,
   // Genera casualmente, secondo distribuzioni uniformi, i boids
   assert(bd_n >= 0);
   std::random_device rd;
-  int x_max = 2.5 * (space[0] - 40.) / params.d_s;
-  int y_max = 2.5 * (space[1] - 40.) / params.d_s;
+  int x_max = 2.5 * (space[0] - 90.) / params.d_s;
+  int y_max = 2.5 * (space[1] - 90.) / params.d_s;
 
   std::uniform_int_distribution<> dist_pos_x(0, x_max);
   std::uniform_int_distribution<> dist_pos_y(0, y_max);
@@ -124,8 +124,8 @@ Flock::Flock(Parameters const& params, int bd_n, double view_ang,
   f_com = Boid{{0., 0.}, {0., 0.}, 0., space, params.d_s, params.s};
 
   auto generator = [&]() -> Boid {
-    std::valarray<double> pos = {dist_pos_x(rd) * 0.4 * (params.d_s) + 20.,
-                                 dist_pos_y(rd) * 0.4 * (params.d_s) + 20.};
+    std::valarray<double> pos = {dist_pos_x(rd) * 0.4 * (params.d_s) + 45.,
+                                 dist_pos_y(rd) * 0.4 * (params.d_s) + 45.};
     std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
     return Boid{pos, vel, view_ang, space, params.d_s, params.s};
   };

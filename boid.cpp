@@ -1,5 +1,6 @@
 #include "boid.hpp"
 
+#include <algorithm>
 #include <mutex>
 #include <type_traits>
 
@@ -85,17 +86,19 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
     (b_pos[1] < 20.) ? b_pos[1] = b_space[1] - 21. : b_pos[1];
   } else {
     // implementazione con bordi
-    (b_pos[0] > b_space[0] - border_detection * b_param_ds)
-        ? b_vel[0] -= border_repulsion * b_param_s / (b_space[0] - b_pos[0])
+    (b_pos[0] > b_space[0] - border_detection * b_param_ds - 40.)
+        ? b_vel[0] -=
+          border_repulsion * b_param_s / (b_space[0] - b_pos[0] - 40)
         : b_vel[0];
-    (b_pos[0] < border_detection * b_param_ds)
-        ? b_vel[0] += border_repulsion * b_param_s / b_pos[0]
+    (b_pos[0] < border_detection * b_param_ds + 40.)
+        ? b_vel[0] += border_repulsion * b_param_s / (b_pos[0] - 40)
         : b_vel[0];
-    (b_pos[1] > b_space[1] - border_detection * b_param_ds)
-        ? b_vel[1] -= border_repulsion * b_param_s / (b_space[1] - b_pos[1])
+    (b_pos[1] > b_space[1] - border_detection * b_param_ds - 40.)
+        ? b_vel[1] -=
+          border_repulsion * b_param_s / (b_space[1] - b_pos[1] - 40)
         : b_vel[1];
-    (b_pos[1] < border_detection * b_param_ds)
-        ? b_vel[1] += border_repulsion * b_param_s / b_pos[1]
+    (b_pos[1] < border_detection * b_param_ds + 40.)
+        ? b_vel[1] += border_repulsion * b_param_s / (b_pos[1] - 40)
         : b_vel[1];
   }
 
@@ -215,27 +218,58 @@ T compute_angle(std::valarray<T> const& vec) {
 }
 
 bool is_visible(Boid const& bd_1, Boid const& bd_2) {
-  double angle = bd_2.get_view_angle();
-  assert(angle >= 0. && angle <= 180.);
+  double view_angle = bd_2.get_view_angle();
+  double boid_angle = bd_2.get_angle();
+  assert(view_angle >= 0. && view_angle <= 180.);
+
   double relative_angle =
       compute_angle<double>(bd_1.get_pos() - bd_2.get_pos());
 
-  if (relative_angle == 180. && bd_2.get_angle() < 0) {
-    return std::abs(relative_angle + bd_2.get_angle()) <= angle;
+  /* if (boid_angle == 0) {
+    return std::abs(relative_angle) <= view_angle;
+  } else if (boid_angle == 180.) {
+    return (180. - std::abs(relative_angle)) <= view_angle;
+  } else if (boid_angle = 90.0 && relative_angle >= 0) {
+    return std::abs(relative_angle - boid_angle) < view_angle;
+  } else if (boid_angle = 90.0 && relative_angle <= -90.0) {
+    return (90 + std::abs(relative_angle)) <= view_angle;
+  } else if (boid_angle =
+                 90.0 && relative_angle > -90.0 && relative_angle < -180.) {
+    return (180. - std::abs(relative_angle)) <= view_angle;
+  } else if (boid_angle > 0 && relative_angle > 0) {
+    return std::abs(boid_angle - relative_angle) <= view_angle;
+  } else if (boid_angle > 0 && relative_angle <= 0) {
+    return (boid_angle + std::abs(relative_angle)) <= view_angle;
+  } else if (boid_angle < 0 && relative_angle > 0) {
+    return (std::abs(boid_angle) + relative_angle) <= view_angle;
+  } else if (boid_angle < 0 && relative_angle < 0) {
+    return (std::abs(relative_angle) - std::abs(boid_angle)) <= view_angle;
   } else {
-    return std::abs(relative_angle - bd_2.get_angle()) <= angle;
+     if (relative_angle == 180. && bd_2.get_angle() < 0) {
+      return std::abs(relative_angle + bd_2.get_angle()) <= view_angle;
+    } else if (relative_angle < 0. && boid_angle == 180.) {
+      return std::abs(relative_angle + bd_2.get_angle()) <= view_angle;
+    } else {
+      return std::abs(relative_angle - bd_2.get_angle()) <= view_angle;
+    } */
+
+  if (std::abs(relative_angle - boid_angle) <= 180.) {
+    return std::abs(relative_angle - boid_angle) <= view_angle;
+  } else {
+    return (360. - std::abs(relative_angle - boid_angle)) <= view_angle;
   }
 }
 
 bool is_obs_visible(Obstacle const& obs, Boid const& bd) {
+  double view_angle = bd.get_view_angle();
   double angle = bd.get_view_angle();
   assert(angle >= 0. && angle <= 180.);
   double relative_angle = compute_angle<double>(obs.get_pos() - bd.get_pos());
 
-  if (relative_angle == 180. && bd.get_angle() < 0) {
-    return std::abs(relative_angle + bd.get_angle()) <= angle;
+  if (std::abs(relative_angle - bd.get_angle()) <= 180.) {
+    return std::abs(relative_angle - bd.get_angle()) <= view_angle;
   } else {
-    return std::abs(relative_angle - bd.get_angle()) <= angle;
+    return (360. - std::abs(relative_angle - bd.get_angle())) <= view_angle;
   }
 }
 

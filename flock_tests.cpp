@@ -391,11 +391,11 @@ TEST_CASE("Testing the Flock::vel_correction method without predator") {
     const auto it = flock.begin() + 1;
     const auto ut = flock.end() - 1;
     const auto dv1 = flock.vel_correction(it);
-    const auto dv2 = flock.vel_correction(ut);
+    const auto dv4 = flock.vel_correction(ut);
     CHECK(dv1[0] == -0.5);
     CHECK(dv1[1] == -17.);
-    CHECK(dv2[0] == 0.);
-    CHECK(dv2[1] == 0.);
+    CHECK(dv4[0] == 0.);
+    CHECK(dv4[1] == 0.);
   }
 
   SUBCASE("Testing the Flock::vel_correction method with just one boids") {

@@ -252,7 +252,7 @@ int main() {
       // boid_pred_detection, boid_pred_repulsion, boid_obs_detection,
       // boid_obs_repulsion, pred_pred_repulsion
 
-      bd_flock.update_global_state(0.0166, true, predators, obstacles, 9., 25.,
+      bd_flock.update_global_state(0.0166, false, predators, obstacles, 15., 45.,
                                    1., 1., 3, 0.4, 1.);
       // bd_flock.update_global_state(0.0166, true, predators, obstacles);
       // ferma cronometro: calcola tempo di computazione
