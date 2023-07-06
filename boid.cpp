@@ -214,15 +214,11 @@ bool is_visible(Boid const& bd_1, Boid const& bd_2) {
   double relative_angle =
       compute_angle<double>(bd_1.get_pos() - bd_2.get_pos());
 
-  /* if (relative_angle == 180. && bd_2.get_angle() < 0) {
-     return std::abs(relative_angle + bd_2.get_angle()) <= angle;
-   } else {
-     return std::abs(relative_angle - bd_2.get_angle()) <= angle;
-   } */
-
-  return std::abs(
-             std::abs(compute_angle<double>(bd_1.get_pos() - bd_2.get_pos()) -
-                      std::abs(bd_2.get_angle()))) <= angle;
+  if (relative_angle == 180. && bd_2.get_angle() < 0) {
+    return std::abs(relative_angle + bd_2.get_angle()) <= angle;
+  } else {
+    return std::abs(relative_angle - bd_2.get_angle()) <= angle;
+  }
 }
 
 bool is_obs_visible(Obstacle const& obs, Boid const& bd) {

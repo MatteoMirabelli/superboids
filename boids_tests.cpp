@@ -421,10 +421,6 @@ TEST_CASE("Testing the is_visible function") {
     CHECK(iv32 == false);
   }
 
-  // BOID CONSTRUCTOR takes:
-  // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
-  // param_s
-
   SUBCASE(
       "Testing the is_visible function with boids with same x_position "
       "configurations") {
@@ -439,10 +435,28 @@ TEST_CASE("Testing the is_visible function") {
     bool iv23 = is_visible(bd2, bd3);
     bool iv32 = is_visible(bd3, bd2);
 
-    CHECK(iv12 == true);  //
+    CHECK(iv12 == true);
     CHECK(iv21 == true);
     CHECK(iv13 == false);
-    CHECK(iv31 == true);  //
+    CHECK(iv31 == true);
+    CHECK(iv23 == false);
+    CHECK(iv32 == true);
+  }
+
+  SUBCASE(
+      "Testing the is_visible function with boids with same y_position "
+      "configurations") {
+    Boid bd1({15., 10.}, {-3., 0.}, 90., space, 5., 1.);
+    Boid bd2({17., 10.}, {0., -3.}, 90., space, 5., 1.);
+    Boid bd3({20., 10.}, {3., 0.}, 90., space, 5., 1.);
+
+    bool iv12 = is_visible(bd1, bd2);
+    bool iv21 = is_visible(bd2, bd1);
+    bool iv23 = is_visible(bd2, bd3);
+    bool iv32 = is_visible(bd3, bd2);
+
+    CHECK(iv12 == true);
+    CHECK(iv21 == false);
     CHECK(iv23 == false);
     CHECK(iv32 == true);
   }
@@ -458,3 +472,97 @@ TEST_CASE("Testing the is_visible function") {
     CHECK(iv21 == true);
   }
 }
+
+/* TEST_CASE("Testing the get_vector_neighbours function") {
+  // BOID CONSTRUCTOR takes:
+  // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
+  // param_s
+  // PARAMS are f_params.d, f_params.d_s, f_params.s, f_params.a, f_params.c
+  // FLOCK CONSTRUCTOR takes:
+  // params, boid number, view_angle, window_space{1920, 1080};
+
+  SUBCASE("Testing the get_vector_neighbours function with no neighbours") {
+    Parameters params(6., 2., 1., 2., 3.);
+    Flock flock(params, 0., 120., {1920., 1080.});
+
+    Boid bd({15., 10.}, {4., 7.}, 120., {1920., 1080}, 4., 2.);
+    flock.push_back(bd);
+    auto it = flock.begin();
+
+    auto neighbours =
+        get_vector_neighbours(flock.get_flock(), it, flock.get_params().d);
+
+    CHECK(neighbours.size() == 0);
+  }
+
+  SUBCASE("Testing the get_vector_neighbours function with three boids") {
+    Parameters params(6., 4., 1, 2, 3);
+    Flock flock(params, 0., 120., {1920., 1080.});
+
+    Boid bd1({15., 10.}, {-4., 0.}, 90., {1920., 1080}, 4., 2.);
+    Boid bd2({17., 10}, {0., -3.}, 90., {1920., 1080}, 4., 2.);
+    Boid bd3({20., 10.}, {4., 0.}, 90., {1920., 1080.}, 4., 2.);
+
+    flock.push_back(bd1);
+    flock.push_back(bd2);
+    flock.push_back(bd3);
+    auto it = flock.begin();
+
+    auto neighbours1 =
+        get_vector_neighbours(flock.get_flock(), it, flock.get_params().d);
+    ++it;
+    auto neighbours2 =
+        get_vector_neighbours(flock.get_flock(), it, flock.get_params().d);
+
+    CHECK(neighbours1.size() == 0);
+    CHECK(neighbours2.size() == 2);
+    CHECK(flock.size() == 3);
+  } */
+
+/* SUBCASE("Testing the get_vector_neighbours function with end") {
+   Parameters params(4, 2, 1, 2, 3);
+   Flock flock(params, 0., 120., {1920., 1080.});
+
+   Boid bd1({15., 10.}, {-4., 0.}, 90., {1920., 1080}, 4, 2);
+   Boid bd2({17., 10}, {0., -3.}, 90., {1920., 1080}, 4., 2);
+   Boid bd3({20., 10.}, {4., 0.}, 90., {1920., 1080.}, 4., 2.);
+
+   flock.push_back(bd1);
+   flock.push_back(bd2);
+   flock.push_back(bd3);
+   auto it = flock.end();
+
+   auto neighbours =
+       get_vector_neighbours(flock.get_flock(), it, flock.get_params().d);
+
+   CHECK(neighbours.size() == 0);
+ } */
+
+/* SUBCASE(
+     "Testing the get_vector_neighbours function with boids out of range") {
+   Parameters params(4, 2, 1, 2, 3);
+   Flock flock(params, 0., 120., {1920., 1080.});
+
+   Boid bd1({15., 10.}, {2., 2.}, 90., {1920., 1080}, 4, 2);
+   Boid bd2({19., 14}, {2., 2.}, 90., {1920., 1080}, 4., 2);
+   Boid bd3({21., 16.}, {2., 2.}, 90., {1920., 1080.}, 4., 2.);
+
+   flock.push_back(bd1);
+   flock.push_back(bd2);
+   flock.push_back(bd3);
+   auto it = flock.begin();
+
+   auto neighbours1 =
+       get_vector_neighbours(flock.get_flock(), it, flock.get_params().d);
+   auto neighbours2 =
+       get_vector_neighbours(flock.get_flock(), it + 1, flock.get_params().d);
+
+   auto neighbours3 =
+       get_vector_neighbours(flock.get_flock(), it + 2, flock.get_params().d);
+
+   CHECK(neighbours1.size() == 0);
+   CHECK(neighbours2.size() == 1);
+   CHECK(neighbours2[0].get_pos()[0] == 21);
+   CHECK(neighbours2[0].get_pos()[1] == 16.);
+   CHECK(neighbours3.size() == 0);
+ } */

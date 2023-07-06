@@ -60,6 +60,7 @@ class Flock {
   std::vector<Boid>::iterator begin();
   std::vector<Boid>::iterator end();
 
+  std::vector<Boid> const& get_flock() const;
   Boid const& get_boid(int) const;
   Boid const& get_com() const;
   Parameters const& get_params() const;

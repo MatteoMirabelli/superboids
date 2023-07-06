@@ -208,7 +208,13 @@ std::vector<Boid>::iterator Flock::end() { return f_flock.end(); }
 
 double Flock::size() const { return f_flock.size(); }
 
-void Flock::push_back(Boid const& boid) { f_flock.push_back(boid); }
+void Flock::push_back(Boid const& boid) {
+  assert(boid.get_par_ds() == f_params.d_s);
+  assert(boid.get_par_s() == f_params.s);
+  f_flock.push_back(boid);
+}
+
+std::vector<Boid> const& Flock::get_flock() const { return f_flock; }
 
 Boid const& Flock::get_boid(int n) const { return f_flock[n - 1]; }
 
@@ -330,7 +336,6 @@ std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
 
   return get_vector_neighbours(f_flock, it, f_params.d);
 }
-
 
 // Avoid_pred for tests
 std::valarray<double> Flock::avoid_pred(Boid const& bd, Predator const& pred,

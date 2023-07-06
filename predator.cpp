@@ -58,6 +58,7 @@ std::vector<Predator> random_predators(std::vector<Obstacle> const& obs,
                                        double pred_hunger) {
   std::vector<Predator> predators;
   assert(pred_num >= 0);
+  assert(pred_ds > 0);
   if (pred_num == 0) return predators;
   std::random_device rd;
   int x_max = 2.5 * (pred_space[0] - 40.) / pred_ds;
@@ -69,6 +70,7 @@ std::vector<Predator> random_predators(std::vector<Obstacle> const& obs,
   std::uniform_real_distribution<> dist_vel_x(-150., 150.);
   std::uniform_real_distribution<> dist_vel_y(-150., 150.);
 
+  // lambda per la generazione di un predatore non sugli ostacoli
   auto generator = [&dist_pos_x, &dist_pos_y, &dist_vel_x, &dist_vel_y, &rd,
                     &pred_space, &pred_ang, &pred_ds, &pred_s, &pred_range,
                     &pred_hunger, &obs]() -> Predator {
@@ -80,6 +82,7 @@ std::vector<Predator> random_predators(std::vector<Obstacle> const& obs,
       std::valarray<double> dist = pos - obstacle.get_pos();
       return vec_norm(dist) < obstacle.get_size() + 0.6 * pred_ds;
     };
+    
     while (std::any_of(obs.begin(), obs.end(), overlap)) {
       // fintanto che c'è sovrapposizione, rigenera la posizione
       pos = {dist_pos_x(rd) * 0.4 * (pred_ds) + 20.,

@@ -1,6 +1,47 @@
 #include "doctest.h"
 #include "obstacles.hpp"
 
+TEST_CASE("Testing the generate_obstacles function") {
+  SUBCASE("Testing the generate_obstacles function") {
+    auto obstacles = generate_obstacles(4, 45., {1920., 1080.});
+
+    CHECK(obstacles.size() == 4);
+
+    CHECK(obstacles[0].get_size() <= 45.);
+    CHECK(obstacles[0].get_size() >= 15.);
+    CHECK(obstacles[0].get_pos()[0] >= 202.5);
+    CHECK(obstacles[0].get_pos()[0] <= 1717.5);
+    CHECK(obstacles[0].get_pos()[1] >= 202.5);
+    CHECK(obstacles[0].get_pos()[1] <= 877.5);
+
+    CHECK(obstacles[1].get_size() <= 45.);
+    CHECK(obstacles[1].get_size() >= 15.);
+    CHECK(obstacles[1].get_pos()[0] >= 202.5);
+    CHECK(obstacles[1].get_pos()[0] <= 1717.5);
+    CHECK(obstacles[1].get_pos()[1] >= 202.5);
+    CHECK(obstacles[1].get_pos()[1] <= 877.5);
+
+    CHECK(obstacles[2].get_size() <= 45.);
+    CHECK(obstacles[2].get_size() >= 15.);
+    CHECK(obstacles[2].get_pos()[0] >= 202.5);
+    CHECK(obstacles[2].get_pos()[0] <= 1717.5);
+    CHECK(obstacles[2].get_pos()[1] >= 202.5);
+    CHECK(obstacles[2].get_pos()[1] <= 877.5);
+
+    CHECK(obstacles[3].get_size() <= 45.);
+    CHECK(obstacles[3].get_size() >= 15.);
+    CHECK(obstacles[3].get_pos()[0] >= 202.5);
+    CHECK(obstacles[3].get_pos()[0] <= 1717.5);
+    CHECK(obstacles[3].get_pos()[1] >= 202.5);
+    CHECK(obstacles[3].get_pos()[1] <= 877.5);
+  }
+
+  SUBCASE("Testing the generate_obstacles with null number of obstacles") {
+    auto obstacles = generate_obstacles(0, 45., {1920., 1080.});
+    CHECK(obstacles.size() == 0);
+  }
+}
+
 TEST_CASE("Testing the add_obstacle function") {
   // OBSTACLE CONSTRUCTOR takes: pos{x,y}, size;
 
@@ -91,8 +132,8 @@ TEST_CASE("Testing the add_obstacle function") {
 TEST_CASE("Testing the sort_obstacles function") {
   // OBSTACLE CONSTRUCTOR takes: pos{x,y}, size;
 
-  // Be careful not to initialize overlapping obstacles. If Obstacles added with
-  // add_obstacle function (previously tested), this cannot happen...
+  // Be careful not to initialize overlapping obstacles. If Obstacles added
+  // with add_obstacle function (previously tested), this cannot happen...
 
   SUBCASE(
       "Testing the sort_obstacle function with obstacles with different "
