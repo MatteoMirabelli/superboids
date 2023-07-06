@@ -62,6 +62,43 @@ void Boid::set_space(double sx, double sy) {
 
 void Boid::set_space(std::valarray<double> const& space) { b_space = space; }
 
+// Avoid_obs for tests
+std::valarray<double> Boid::avoid_obs(std::vector<Obstacle> const& obstacles,
+                                      double d, double k) const {
+  if (obstacles.size() == 0) {
+    return std::valarray<double>{0., 0.};
+  } else {
+    std::valarray<double> delta_vel{0., 0.};
+    for (auto const& ob : obstacles) {
+      std::valarray<double> dist = ob.get_pos() - b_pos;
+      if (vec_norm(dist) < ob.get_size() + d * b_param_ds &&
+          is_obs_visible(ob, *this)) {
+        delta_vel -= k * b_param_s * (ob.get_pos() - b_pos);
+      }
+    }
+    return delta_vel;
+  }
+}
+
+std::valarray<double> Boid::avoid_obs(
+    std::vector<Obstacle> const& obstacles) const {
+  if (obstacles.size() == 0) {
+    return std::valarray<double>{0., 0.};
+  } else {
+    std::valarray<double> delta_vel{0., 0.};
+    for (auto const& ob : obstacles) {
+      std::valarray<double> dist = ob.get_pos() - b_pos;
+      if (vec_norm(dist) < ob.get_size() + b_param_ds &&
+          is_obs_visible(ob, *this) && vec_norm(dist) > ob.get_size()) {
+        delta_vel -= 1.5 * b_param_s * (ob.get_pos() - b_pos);
+      } else if (vec_norm(dist) <= ob.get_size()) {
+        delta_vel -= 5. * b_param_s * (ob.get_pos() - b_pos);
+      }
+    }
+    return delta_vel;
+  }
+}
+
 void Boid::update_state(double delta_t, std::valarray<double> delta_vel) {
   b_vel += delta_vel;
   b_pos += (b_vel * delta_t);
@@ -132,43 +169,6 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
   (vec_norm(b_vel) < 70.) ? b_vel *= (70. / vec_norm(b_vel)) : b_vel;
 }
 
-// Avoid_obs for tests
-std::valarray<double> Boid::avoid_obs(std::vector<Obstacle> const& obstacles,
-                                      double d, double k) const {
-  if (obstacles.size() == 0) {
-    return std::valarray<double>{0., 0.};
-  } else {
-    std::valarray<double> delta_vel{0., 0.};
-    for (auto const& ob : obstacles) {
-      std::valarray<double> dist = ob.get_pos() - b_pos;
-      if (vec_norm(dist) < ob.get_size() + d * b_param_ds &&
-          is_obs_visible(ob, *this)) {
-        delta_vel -= k * b_param_s * (ob.get_pos() - b_pos);
-      }
-    }
-    return delta_vel;
-  }
-}
-
-std::valarray<double> Boid::avoid_obs(
-    std::vector<Obstacle> const& obstacles) const {
-  if (obstacles.size() == 0) {
-    return std::valarray<double>{0., 0.};
-  } else {
-    std::valarray<double> delta_vel{0., 0.};
-    for (auto const& ob : obstacles) {
-      std::valarray<double> dist = ob.get_pos() - b_pos;
-      if (vec_norm(dist) < ob.get_size() + b_param_ds &&
-          is_obs_visible(ob, *this) && vec_norm(dist) > ob.get_size()) {
-        delta_vel -= 1.5 * b_param_s * (ob.get_pos() - b_pos);
-      } else if (vec_norm(dist) <= ob.get_size()) {
-        delta_vel -= 5. * b_param_s * (ob.get_pos() - b_pos);
-      }
-    }
-    return delta_vel;
-  }
-}
-
 double Boid::get_par_ds() const { return b_param_ds; }
 
 double Boid::get_par_s() const { return b_param_s; }
@@ -177,34 +177,36 @@ void Boid::set_par_ds(double new_ds) { b_param_ds = new_ds; }
 
 void Boid::set_par_s(double new_s) { b_param_s = new_s; }
 
-
 double boid_dist(Boid const& bd_1, Boid const& bd_2) {
   // distanza = norma della differenza
   return vec_norm<double>(bd_1.get_pos() - bd_2.get_pos());
 }
 
 bool is_visible(Boid const& bd_1, Boid const& bd_2) {
-  double angle = bd_2.get_view_angle();
-  assert(angle >= 0. && angle <= 180.);
+  double view_angle = bd_2.get_view_angle();
+  double boid_angle = bd_2.get_angle();
+  assert(view_angle >= 0. && view_angle <= 180.);
+
   double relative_angle =
       compute_angle<double>(bd_1.get_pos() - bd_2.get_pos());
 
-  if (relative_angle == 180. && bd_2.get_angle() < 0) {
-    return std::abs(relative_angle + bd_2.get_angle()) <= angle;
+  if (std::abs(relative_angle - boid_angle) <= 180.) {
+    return std::abs(relative_angle - boid_angle) <= view_angle;
   } else {
-    return std::abs(relative_angle - bd_2.get_angle()) <= angle;
+    return (360. - std::abs(relative_angle - boid_angle)) <= view_angle;
   }
 }
 
 bool is_obs_visible(Obstacle const& obs, Boid const& bd) {
+  double view_angle = bd.get_view_angle();
   double angle = bd.get_view_angle();
   assert(angle >= 0. && angle <= 180.);
   double relative_angle = compute_angle<double>(obs.get_pos() - bd.get_pos());
 
-  if (relative_angle == 180. && bd.get_angle() < 0) {
-    return std::abs(relative_angle + bd.get_angle()) <= angle;
+  if (std::abs(relative_angle - bd.get_angle()) <= 180.) {
+    return std::abs(relative_angle - bd.get_angle()) <= view_angle;
   } else {
-    return std::abs(relative_angle - bd.get_angle()) <= angle;
+    return (360. - std::abs(relative_angle - bd.get_angle())) <= view_angle;
   }
 }
 

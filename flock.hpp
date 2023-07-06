@@ -61,6 +61,7 @@ class Flock {
   std::vector<Boid>::iterator begin();
   std::vector<Boid>::iterator end();
 
+  std::vector<Boid> const& get_flock() const;
   Boid const& get_boid(int) const;
   Boid const& get_com() const;
   Parameters const& get_params() const;
@@ -71,7 +72,7 @@ class Flock {
 
   std::vector<Boid> get_neighbours(std::vector<Boid>::iterator);
 
- // Avoid_pred for tests
+  // Avoid_pred for tests
   std::valarray<double> avoid_pred(Boid const&, Predator const&, double,
                                    double);
   std::valarray<double> avoid_pred(Boid const&, Predator const&);
@@ -85,6 +86,18 @@ class Flock {
   // per aggiornare lo stato:
   std::valarray<double> vel_correction(std::vector<Boid> const&,
                                        std::vector<Boid>::iterator);
+
+  // update_global_state for tests
+  // Parameters in order: border_detection, border_repulsion,
+  // boid_pred_detection, boid_pred_repulsion, boid_obs_detection,
+  // boid_obs_repulsion, pred_pred_repulsion
+  void update_global_state(double, bool, std::vector<Predator>&,
+                           std::vector<Obstacle> const&,
+                           double border_detection, double border_repulsion,
+                           double boid_pred_detection,
+                           double boid_pred_repulsion,
+                           double boid_obs_detection, double boid_obs_repulsion,
+                           double pred_pred_repulsion);
 
   void update_global_state(double, bool, std::vector<Predator>&,
                            std::vector<Obstacle> const&);

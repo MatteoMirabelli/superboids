@@ -17,9 +17,8 @@ TEST_CASE("Testing the Flock::sort method") {
     Boid bd_4(54, 3, -2, 9, 120., 1920, 1080, 4, 1);
 
     Parameters params(4, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
-    Flock flock(params, 0, com, 120., {1920, 1080});
+    Flock flock(params, 0, 120., {1920, 1080});
 
     flock.push_back(bd_2);
     flock.push_back(bd_1);
@@ -41,9 +40,8 @@ TEST_CASE("Testing the Flock::sort method") {
     Boid bd_4(10, 3, -2, 9, 120., 1920, 1080, 4, 1);
 
     Parameters params(4, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
-    Flock flock(params, 0, com, 120., {1920, 1080});
+    Flock flock(params, 0, 120., {1920, 1080});
 
     flock.push_back(bd_2);
     flock.push_back(bd_4);
@@ -64,9 +62,8 @@ TEST_CASE("Testing the Flock::sort method") {
     Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
 
     Parameters params(4, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
-    Flock flock(params, 0, com, 120., {1920, 1080});
+    Flock flock(params, 0, 120., {1920, 1080});
 
     flock.push_back(bd_1);
 
@@ -90,9 +87,8 @@ TEST_CASE("Testing the Flock::update_com method") {
     Boid bd_4(10, 12, -4, 8, 120., 1920, 1080, 4, 1);
 
     Parameters params(4, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
-    Flock flock(params, 0, com, 120., {1920, 1080});
+    Flock flock(params, 0, 120., {1920, 1080});
 
     flock.push_back(bd_1);
     flock.push_back(bd_2);
@@ -111,9 +107,8 @@ TEST_CASE("Testing the Flock::update_com method") {
     Boid bd_1(2, 2, 5, 4, 120., 1920, 1080, 4, 1);
 
     Parameters params(4, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
-    Flock flock(params, 0, com, 120., {1920, 1080});
+    Flock flock(params, 0, 120., {1920, 1080});
 
     flock.push_back(bd_1);
     flock.update_com();
@@ -129,9 +124,8 @@ TEST_CASE("Testing the Flock::update_com method") {
     Boid bd_2(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
     Parameters params(4, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
-    Flock flock(params, 0, com, 120., {1920, 1080});
+    Flock flock(params, 0, 120., {1920, 1080});
 
     flock.push_back(bd_1);
     flock.push_back(bd_2);
@@ -149,9 +143,8 @@ TEST_CASE("Testing the Flock::update_com method") {
     Boid bd_2(4, 3, -2, 9, 120., 1920, 1080, 4, 1);
 
     Parameters params(4, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
-    Flock flock(params, 0, com, 120., {1920, 1080});
+    Flock flock(params, 0, 120., {1920, 1080});
 
     flock.push_back(bd_2);
     flock.push_back(bd_1);
@@ -176,9 +169,8 @@ TEST_CASE("Testing the Flock::get_neighbours method") {
     Boid bd_4(10, 3, -2, 9, 120., 1920, 1080, 4, 1);
 
     Parameters params(2.5, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
-    Flock flock(params, 0, com, 120., {1920, 1080});
+    Flock flock(params, 0, 120., {1920, 1080});
 
     flock.push_back(bd_1);
     flock.push_back(bd_2);
@@ -277,9 +269,8 @@ TEST_CASE("Testing the Flock::get_neighbours method") {
     Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
 
     Parameters params(2.5, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
-    Flock flock(params, 0, com, 120., {1920, 1080});
+    Flock flock(params, 0, 120., {1920, 1080});
 
     flock.push_back(bd_1);
 
@@ -324,9 +315,8 @@ TEST_CASE("Testing the Flock::vel_correction method without predator") {
     Boid bd_4(10, 3, -2, 9, 120., 1920, 1080, 4, 1);
 
     Parameters params(2.5, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
-    Flock flock(params, 0, com, 120., {1920, 1080});
+    Flock flock(params, 0, 120., {1920, 1080});
 
     flock.push_back(bd_1);
     flock.push_back(bd_2);
@@ -401,20 +391,19 @@ TEST_CASE("Testing the Flock::vel_correction method without predator") {
     const auto it = flock.begin() + 1;
     const auto ut = flock.end() - 1;
     const auto dv1 = flock.vel_correction(it);
-    const auto dv2 = flock.vel_correction(ut);
+    const auto dv4 = flock.vel_correction(ut);
     CHECK(dv1[0] == -0.5);
     CHECK(dv1[1] == -17.);
-    CHECK(dv2[0] == 0.);
-    CHECK(dv2[1] == 0.);
+    CHECK(dv4[0] == 0.);
+    CHECK(dv4[1] == 0.);
   }
 
   SUBCASE("Testing the Flock::vel_correction method with just one boids") {
     Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);
 
     Parameters params(2.5, 4, 1, 2, 3);
-    Boid com(0, 0, 0, 0, 120., 1920, 1080, 4, 1);
 
-    Flock flock(params, 0, com, 120., {1920, 1080});
+    Flock flock(params, 0, 120., {1920, 1080});
 
     flock.push_back(bd_1);
 

@@ -34,10 +34,10 @@ int main() {
     float margin = (window_y - video_y) / 2;
 
     std::vector<Obstacle> obstacles =
-        generate_obstacles(20, 20., {video_x, video_y});
+        generate_obstacles(5, 30., {video_x, video_y});
 
     // inizializzo stormo
-    Flock bd_flock{params, 100, 120., {video_x, video_y}, obstacles};
+    Flock bd_flock{params, 80, 120., {video_x, video_y}, obstacles};
     // inizializzo vettore di predatori
     std::vector<Predator> predators = random_predators(
         obstacles, 2, {video_x, video_y}, 150., 30., 1., 70., 1.2);
@@ -441,6 +441,7 @@ int main() {
       init = std::chrono::steady_clock::now();
       // aggiorna stato flock e predatore
       if (!pause)
+
         bd_flock.update_global_state(0.0166, behaviour, predators, obstacles);
       // ferma cronometro: calcola tempo di computazione
       step_cmpt += std::chrono::steady_clock::now() - init;

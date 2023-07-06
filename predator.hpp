@@ -10,11 +10,9 @@ class Predator : public Boid {
   double p_hunger;  // fattore di coesione verso com locale prede
 
  public:
-  Predator(std::valarray<double> const&, std::valarray<double> const&,
-           double, double, double,
-           std::valarray<double> const&, double, double);
-  Predator(double, double, double, double,
-           double, double, double, double,
+  Predator(std::valarray<double> const&, std::valarray<double> const&, double,
+           double, double, std::valarray<double> const&, double, double);
+  Predator(double, double, double, double, double, double, double, double,
            double, double, double);
   Predator() = default;
   double get_angle() const;
@@ -38,5 +36,15 @@ std::vector<Predator> get_vector_neighbours(std::vector<Predator> const&,
 void update_predators_state(std::vector<Predator>&, double, bool,
                             std::vector<std::pair<Boid, int>> const&,
                             std::vector<Obstacle> const&);
+
+// update_predators_state for tests
+void update_predators_state(std::vector<Predator>&, double, bool,
+                            std::vector<std::pair<Boid, int>> const&,
+                            std::vector<Obstacle> const&,
+                            double pred_pred_repulsion,
+                            double pred_obs_detection,
+                            double pred_obstacle_separation,
+                            double pred_brd_detection,
+                            double pred_brd_repulsion);
 
 #endif

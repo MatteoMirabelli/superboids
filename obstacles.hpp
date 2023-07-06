@@ -19,7 +19,7 @@ class Obstacle {
 };
 
 // Genera il vettore di ostacoli
-std::vector<Obstacle> generate_obstacles(int n, double size,
+std::vector<Obstacle> generate_obstacles(int n_obstacles, double max_size,
                                          std::valarray<double> const& space);
 
 // Ordina il vettore di ostacoli
