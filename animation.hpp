@@ -55,6 +55,8 @@ class StatusBar : public sf::Drawable, public sf::Transformable {
   sf::RectangleShape s_bar;
   std::valarray<float> s_range;
   float s_value;
+  sf::Text s_min;
+  sf::Text s_max;
 
  protected:
   virtual void draw(sf::RenderTarget&, sf::RenderStates) const;
