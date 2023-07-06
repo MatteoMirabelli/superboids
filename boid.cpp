@@ -86,19 +86,18 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
     (b_pos[1] < 20.) ? b_pos[1] = b_space[1] - 21. : b_pos[1];
   } else {
     // implementazione con bordi
-    (b_pos[0] > b_space[0] - border_detection * b_param_ds - 40.)
-        ? b_vel[0] -=
-          border_repulsion * b_param_s / (b_space[0] - b_pos[0] - 40)
+    double rep = border_repulsion * vec_norm<double>(b_vel);
+    (b_pos[0] > b_space[0] - 30. - border_detection * b_param_ds)
+        ? b_vel[0] -= rep * b_param_s / (b_space[0] - b_pos[0])
         : b_vel[0];
-    (b_pos[0] < border_detection * b_param_ds + 40.)
-        ? b_vel[0] += border_repulsion * b_param_s / (b_pos[0] - 40)
+    (b_pos[0] < border_detection * b_param_ds + 30.)
+        ? b_vel[0] += rep * b_param_s / (b_pos[0])
         : b_vel[0];
-    (b_pos[1] > b_space[1] - border_detection * b_param_ds - 40.)
-        ? b_vel[1] -=
-          border_repulsion * b_param_s / (b_space[1] - b_pos[1] - 40)
+    (b_pos[1] > b_space[1] - 30. - border_detection * b_param_ds)
+        ? b_vel[1] -= rep * b_param_s / (b_space[1] - b_pos[1])
         : b_vel[1];
-    (b_pos[1] < border_detection * b_param_ds + 40.)
-        ? b_vel[1] += border_repulsion * b_param_s / (b_pos[1] - 40)
+    (b_pos[1] < border_detection * b_param_ds + 30.)
+        ? b_vel[1] += rep * b_param_s / (b_pos[1])
         : b_vel[1];
   }
 
@@ -122,16 +121,20 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
     (b_pos[1] < 20.) ? b_pos[1] = b_space[1] - 21. : b_pos[1];
   } else {
     // implementazione con bordi
-    (b_pos[0] > b_space[0] - 2.2 * b_param_ds)
-        ? b_vel[0] -= 3.5 * b_param_s / (b_space[0] - b_pos[0])
+    (b_pos[0] > b_space[0] - 30. - 2.2 * b_param_ds)
+        ? b_vel[0] -=
+          3.5 * b_param_s / (b_pos[0] - b_space[0] + 30. + 2.2 * b_param_ds)
         : b_vel[0];
-    (b_pos[0] < 2.2 * b_param_ds) ? b_vel[0] += 3.5 * b_param_s / b_pos[0]
-                                  : b_vel[0];
-    (b_pos[1] > b_space[1] - 2.2 * b_param_ds)
-        ? b_vel[1] -= 3.5 * b_param_s / (b_space[1] - b_pos[1])
+    (b_pos[0] < 2.2 * b_param_ds + 30.)
+        ? b_vel[0] += 3.5 * b_param_s / (2.2 * b_param_ds + 30. - b_pos[0])
+        : b_vel[0];
+    (b_pos[1] > b_space[1] - 30. - 2.2 * b_param_ds)
+        ? b_vel[1] -=
+          3.5 * b_param_s / (b_pos[1] - b_space[1] + 30. + 2.2 * b_param_ds)
         : b_vel[1];
-    (b_pos[1] < 2.2 * b_param_ds) ? b_vel[1] += 3.5 * b_param_s / b_pos[1]
-                                  : b_vel[1];
+    (b_pos[1] < 2.2 * b_param_ds + 30.)
+        ? b_vel[1] += 3.5 * b_param_s / (2.2 * b_param_ds + 30. - b_pos[1])
+        : b_vel[1];
   }
 
   // calcola l'angolo di orientamento dalla velocità:
@@ -144,16 +147,47 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
 
 // Avoid_obs for tests
 std::valarray<double> Boid::avoid_obs(std::vector<Obstacle> const& obstacles,
-                                      double d, double k) const {
+                                      double obstacle_repulsion,
+                                      double obstacle_detection) const {
   if (obstacles.size() == 0) {
     return std::valarray<double>{0., 0.};
   } else {
     std::valarray<double> delta_vel{0., 0.};
+    /* for (auto const& ob : obstacles) {
+       std::valarray<double> dist = ob.get_pos() - b_pos;
+       if (vec_norm(dist) < ob.get_size() + d * b_param_ds) {
+         delta_vel -= (k * b_param_s * (ob.get_pos() - b_pos));
+       } */
+
+    double rep = obstacle_repulsion * vec_norm<double>(b_vel);
     for (auto const& ob : obstacles) {
-      std::valarray<double> dist = ob.get_pos() - b_pos;
-      if (vec_norm(dist) < ob.get_size() + d * b_param_ds) {
-        delta_vel -= (k * b_param_s * (ob.get_pos() - b_pos));
-      }
+      ((b_pos[0] - ob.get_pos()[0]) > 0 &&
+       vec_norm<double>(b_pos - ob.get_pos()) >
+           ob.get_size() + obstacle_detection * b_param_ds)
+          ? delta_vel[0] +=
+            rep * b_param_s / (vec_norm<double>(b_pos - ob.get_pos()))
+          : delta_vel[0];
+
+      ((b_pos[0] - ob.get_pos()[0]) < 0 &&
+       vec_norm<double>(b_pos - ob.get_pos()) >
+           ob.get_size() + obstacle_detection * b_param_ds)
+          ? delta_vel[0] -=
+            rep * b_param_s / (vec_norm<double>(b_pos - ob.get_pos()))
+          : delta_vel[0];
+
+      ((b_pos[1] - ob.get_pos()[1]) > 0 &&
+       vec_norm<double>(b_pos - ob.get_pos()) >
+           ob.get_size() + obstacle_detection * b_param_ds)
+          ? delta_vel[1] +=
+            rep * b_param_s / (vec_norm<double>(b_pos - ob.get_pos()))
+          : delta_vel[1];
+
+      ((b_pos[1] - ob.get_pos()[1]) < 0 &&
+       vec_norm<double>(b_pos - ob.get_pos()) >
+           ob.get_size() + obstacle_detection * b_param_ds)
+          ? delta_vel[1] -=
+            rep * b_param_s / (vec_norm<double>(b_pos - ob.get_pos()))
+          : delta_vel[1];
     }
     return delta_vel;
   }

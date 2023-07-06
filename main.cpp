@@ -20,9 +20,21 @@
 int main() {
   try {
     // inizializzo parametri stormo
+    double param_d = 100.;
+    double param_ds = 20.;
+    double param_s = 1.;
+    double param_a = 0.02;
+    double param_c = 0.01;
+    double border_detection = 13.; // !
+    double border_repulsion = 2.5; // !
+    double boid_pred_detection = 1.;
+    double boid_pred_repulsion = 1.;
+    double boid_obs_detection = 1.;
+    double boid_obs_repulsion = 0.07;
+    double pred_pred_repulsion = 1.;
 
     // Params are: d, d_s, s, a, c
-    Parameters params(100., 20., 1, 0.25, 0.05);
+    Parameters params(param_d, param_ds, param_s, param_a, param_c);
     // parametri finestra e video tarati sul device
     float window_x = sf::VideoMode::getFullscreenModes()[0].width;
     float window_y = sf::VideoMode::getFullscreenModes()[0].height * 0.92;
@@ -32,7 +44,7 @@ int main() {
     float margin = (window_y - video_y) / 2;
 
     std::vector<Obstacle> obstacles =
-        generate_obstacles(0, 50., {video_x, video_y});
+        generate_obstacles(5, 50., {video_x, video_y});
 
     // inizializzo stormo
     Flock bd_flock{params, 170, 120., {video_x, video_y}, obstacles};
@@ -252,8 +264,10 @@ int main() {
       // boid_pred_detection, boid_pred_repulsion, boid_obs_detection,
       // boid_obs_repulsion, pred_pred_repulsion
 
-      bd_flock.update_global_state(0.0166, false, predators, obstacles, 15., 45.,
-                                   1., 1., 3, 0.4, 1.);
+      bd_flock.update_global_state(
+          0.0166, false, predators, obstacles, border_detection,
+          border_repulsion, boid_pred_detection, boid_pred_repulsion,
+          boid_obs_detection, boid_obs_repulsion, pred_pred_repulsion);
       // bd_flock.update_global_state(0.0166, true, predators, obstacles);
       // ferma cronometro: calcola tempo di computazione
       step_cmpt += std::chrono::steady_clock::now() - init;

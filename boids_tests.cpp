@@ -61,6 +61,19 @@ TEST_CASE("Testing the Boid::update_state method with borders") {
   // BOID CONSTRUCTOR takes:
   // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
   // param_s
+  // update_state takes: delta_t, delta_vel {vx, vy}, bhv, border_detection,
+  // border_repulsion
+  void update_state(double, std::valarray<double>, bool, double, double);
+  SUBCASE("Testing the update_state with borders") {
+    Boid bd({20., 500}, {-5., 5.}, 120., {1920., 1080.}, 5., 4.);
+    std::valarray<double> vel_corr{-1., 1.};
+
+    bd.update_state(1., vel_corr, false, 2., 2.);
+    CHECK(bd.get_pos()[0] == 14.);
+    CHECK(bd.get_pos()[1] == 506.);
+    CHECK(bd.get_vel()[0] == doctest::Approx(-1.15126));
+    CHECK(bd.get_vel()[1] == 6);
+  }
 }
 
 TEST_CASE("Testing the Boid::update_state method with periodic conditions") {
@@ -258,8 +271,6 @@ TEST_CASE("Testing the Boid::avoid_obs method") {
     CHECK(delta_vel[1] == 6);
   }
 }
-
-
 
 TEST_CASE("Testing the get_vector_neighbours function") {
   // BOID CONSTRUCTOR takes:
