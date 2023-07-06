@@ -1,0 +1,2 @@
+Mean distance + / - Mean d RMS    Mean speed + / - Mean s RMS
+       34.309           10.678       121.647           35.255

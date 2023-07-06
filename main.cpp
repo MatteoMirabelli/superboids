@@ -219,8 +219,9 @@ int main() {
       throw std::runtime_error("Cannot open output file");
     }
     step_ss.str("");
-    output_file.close();
-    
+    output_file
+        << "Mean distance + / - Mean d RMS    Mean speed + / - Mean s RMS\n";
+
     // game cicle
     while (window.isOpen()) {
       init = std::chrono::steady_clock::now();
@@ -276,6 +277,15 @@ int main() {
                 << std::fixed << flock_stats.av_vel << " +/- "
                 << std::setprecision(1) << std::fixed << flock_stats.vel_RMS;
         speed_bar.set_text(step_ss.str());
+      }
+      if (counter % 60 == 0) {
+        output_file << std::setw(13) << std::setprecision(3) << std::fixed
+                    << flock_stats.av_dist << "       " << std::setw(10)
+                    << std::setprecision(3) << std::fixed
+                    << flock_stats.dist_RMS << "    " << std::setw(10)
+                    << std::setprecision(3) << std::fixed << flock_stats.av_vel
+                    << "       " << std::setw(10) << std::setprecision(3)
+                    << std::fixed << flock_stats.vel_RMS << '\n';
       }
       step_update += std::chrono::steady_clock::now() - init;
 
@@ -347,18 +357,26 @@ int main() {
           case sf::Event::MouseButtonPressed:
             if (event.mouseButton.button == sf::Mouse::Left && obstacle_gen) {
               init = std::chrono::steady_clock::now();
-              if (add_obstacle(obstacles,
-                               {static_cast<double>(
-                                    sf::Mouse::getPosition(window).x) - static_cast<double>(margin),
-                                static_cast<double>(
-                                    sf::Mouse::getPosition(window).y) - static_cast<double>(margin)},
-                               20., {video_x, video_y})) {
+              if (add_obstacle(
+                      obstacles,
+                      {static_cast<double>(sf::Mouse::getPosition(window).x) -
+                           static_cast<double>(margin),
+                       static_cast<double>(sf::Mouse::getPosition(window).y) -
+                           static_cast<double>(margin)},
+                      20., {video_x, video_y})) {
                 message_text.setString("Obstacle added");
                 step_cmpt += std::chrono::steady_clock::now() - init;
               } else {
                 message_text.setString("Impossible to add obstacle");
                 step_cmpt += std::chrono::steady_clock::now() - init;
               }
+            }
+            break;
+          case sf::Event::MouseButtonReleased:
+            if (event.mouseButton.button == sf::Mouse::Left && obstacle_gen) {
+              if (message_text.getString() == "Obstacle added" ||
+                  message_text.getString() == "Impossible to add obstacle")
+                message_text.setString("Add obstacle");
             }
             break;
           default:
