@@ -1,5 +1,5 @@
-#include "../simulation/boid.hpp"
 #include "../doctest.h"
+#include "../simulation/boid.hpp"
 #include "../simulation/flock.hpp"
 #include "../simulation/obstacles.hpp"
 #include "../simulation/predator.hpp"
@@ -134,8 +134,8 @@ TEST_CASE("Testing the update_predator_state with two predators") {
   g_obstacles.push_back(ob1);
   g_obstacles.push_back(ob2);
 
-  pr::update_predators_state(preds, 1., true, preys, g_obstacles, 4., 2., 1., 1.,
-                         1.);
+  pr::update_predators_state(preds, 1., true, preys, g_obstacles, 4., 2., 1.,
+                             1., 1.);
 
   CHECK(preds[0].get_pos()[0] == doctest::Approx(120.818));
   CHECK(preds[0].get_pos()[1] == doctest::Approx(119.021));
@@ -187,8 +187,8 @@ TEST_CASE("Testing the random_predators generation") {
          mt::vec_norm<double>(preds[2].get_pos() - ob2.get_pos()) < 73);
 
     CHECK(overlap_pd1 == false);
-    CHECK(overlap_pd1 == false);
     CHECK(overlap_pd2 == false);
+    CHECK(overlap_pd3 == false);
 
     CHECK(preds[0].get_view_angle() == 130.);
     CHECK(preds[0].get_par_ds() == 5.);

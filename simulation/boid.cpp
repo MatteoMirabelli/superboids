@@ -7,12 +7,12 @@
 #include "math.hpp"
 
 bd::Boid::Boid(std::valarray<double> pos, std::valarray<double> vel,
-           double view_ang, std::valarray<double> space, double param_ds,
-           double param_s) {
+               double view_ang, std::valarray<double> space, double param_ds,
+               double param_s) {
   assert(pos.size() == 2 && vel.size() == 2 && space.size() == 2 &&
          pos[0] >= 0. && pos[1] >= 0. && space[0] > 0. && space[1] > 0. &&
-         mt::vec_norm<double>(vel) < 350. && view_ang >= 0. && view_ang <= 180. &&
-         param_ds >= 0. && param_s >= 0.);
+         mt::vec_norm<double>(vel) < 350. && view_ang >= 0. &&
+         view_ang <= 180. && param_ds >= 0. && param_s >= 0.);
   b_pos = pos;
   b_vel = vel;
   b_angle = mt::compute_angle<double>(vel);
@@ -22,11 +22,11 @@ bd::Boid::Boid(std::valarray<double> pos, std::valarray<double> vel,
   b_param_s = param_s;
 }
 
-bd::Boid::Boid(double x, double y, double vx, double vy, double view_ang, double sx,
-           double sy, double param_ds, double param_s) {
+bd::Boid::Boid(double x, double y, double vx, double vy, double view_ang,
+               double sx, double sy, double param_ds, double param_s) {
   assert(x >= 0. && y >= 0. && sx > 0. && sy > 0. &&
-         mt::vec_norm<double>(std::valarray<double>{vx, vy}) < 350. && view_ang >= 0. &&
-         view_ang <= 180. && param_ds >= 0. && param_s >= 0.);
+         mt::vec_norm<double>(std::valarray<double>{vx, vy}) < 350. &&
+         view_ang >= 0. && view_ang <= 180. && param_ds >= 0. && param_s >= 0.);
   b_pos = std::valarray<double>(2);
   b_vel = std::valarray<double>(2);
   b_pos[0] = x;
@@ -60,7 +60,9 @@ void bd::Boid::set_space(double sx, double sy) {
   b_space[1] = sy;
 }
 
-void bd::Boid::set_space(std::valarray<double> const& space) { b_space = space; }
+void bd::Boid::set_space(std::valarray<double> const& space) {
+  b_space = space;
+}
 
 // Used in a few tests implemented early
 void bd::Boid::update_state(double delta_t, std::valarray<double> delta_vel) {
@@ -70,13 +72,15 @@ void bd::Boid::update_state(double delta_t, std::valarray<double> delta_vel) {
   // Computes boid's angle
   b_angle = mt::compute_angle<double>(b_vel);
   // velocità massima:
-  (mt::vec_norm<double>(b_vel) > 350.) ? b_vel *= (350. / mt::vec_norm<double>(b_vel)) : b_vel;
+  (mt::vec_norm<double>(b_vel) > 350.)
+      ? b_vel *= (350. / mt::vec_norm<double>(b_vel))
+      : b_vel;
 }
 
 // Update_state for tests
 void bd::Boid::update_state(double delta_t, std::valarray<double> delta_vel,
-                        bool brd_bhv, double border_detection,
-                        double border_repulsion) {
+                            bool brd_bhv, double border_detection,
+                            double border_repulsion) {
   b_vel += delta_vel;
   b_pos += (b_vel * delta_t);
   if (brd_bhv == true) {
@@ -106,12 +110,16 @@ void bd::Boid::update_state(double delta_t, std::valarray<double> delta_vel,
   b_angle = mt::compute_angle<double>(b_vel);
 
   // Corrects, if needed, the speed according to minimum and maximum velocity
-  (mt::vec_norm<double>(b_vel) > 350.) ? b_vel *= (350. / mt::vec_norm<double>(b_vel)) : b_vel;
-  (mt::vec_norm<double>(b_vel) < 70.) ? b_vel *= (70. / mt::vec_norm<double>(b_vel)) : b_vel;
+  (mt::vec_norm<double>(b_vel) > 350.)
+      ? b_vel *= (350. / mt::vec_norm<double>(b_vel))
+      : b_vel;
+  (mt::vec_norm<double>(b_vel) < 70.)
+      ? b_vel *= (70. / mt::vec_norm<double>(b_vel))
+      : b_vel;
 }
 
 void bd::Boid::update_state(double delta_t, std::valarray<double> delta_vel,
-                        bool brd_bhv) {
+                            bool brd_bhv) {
   b_vel += delta_vel;
   b_pos += (b_vel * delta_t);
   if (brd_bhv == true) {
@@ -122,19 +130,22 @@ void bd::Boid::update_state(double delta_t, std::valarray<double> delta_vel,
     (b_pos[1] < 20.) ? b_pos[1] = b_space[1] - 21. : b_pos[1];
   } else {
     // Border repulsion
-    (b_pos[0] > b_space[0] - 30. - 13. * b_param_ds)
-        ? b_vel[0] -=
-          3.5 * b_param_s / (b_pos[0] - b_space[0] + 30. + 2.5 * b_param_ds)
+    double rep = 2.4 * mt::vec_norm<double>(b_vel) + 10;
+    (b_pos[0] > b_space[0] - 30. - 18. * b_param_ds)
+        ? b_vel[0] -= rep * b_param_s /
+                      std::abs(b_pos[0] - b_space[0] + 30. + 2.5 * b_param_ds)
         : b_vel[0];
-    (b_pos[0] < 13. * b_param_ds + 30.)
-        ? b_vel[0] += 3.5 * b_param_s / (2.5 * b_param_ds + 30. - b_pos[0])
+    (b_pos[0] < 18. * b_param_ds + 30.)
+        ? b_vel[0] +=
+          rep * b_param_s / std::abs(2.5 * b_param_ds + 30. - b_pos[0])
         : b_vel[0];
-    (b_pos[1] > b_space[1] - 30. - 13. * b_param_ds)
-        ? b_vel[1] -=
-          3.5 * b_param_s / (b_pos[1] - b_space[1] + 30. + 2.5 * b_param_ds)
+    (b_pos[1] > b_space[1] - 30. - 18. * b_param_ds)
+        ? b_vel[1] -= rep * b_param_s /
+                      std::abs(b_pos[1] - b_space[1] + 30. + 2.5 * b_param_ds)
         : b_vel[1];
-    (b_pos[1] < 13. * b_param_ds + 30.)
-        ? b_vel[1] += 3.5 * b_param_s / (2.5 * b_param_ds + 30. - b_pos[1])
+    (b_pos[1] < 18. * b_param_ds + 30.)
+        ? b_vel[1] +=
+          rep * b_param_s / std::abs(2.5 * b_param_ds + 30. - b_pos[1])
         : b_vel[1];
   }
 
@@ -142,14 +153,18 @@ void bd::Boid::update_state(double delta_t, std::valarray<double> delta_vel,
   b_angle = mt::compute_angle<double>(b_vel);
 
   // Corrects, if needed, the speed according to minimum and maximum velocity
-  (mt::vec_norm<double>(b_vel) > 350.) ? b_vel *= (350. / mt::vec_norm<double>(b_vel)) : b_vel;
-  (mt::vec_norm<double>(b_vel) < 70.) ? b_vel *= (70. / mt::vec_norm<double>(b_vel)) : b_vel;
+  (mt::vec_norm<double>(b_vel) > 350.)
+      ? b_vel *= (350. / mt::vec_norm<double>(b_vel))
+      : b_vel;
+  (mt::vec_norm<double>(b_vel) < 70.)
+      ? b_vel *= (70. / mt::vec_norm<double>(b_vel))
+      : b_vel;
 }
 
 // Avoid_obs for tests
-std::valarray<double> bd::Boid::avoid_obs(std::vector<ob::Obstacle> const& obstacles,
-                                      double obstacle_detection,
-                                      double obstacle_repulsion) const {
+std::valarray<double> bd::Boid::avoid_obs(
+    std::vector<ob::Obstacle> const& obstacles, double obstacle_detection,
+    double obstacle_repulsion) const {
   if (obstacles.size() == 0) {
     return std::valarray<double>{0., 0.};
   } else {
@@ -199,7 +214,7 @@ std::valarray<double> bd::Boid::avoid_obs(
     // wheter or not it sees it. In case it applies a repulsion inverse to the
     // distace for each componenent
 
-    double rep = 1.8 * mt::vec_norm<double>(b_vel);
+    double rep = 1.9 * mt::vec_norm<double>(b_vel);
     for (auto const& ob : obstacles) {
       double range = ob.get_size() + 2.7 * b_param_ds;
 
@@ -260,7 +275,8 @@ bool bd::is_obs_visible(ob::Obstacle const& obs, bd::Boid const& bd) {
   double view_angle = bd.get_view_angle();
 
   assert(view_angle >= 0. && view_angle <= 180.);
-  double relative_angle = mt::compute_angle<double>(obs.get_pos() - bd.get_pos());
+  double relative_angle =
+      mt::compute_angle<double>(obs.get_pos() - bd.get_pos());
 
   if (std::abs(relative_angle - bd.get_angle()) <= 180.) {
     return std::abs(relative_angle - bd.get_angle()) <= view_angle;
@@ -273,10 +289,11 @@ double bd::boid_dist(bd::Boid const& bd_1, bd::Boid const& bd_2) {
   return mt::vec_norm<double>(bd_1.get_pos() - bd_2.get_pos());
 }
 
-// Given a vector and an iterator, it finds all of its neighbours, with the condition that the vector is SORTED
-std::vector<bd::Boid> bd::get_vector_neighbours(std::vector<bd::Boid> const& full_vec,
-                                        std::vector<bd::Boid>::iterator it,
-                                        double dist) {
+// Given a vector and an iterator, it finds all of its neighbours, with the
+// condition that the vector is SORTED
+std::vector<bd::Boid> bd::get_vector_neighbours(
+    std::vector<bd::Boid> const& full_vec, std::vector<bd::Boid>::iterator it,
+    double dist) {
   std::vector<bd::Boid> neighbours;
   assert(it >= full_vec.begin() && it <= full_vec.end());
   if (it >= full_vec.begin() && it < full_vec.end()) {

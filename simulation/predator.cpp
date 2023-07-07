@@ -4,17 +4,17 @@
 #include <random>
 
 pr::Predator::Predator(std::valarray<double> const& pos,
-                   std::valarray<double> const& vel, double view_ang,
-                   double param_d_s, double param_s,
-                   std::valarray<double> const& space, double range,
-                   double hunger)
+                       std::valarray<double> const& vel, double view_ang,
+                       double param_d_s, double param_s,
+                       std::valarray<double> const& space, double range,
+                       double hunger)
     : bd::Boid(pos, vel, view_ang, space, param_d_s, param_s),
       p_range(range),
       p_hunger(hunger) {}
 
-pr::Predator::Predator(double x, double y, double vx, double vy, double view_ang,
-                   double param_d_s, double param_s, double sx, double sy,
-                   double range, double hunger)
+pr::Predator::Predator(double x, double y, double vx, double vy,
+                       double view_ang, double param_d_s, double param_s,
+                       double sx, double sy, double range, double hunger)
     : bd::Boid(x, y, vx, vy, view_ang, sx, sy, param_d_s, param_s),
       p_range(range),
       p_hunger(hunger) {}
@@ -51,12 +51,10 @@ std::valarray<double> pr::Predator::predate(std::vector<bd::Boid>& preys) {
   }
 }
 
-std::vector<pr::Predator> pr::random_predators(std::vector<ob::Obstacle> const& obs,
-                                       int pred_num,
-                                       std::valarray<double> const& pred_space,
-                                       double pred_view_ang, double pred_ds,
-                                       double pred_s, double pred_range,
-                                       double pred_hunger) {
+std::vector<pr::Predator> pr::random_predators(
+    std::vector<ob::Obstacle> const& obs, int pred_num,
+    std::valarray<double> const& pred_space, double pred_view_ang,
+    double pred_ds, double pred_s, double pred_range, double pred_hunger) {
   std::vector<pr::Predator> predators;
   assert(pred_num >= 0 && pred_view_ang > 0. && pred_ds > 0. && pred_s > 0. &&
          pred_range > 0. && pred_hunger > 0.);
@@ -93,7 +91,7 @@ std::vector<pr::Predator> pr::random_predators(std::vector<ob::Obstacle> const& 
     // predator
     std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
     return pr::Predator{pos,    vel,        pred_view_ang, pred_ds,
-                    pred_s, pred_space, pred_range,    pred_hunger};
+                        pred_s, pred_space, pred_range,    pred_hunger};
   };
 
   // Generates predators
@@ -127,10 +125,10 @@ std::vector<pr::Predator> pr::random_predators(std::vector<ob::Obstacle> const& 
 }
 
 void pr::add_predator(std::vector<pr::Predator>& predators,
-                  std::vector<ob::Obstacle> const& obstacles,
-                  std::valarray<double> const& pred_space, double pred_ang,
-                  double pred_ds, double pred_s, double pred_range,
-                  double pred_hunger) {
+                      std::vector<ob::Obstacle> const& obstacles,
+                      std::valarray<double> const& pred_space, double pred_ang,
+                      double pred_ds, double pred_s, double pred_range,
+                      double pred_hunger) {
   assert(pred_space[0] > 0 && pred_space[1] > 0 && pred_ang > 0. &&
          pred_ds > 0. && pred_s >= 0. && pred_range > 0. && pred_hunger > 0.);
   std::random_device rd;
@@ -147,8 +145,8 @@ void pr::add_predator(std::vector<pr::Predator>& predators,
                                dist_pos_y(rd) * 0.4 * (pred_ds) + 20.};
 
   auto overlap_pred = [&pos, &pred_ds](pr::Predator& p1) -> bool {
-    return mt::vec_norm<double>(static_cast<std::valarray<double>>(p1.get_pos() - pos)) <
-           0.6 * pred_ds;
+    return mt::vec_norm<double>(static_cast<std::valarray<double>>(
+               p1.get_pos() - pos)) < 0.6 * pred_ds;
   };
   auto overlap_obs = [&pos, &pred_ds](ob::Obstacle const& obstacle) -> bool {
     std::valarray<double> dist = pos - obstacle.get_pos();
@@ -164,13 +162,13 @@ void pr::add_predator(std::vector<pr::Predator>& predators,
 
   // Adds predator
   std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
-  predators.push_back(pr::Predator{pos, vel, pred_ang, pred_ds, pred_s, pred_space,
-                               pred_range, pred_hunger});
+  predators.push_back(pr::Predator{pos, vel, pred_ang, pred_ds, pred_s,
+                                   pred_space, pred_range, pred_hunger});
 }
 
 std::vector<pr::Predator> pr::get_vector_neighbours(
-    std::vector<pr::Predator> const& full_vec, std::vector<pr::Predator>::iterator it,
-    double dist) {
+    std::vector<pr::Predator> const& full_vec,
+    std::vector<pr::Predator>::iterator it, double dist) {
   std::vector<pr::Predator> neighbours;
   assert(it >= full_vec.begin() && it <= full_vec.end());
 
@@ -213,10 +211,10 @@ std::vector<pr::Predator> pr::get_vector_neighbours(
 }
 
 // Updates state of all predators
-void pr::update_predators_state(std::vector<pr::Predator>& predators, double delta_t,
-                            bool bhv,
-                            std::vector<std::pair<bd::Boid, int>> const& preys,
-                            std::vector<ob::Obstacle> const& obstacles) {
+void pr::update_predators_state(
+    std::vector<pr::Predator>& predators, double delta_t, bool bhv,
+    std::vector<std::pair<bd::Boid, int>> const& preys,
+    std::vector<ob::Obstacle> const& obstacles) {
   std::vector<pr::Predator> copy_predators = predators;
   bool predation = (preys.size() > 0);
   for (auto idx = predators.begin(); idx != predators.end(); ++idx) {
@@ -286,7 +284,6 @@ void pr::update_predators_state(
     }
 
     if (predation) {
-  
       std::vector<bd::Boid> own_preys;
       for (auto prey : preys) {
         if (prey.second == idx - predators.begin())

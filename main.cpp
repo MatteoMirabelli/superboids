@@ -26,51 +26,44 @@ int main() {
     std::cout << "BOID SIMULATION PROGRAMME \n";
     // boolean to choose mode: classic (false) vs Star Boids (true)
     bool mode = false;
-    double border_detection{};
-    double border_repulsion{};
-    double boid_pred_detection{};
-    double boid_pred_repulsion{};
-    double boid_obs_detection{};
-    double boid_obs_repulsion{};
-    double pred_pred_repulsion{};
-    bool behaviour{};
 
-    std::cout << "Insert number of boids (>0): \n";
+    std::cout << "Insert number of boids ( > 0 ): ";
     double number_of_boids{0};
     std::cin >> number_of_boids;
     if (number_of_boids <= 0) {
       throw std::runtime_error("Number of boids must be larger than one!");
     }
 
-    std::cout << "Insert parameter d (>0 && <=100): \n";
+    std::cout << "Insert parameter d ( > 0 && <= 100 ) (Recommended 50): ";
     double param_d{};
     std::cin >> param_d;
     if (param_d <= 0 || param_d > 100.) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert parameter d_s (>0 && <=25): \n";
+    std::cout << "Insert parameter d_s ( >= 10 && <= 25 ) (Recommended 20): ";
     double param_ds{};
     std::cin >> param_ds;
-    if (param_ds <= 0 || param_ds > 25.) {
+    if (param_ds < 10 || param_ds > 25.) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert parameter s (>0 && <=1,5): \n";
+    std::cout << "Insert parameter s ( > 0 && <= 1,5 ) (Recommended 1.2): ";
+
     double param_s{};
     std::cin >> param_s;
     if (param_s <= 0 || param_s > 1.5) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert parameter a (>=0.1 && <= 0.5): \n";
+    std::cout << "Insert parameter a ( >= 0.1 && <= 0.5 ) (Recommended 0.1): ";
     double param_a{};
     std::cin >> param_a;
     if (param_a < 0.1 || param_a > 0.5) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert parameter c (>=0 && <= 0.1): \n";
+    std::cout << "Insert parameter c ( >= 0 && <= 0.1 ) (Recommended 0.01): ";
     double param_c{};
     std::cin >> param_c;
     if (param_c < 0 || param_c > 0.1) {
@@ -78,72 +71,89 @@ int main() {
     }
 
     // initialization of flock parameters
-    fk::Parameters params(50., 25., 1.2, 0.1, 0.01);
+    //  fk::Parameters params(50., 25., 1.2, 0.1, 0.01);
 
-    // fk::Parameters params(param_d, param_ds, param_s, param_a, param_c);
+    fk::Parameters params(param_d, param_ds, param_s, param_a, param_c);
 
-    std::cout << "Insert boids' view_angle (>=0 && <= 180): \n";
+    std::cout << "Insert boids' view_angle ( >= 0 && <= 180 ): ";
     double boids_view_angle;
     std::cin >> boids_view_angle;
     if (boids_view_angle < 0 || boids_view_angle > 180.) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert number of obstacles (>=0): \n";
+    std::cout << "Insert number of obstacles ( >= 0 ): ";
     double number_of_obstacles;
     std::cin >> number_of_obstacles;
     if (number_of_obstacles < 0) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert obstacles' maximum size (>15 && <= 70.): \n";
+    std::cout << "Insert obstacles' maximum size ( > 15 && <= 70. ): ";
     double obstacles_max_size;
     std::cin >> obstacles_max_size;
     if (obstacles_max_size <= 15. || obstacles_max_size > 70.) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert number of predators(>=0): \n";
+    std::cout << "Insert number of predators( >=0 ): ";
     double number_of_predators;
     std::cin >> number_of_predators;
     if (number_of_predators < 0) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert predators' view_angle(>=0 and <= 180.): \n";
+    std::cout << "Insert predators' view_angle( >= 0 and <= 180.): ";
     double preds_view_angle;
     std::cin >> preds_view_angle;
     if (preds_view_angle < 0 || preds_view_angle > 180.) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert predators' parameter ds (> 0): \n";
+    std::cout << "Insert predators' parameter ds ( > 0  && <= 40.) "
+                 "(Recommended 30): ";
     double preds_ds;
     std::cin >> preds_ds;
-    if (preds_ds <= 0) {
+    if (preds_ds <= 0 && preds_ds > 50.) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert predators' parameter s (>0): \n";
+    std::cout << "Insert predators' parameter s ( > 0 && <= 1.5) "
+                 "(Recommended 1): ";
     double preds_s;
     std::cin >> preds_s;
-    if (preds_s <= 0) {
+    if (preds_s <= 0 || preds_s > 2) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert predators' range to detect preys (> 0): \n";
+    std::cout << "Insert predators' range to detect preys ( > 0 && <= 90 ) "
+                 "(Recommended 70): ";
     double preds_range;
     std::cin >> preds_range;
-    if (preds_range <= 0) {
+    if (preds_range <= 0 && preds_range > 90.) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert predators' parameter hunger (> 0): \n";
+    std::cout << "Insert predators' parameter hunger ( > 0 && <= 1.5 "
+                 ")(Recommended 1.2): ";
     double preds_hunger;
     std::cin >> preds_hunger;
-    if (preds_hunger <= 0) {
+    if (preds_hunger <= 0 && preds_hunger > 2) {
       throw std::runtime_error("Invalid parameter");
     }
+
+    std::cout << "Simulation mode (insert number 0 or 1): \n";
+    std::cout << "0 : Periodic conditions (When boids reaches border, its "
+                 "moved to the opposide side of the screen) '\n";
+    std::cout << "1 : Border repulsion \n";
+    int bhrv;
+    bool behaviour{};
+    std::cin >> bhrv;
+    if (bhrv != 0 && bhrv != 1) {
+      throw std::runtime_error("Invalid parameter");
+    };
+
+    (bhrv == 0) ? behaviour = true : behaviour = false;
 
     // -- WINDOW PARAMETERS --
 
@@ -164,28 +174,27 @@ int main() {
     // -- SIMULATION OBJECTS --
 
     // initialization of obstacles
-    std::vector<ob::Obstacle> obstacles =
-        ob::generate_obstacles(5, 30., {video_x, video_y});
+    /* std::vector<ob::Obstacle> obstacles =
+        ob::generate_obstacles(5, 30., {video_x, video_y}); */
 
-    /*  std::vector<ob::Obstacle> obstacles =
-         ob::generate_obstacles(number_of_obstacles, obstacles_max_size,
-         {video_x, video_y}); */
+    std::vector<ob::Obstacle> obstacles = ob::generate_obstacles(
+        number_of_obstacles, obstacles_max_size, {video_x, video_y});
 
     // flock initialization
-    fk::Flock bd_flock{params, 100, 120., {video_x, video_y}, obstacles};
-    /* fk::Flock bd_flock{params,
-                        number_of_boids,
-                        boids_view_angle,
-                        {video_x, video_y},
-                        obstacles}; */
+    // fk::Flock bd_flock{params, 100, 120., {video_x, video_y}, obstacles};
+    fk::Flock bd_flock{params,
+                       number_of_boids,
+                       boids_view_angle,
+                       {video_x, video_y},
+                       obstacles};
 
     // predators initialization
-    std::vector<pr::Predator> predators = pr::random_predators(
-        obstacles, 2, {video_x, video_y}, 150., 30., 1., 70., 1.2);
+    /* std::vector<pr::Predator> predators = pr::random_predators(
+         obstacles, 2, {video_x, video_y}, 150., 30., 1., 70., .7); */
 
-    /*   std::vector<pr::Predator> predators = pr::random_predators(
-           obstacles, number_of_predators, {video_x, video_y}, preds_view_angle,
-           preds_ds, preds_s, preds_range, preds_hunger); */
+    std::vector<pr::Predator> predators = pr::random_predators(
+        obstacles, number_of_predators, {video_x, video_y}, preds_view_angle,
+        preds_ds, preds_s, preds_range, preds_hunger);
 
     // -- USER INPUT --
 
@@ -225,8 +234,8 @@ int main() {
       std::cout << "Empire's sinister agents, young boids race home across the "
                    "screen,\n ";
       std::this_thread::sleep_for(std::chrono::milliseconds(400));
-      std::cout
-          << "custodians of the stolen files that can save their people and\n ";
+      std::cout << "custodians of the stolen files that can save their "
+                   "people and\n ";
       std::this_thread::sleep_for(std::chrono::milliseconds(400));
       std::cout << "restore freedom to the RAM...\n\n";
       std::this_thread::sleep_for(std::chrono::milliseconds(400));
@@ -647,8 +656,10 @@ int main() {
                 // generation time is taken into account for
                 // global computation time
                 init = std::chrono::steady_clock::now();
-                add_predator(predators, obstacles, {video_x, video_y}, 150.,
-                             30., 1., 70., 0.7);
+
+                add_predator(predators, obstacles, {video_x, video_y},
+                             preds_view_angle, preds_ds, preds_s, preds_range,
+                             preds_hunger);
                 step_cmpt += std::chrono::steady_clock::now() - init;
               } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
                 // pause / resume if obstacle insertion mode is off
