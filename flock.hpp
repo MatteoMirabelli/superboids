@@ -77,7 +77,7 @@ class Flock {
                                    double);
   std::valarray<double> avoid_pred(Boid const&, Predator const&);
 
-  // per i test:
+  // Vel_correction for tests
   std::valarray<double> vel_correction(std::vector<Boid>::iterator);
   std::valarray<double> vel_correction(std::vector<Boid>::iterator it,
                                        std::vector<Predator> const& preds,

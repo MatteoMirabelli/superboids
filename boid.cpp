@@ -6,8 +6,6 @@
 
 #include "math.hpp"
 
-// aggiunto il passaggio delle dimensioni dello schermo
-
 Boid::Boid(std::valarray<double> pos, std::valarray<double> vel,
            double view_ang, std::valarray<double> space, double param_ds,
            double param_s) {
@@ -56,7 +54,6 @@ double Boid::get_view_angle() const { return b_view_angle; }
 
 std::valarray<double> const& Boid::get_space() const { return b_space; }
 
-// per cambiare range (overloadato)
 void Boid::set_space(double sx, double sy) {
   assert(sx > 0 && sy > 0);
   b_space[0] = sx;
@@ -65,10 +62,12 @@ void Boid::set_space(double sx, double sy) {
 
 void Boid::set_space(std::valarray<double> const& space) { b_space = space; }
 
+// Used in a few tests implemented early
 void Boid::update_state(double delta_t, std::valarray<double> delta_vel) {
+  // Update speed and position
   b_vel += delta_vel;
   b_pos += (b_vel * delta_t);
-  // calcola l'angolo di orientamento dalla velocità:
+  // Computes boid's angle
   b_angle = compute_angle<double>(b_vel);
   // velocità massima:
   (vec_norm(b_vel) > 350.) ? b_vel *= (350. / vec_norm(b_vel)) : b_vel;
@@ -81,13 +80,13 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
   b_vel += delta_vel;
   b_pos += (b_vel * delta_t);
   if (brd_bhv == true) {
-    // implementazione con periodiche
+    // Periodic conditions
     (b_pos[0] > b_space[0] - 20.) ? b_pos[0] = 21. : b_pos[0];
     (b_pos[0] < 20.) ? b_pos[0] = b_space[0] - 21. : b_pos[0];
     (b_pos[1] > b_space[1] - 20) ? b_pos[1] = 21. : b_pos[1];
     (b_pos[1] < 20.) ? b_pos[1] = b_space[1] - 21. : b_pos[1];
   } else {
-    // implementazione con bordi
+    // Border repulsion
     double rep = border_repulsion * vec_norm<double>(b_vel);
     (b_pos[0] > b_space[0] - 30. - border_detection * b_param_ds)
         ? b_vel[0] -= rep * b_param_s / (b_space[0] - b_pos[0])
@@ -103,10 +102,10 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
         : b_vel[1];
   }
 
-  // calcola l'angolo di orientamento dalla velocità:
+  // Computes boid's angle
   b_angle = compute_angle<double>(b_vel);
-  // viene fatto *dopo* le correzioni per i bordi / periodiche!
-  // velocità massima e minima:
+
+  // Corrects, if needed, the speed according to minimum and maximum velocity
   (vec_norm(b_vel) > 350.) ? b_vel *= (350. / vec_norm(b_vel)) : b_vel;
   (vec_norm(b_vel) < 70.) ? b_vel *= (70. / vec_norm(b_vel)) : b_vel;
 }
@@ -116,13 +115,13 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
   b_vel += delta_vel;
   b_pos += (b_vel * delta_t);
   if (brd_bhv == true) {
-    // implementazione con periodiche
+    // Periodic conditions
     (b_pos[0] > b_space[0] - 20.) ? b_pos[0] = 21. : b_pos[0];
     (b_pos[0] < 20.) ? b_pos[0] = b_space[0] - 21. : b_pos[0];
     (b_pos[1] > b_space[1] - 20) ? b_pos[1] = 21. : b_pos[1];
     (b_pos[1] < 20.) ? b_pos[1] = b_space[1] - 21. : b_pos[1];
   } else {
-    // implementazione con bordi
+    // Border repulsion
     (b_pos[0] > b_space[0] - 30. - 13. * b_param_ds)
         ? b_vel[0] -=
           3.5 * b_param_s / (b_pos[0] - b_space[0] + 30. + 2.5 * b_param_ds)
@@ -139,10 +138,10 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
         : b_vel[1];
   }
 
-  // calcola l'angolo di orientamento dalla velocità:
+  // Computes boid's angle
   b_angle = compute_angle<double>(b_vel);
-  // viene fatto *dopo* le correzioni per i bordi / periodiche!
-  // velocità massima e minima:
+
+  // Corrects, if needed, the speed according to minimum and maximum velocity
   (vec_norm(b_vel) > 350.) ? b_vel *= (350. / vec_norm(b_vel)) : b_vel;
   (vec_norm(b_vel) < 70.) ? b_vel *= (70. / vec_norm(b_vel)) : b_vel;
 }
@@ -155,7 +154,9 @@ std::valarray<double> Boid::avoid_obs(std::vector<Obstacle> const& obstacles,
     return std::valarray<double>{0., 0.};
   } else {
     std::valarray<double> delta_vel{0., 0.};
-
+    // for each obstacles, it checks wheter the bois is or not near it and
+    // wheter or not it sees it. In case it applies a repulsion inverse to the
+    // distace for each componenent
     double rep = obstacle_repulsion * vec_norm<double>(b_vel);
     for (auto const& ob : obstacles) {
       double range = ob.get_size() + obstacle_detection * b_param_ds;
@@ -193,6 +194,10 @@ std::valarray<double> Boid::avoid_obs(
     return std::valarray<double>{0., 0.};
   } else {
     std::valarray<double> delta_vel{0., 0.};
+
+    // for each obstacles, it checks wheter the bois is or not near it and
+    // wheter or not it sees it. In case it applies a repulsion inverse to the
+    // distace for each componenent
 
     double rep = 1.8 * vec_norm<double>(b_vel);
     for (auto const& ob : obstacles) {
@@ -234,6 +239,7 @@ void Boid::set_par_ds(double new_ds) { b_param_ds = new_ds; }
 
 void Boid::set_par_s(double new_s) { b_param_s = new_s; }
 
+// If bd_1 is visible by bd_2, it returns true
 bool is_visible(Boid const& bd_1, Boid const& bd_2) {
   double view_angle = bd_2.get_view_angle();
   double boid_angle = bd_2.get_angle();
@@ -249,6 +255,7 @@ bool is_visible(Boid const& bd_1, Boid const& bd_2) {
   }
 }
 
+// If obs is visible by bd, it returns true
 bool is_obs_visible(Obstacle const& obs, Boid const& bd) {
   double view_angle = bd.get_view_angle();
 
@@ -263,10 +270,10 @@ bool is_obs_visible(Obstacle const& obs, Boid const& bd) {
 }
 
 double boid_dist(Boid const& bd_1, Boid const& bd_2) {
-  // distanza = norma della differenza
   return vec_norm<double>(bd_1.get_pos() - bd_2.get_pos());
 }
 
+// Given a vector and an iterator, it finds all of its neighbours, with the condition that the vector is SORTED
 std::vector<Boid> get_vector_neighbours(std::vector<Boid> const& full_vec,
                                         std::vector<Boid>::iterator it,
                                         double dist) {

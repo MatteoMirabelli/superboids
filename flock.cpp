@@ -13,8 +13,7 @@
 Flock::Flock(Parameters const& params, int bd_n, Boid const& com,
              double view_ang, std::valarray<double> const& space)
     : f_com{com}, f_flock{}, f_params{params}, f_stats{} {
-  // Genera casualmente, secondo distribuzioni uniformi attorno al centro di
-  // massa, lo stormo
+  // Generates randomly boids around centre of masss
   assert(bd_n >= 0);
 
   if (bd_n == 0) {
@@ -61,7 +60,7 @@ Flock::Flock(Parameters const& params, int bd_n, Boid const& com,
 Flock::Flock(Parameters const& params, int bd_n, double view_ang,
              std::valarray<double> const& space)
     : f_flock{}, f_params{params}, f_stats{} {
-  // Genera casualmente, secondo distribuzioni uniformi, i boids
+  // Generates randomly boids in the simulation area (space)
   assert(bd_n >= 0);
   std::random_device rd;
   int x_max = static_cast<int>(2.5 * (space[0] - 40.) / params.d_s);
@@ -91,13 +90,12 @@ Flock::Flock(Parameters const& params, int bd_n, double view_ang,
     return boid_dist(b1, b2) < 0.3 * params.d_s;
   };
 
-  // verifica la prima volta che non ci siano boid coincidenti
+  // Checks wheter or not there are overlapping boids
   auto last = std::unique(std::execution::par, f_flock.begin(), f_flock.end(),
                           compare_bd);
   // f_flock.erase(last, f_flock.end());
 
-  // se ce n'erano, rigenera e così fino a quando unique restituisce
-  // end(), ovvero non ci sono duplicati
+  // If there are, it regeneates them
   while (last != f_flock.end()) {
     std::generate(std::execution::par, last, f_flock.end(), generator);
     sort();
@@ -113,65 +111,61 @@ Flock::Flock(Parameters const& params, int bd_n, double view_ang,
              std::valarray<double> const& space,
              std::vector<Obstacle> const& obs)
     : f_flock{}, f_params{params}, f_stats{} {
-  // Genera casualmente, secondo distribuzioni uniformi, i boids
+  // Generates randomly boids in the suitable simulation area
   assert(bd_n >= 0);
   f_com = Boid{{0., 0.}, {0., 0.}, view_ang, space, params.d_s, params.s};
   if (bd_n > 0) {
-    // inizializza il random device
     std::random_device rd;
-    // definisce i range di generazione
-    // sono discretizzati secondo la d_s
     int x_max = 2.5 * (space[0] - 40.) / params.d_s;
     int y_max = 2.5 * (space[1] - 40.) / params.d_s;
 
-    // distribuzioni delle componenti della posizione
-    // (intere per quanto detto sopra)
     std::uniform_int_distribution<> dist_pos_x(0, x_max);
     std::uniform_int_distribution<> dist_pos_y(0, y_max);
 
-    // distribuzione delle componenti della velocità
     std::uniform_real_distribution<> dist_vel_x(-150., 150.);
     std::uniform_real_distribution<> dist_vel_y(-150., 150.);
 
     auto generator = [&dist_pos_x, &dist_pos_y, &dist_vel_x, &dist_vel_y, &rd,
                       &params, &space, &view_ang, &obs]() -> Boid {
-      // genera la posizione
+      // Generates position
       std::valarray<double> pos = {dist_pos_x(rd) * 0.4 * (params.d_s) + 20.,
                                    dist_pos_y(rd) * 0.4 * (params.d_s) + 20.};
-      // controlla che non ci sia sovrapposizione con gli ostacoli
+      // Checks wheter it overlaps or not with obstacles
       auto overlap = [&pos, &params](Obstacle const& obstacle) -> bool {
         std::valarray<double> dist = pos - obstacle.get_pos();
         return vec_norm(dist) < obstacle.get_size() + 0.6 * params.d_s;
       };
+
       while (std::any_of(obs.begin(), obs.end(), overlap)) {
-        // fintanto che c'è sovrapposizione, rigenera la posizione
+        // As long as it overlaps with obstacles, it regenerates
         pos = {dist_pos_x(rd) * 0.4 * (params.d_s) + 20.,
                dist_pos_y(rd) * 0.4 * (params.d_s) + 20.};
       }
-      // se non c'è sovrapposizione con gli ostacoli, genera anche la velocità e
-      // quindi restituisce il boid
+
+      // If it doesn't overlap, it returns a boidd with random position and
+      // speed
       std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
       return Boid{pos, vel, view_ang, space, params.d_s, params.s};
     };
-    // genera i boids utilizzando la lambda definita sopra
+
+    // Generates flock
     std::generate_n(std::execution::par, std::back_insert_iterator(f_flock),
                     bd_n, generator);
 
-    // riordina per poter valutare coincidenza con std::unique
+    // It sorts it
     sort();
 
-    // definisce lambda per valutare coincidenza
+    // Checks wheter two boids overlap
     auto compare_bd = [&](Boid& b1, Boid& b2) {
       return b1.get_pos()[0] == b2.get_pos()[0] &&
              b1.get_pos()[1] == b2.get_pos()[1];
     };
 
-    // verifica la prima volta che non ci siano boid coincidenti
     auto last = std::unique(std::execution::par, f_flock.begin(), f_flock.end(),
                             compare_bd);
 
-    // se ce n'erano, rigenera e così fino a quando unique restituisce
-    // end(), ovvero non ci sono duplicati
+    // Until there are overlapping boids, it regenerates checking they don't
+    // overlap with obstacless
     while (last != f_flock.end()) {
       std::generate(std::execution::par, last, f_flock.end(), generator);
       sort();
@@ -192,6 +186,8 @@ void Flock::add_boid() {
   int y_max =
       static_cast<int>(2.5 * (f_com.get_space()[1] - 40.) / f_params.d_s);
 
+  // Distributions of ints!! Positons are discretized. Two boids either
+  // coincide, or do not coincide
   std::uniform_int_distribution<> dist_pos_x(0, x_max);
   std::uniform_int_distribution<> dist_pos_y(0, y_max);
 
@@ -201,14 +197,20 @@ void Flock::add_boid() {
   std::valarray<double> pos = {dist_pos_x(rd) * 0.4 * (f_params.d_s) + 20.,
                                dist_pos_y(rd) * 0.4 * (f_params.d_s) + 20.};
 
+  // Checks wheter a boid coincide with another
+
   auto find_clone = [&pos](Boid& b1) {
     return b1.get_pos()[0] == pos[0] && b1.get_pos()[1] == pos[1];
   };
+
+  // Until there are no coinciding boids, it regenerates positions
   while (std::any_of(std::execution::par, f_flock.begin(), f_flock.end(),
                      find_clone)) {
     pos = {dist_pos_x(rd) * 0.4 * (f_params.d_s) + 20.,
            dist_pos_y(rd) * 0.4 * (f_params.d_s) + 20.};
   }
+
+  // It generates its speed and adds it to the flock
   std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
   f_flock.push_back(Boid{pos, vel, f_flock[0].get_view_angle(),
                          f_flock[0].get_space(), f_params.d_s, f_params.s});
@@ -224,6 +226,8 @@ void Flock::add_boid(std::vector<Obstacle> const& obstacles) {
   int y_max =
       static_cast<int>(2.5 * (f_com.get_space()[1] - 40.) / f_params.d_s);
 
+  // Distributions of ints!! Positons are discretized. Two boids either
+  // coincide, or do not coincide
   std::uniform_int_distribution<> dist_pos_x(0, x_max);
   std::uniform_int_distribution<> dist_pos_y(0, y_max);
 
@@ -233,6 +237,8 @@ void Flock::add_boid(std::vector<Obstacle> const& obstacles) {
   std::valarray<double> pos = {dist_pos_x(rd) * 0.4 * (f_params.d_s) + 20.,
                                dist_pos_y(rd) * 0.4 * (f_params.d_s) + 20.};
 
+  // Checks wheter a boid coincide with another or it overlaps with an obstacle
+
   auto find_clone = [&pos](Boid& b1) {
     return b1.get_pos()[0] == pos[0] && b1.get_pos()[1] == pos[1];
   };
@@ -240,12 +246,17 @@ void Flock::add_boid(std::vector<Obstacle> const& obstacles) {
     std::valarray<double> dist = pos - obstacle.get_pos();
     return vec_norm(dist) < obstacle.get_size() + 0.6 * f_params.d_s;
   };
+
+  // Until boid coincide with another one or overlaps with obstacle, it
+  // regenerates
   while (std::any_of(std::execution::par, f_flock.begin(), f_flock.end(),
                      find_clone) ||
          std::any_of(obstacles.begin(), obstacles.end(), overlap)) {
     pos = {dist_pos_x(rd) * 0.4 * (f_params.d_s) + 20.,
            dist_pos_y(rd) * 0.4 * (f_params.d_s) + 20.};
   }
+
+  // It generates its speed and adds it to the flock
   std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
   f_flock.push_back(Boid{pos, vel, f_flock[0].get_view_angle(),
                          f_flock[0].get_space(), f_params.d_s, f_params.s});
@@ -336,7 +347,7 @@ std::valarray<double> Flock::avoid_pred(Boid const& bd, Predator const& pred,
                                         double boid_pred_detection,
                                         double boid_pred_repulsion) {
   std::valarray<double> delta_vel = {0., 0.};
-  // valuta subito se applicare separazione al predatore
+  // Determines wheter to apply or not separation from predator
   (boid_dist(pred, bd) < boid_pred_detection * f_params.d)
       ? delta_vel -=
         boid_pred_repulsion * f_params.s * (pred.get_pos() - bd.get_pos())
@@ -346,7 +357,7 @@ std::valarray<double> Flock::avoid_pred(Boid const& bd, Predator const& pred,
 
 std::valarray<double> Flock::avoid_pred(Boid const& bd, Predator const& pred) {
   std::valarray<double> delta_vel = {0., 0.};
-  // valuta subito se applicare separazione al predatore
+  // Determines wheter to apply or not separation from predator
   (boid_dist(pred, bd) < 1.2 * f_params.d)
       ? delta_vel -= 0.3 * f_params.s * (pred.get_pos() - bd.get_pos())
       : delta_vel;
@@ -356,53 +367,59 @@ std::valarray<double> Flock::avoid_pred(Boid const& bd, Predator const& pred) {
 // vel correction without obstacles (used in tests)
 std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
   assert(it >= f_flock.begin() && it < f_flock.end());
+  // Find its neighbours
   auto neighbours = get_neighbours(it);
   std::valarray<double> delta_vel = {0., 0.};
   if (neighbours.size() > 0) {
     auto n_minus = neighbours.size();
-    // std::mutex mtx;
     std::valarray<double> local_com = {0., 0.};
+    // For each boid in neighbours it applies separation is it's in range d_s,
+    // and alignmnet
     for (Boid bd : neighbours) {
-      // separation
+      // Separation
       (boid_dist(bd, *it) < f_params.d_s)
           ? delta_vel -= f_params.s * (bd.get_pos() - it->get_pos())
           : delta_vel;
-      // alignment
+      // Alignment
       delta_vel += f_params.a * (bd.get_vel() - it->get_vel()) /
                    static_cast<double>(n_minus);
 
       local_com += bd.get_pos();
     }
-    // cohesion
+
+    // Calculates local centre of mass and apllies cohesion
     delta_vel +=
         f_params.c * (local_com / static_cast<double>(n_minus) - it->get_pos());
   }
   return delta_vel;
 }
 
-// vel correction with predators and copy_flock: used in update state
+// vel correction without predators and copy_flock: used in update state
 std::valarray<double> Flock::vel_correction(std::vector<Boid> const& copy_flock,
                                             std::vector<Boid>::iterator it) {
   assert(it >= copy_flock.begin() && it < copy_flock.end() &&
          copy_flock.size() == f_flock.size());
+  // Find its neighbours
   auto neighbours = get_vector_neighbours(copy_flock, it, f_params.d);
   std::valarray<double> delta_vel = {0., 0.};
+
+  // For each boid in neighbours it applies separation is it's in range d_s,
+  // and alignmnet
   if (neighbours.size() > 0) {
     auto n_minus = neighbours.size();
-    // std::mutex mtx;
     std::valarray<double> local_com = {0., 0.};
     for (Boid bd : neighbours) {
-      // separation
+      // Separation
       (boid_dist(bd, *it) < f_params.d_s)
           ? delta_vel -= f_params.s * (bd.get_pos() - it->get_pos())
           : delta_vel;
-      // alignment
+      // Alignment
       delta_vel += f_params.a * (bd.get_vel() - it->get_vel()) /
                    static_cast<double>(n_minus);
 
       local_com += bd.get_pos();
     }
-    // cohesion
+    // Calculates local centre of mass and apllies cohesion
     delta_vel +=
         f_params.c * (local_com / static_cast<double>(n_minus) - it->get_pos());
   }
@@ -419,7 +436,7 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
   auto neighbours = get_neighbours(it);
   std::valarray<double> delta_vel = {0., 0.};
 
-  // Eventuale separazione dai predatori
+  // Checks separation from predators if needed
   for (Predator pt : preds) {
     (boid_dist(pt, *it) < boid_pred_detection * f_params.d)
         ? delta_vel -=
@@ -427,41 +444,38 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
         : delta_vel;
   }
 
-  // Eventuale saparazione dai vicini:
+  // Checks separation from neighbours if needed
   if (neighbours.size() > 0) {
     auto n_minus = neighbours.size();
     std::valarray<double> local_com = {0., 0.};
     for (Boid bd : neighbours) {
-      // separation
+      // Separation
       (boid_dist(bd, *it) < f_params.d_s)
           ? delta_vel -= f_params.s * (bd.get_pos() - it->get_pos())
           : delta_vel;
-      // alignment
+      // Alignment
       delta_vel += f_params.a * (bd.get_vel() - it->get_vel()) /
                    static_cast<double>(n_minus);
 
       local_com += bd.get_pos();
     }
-    // cohesion
+    // Cohesion
     delta_vel +=
         f_params.c * (local_com / static_cast<double>(n_minus) - it->get_pos());
   }
   return delta_vel;
 }
 
-
 void Flock::update_global_state(double delta_t, bool brd_bhv,
                                 std::vector<Predator>& preds,
                                 std::vector<Obstacle> const& obs) {
-  // boid su cui applica caccia = prede
+  // It creates a vector of pairs of boids and ints that stores preys. The int
+  // states for the predator whose preys it is.
   std::vector<std::pair<Boid, int>> preys;
 
-  // il mutex è necessario per evitare problemi in race condition
-  // ovvero prevenire l'accesso simultaneo da parte dei thread paralleli
-  // alle medesime risorse (in questo caso, il vettore delle prede)
   std::mutex mtx;
 
-  // rimuove le vittime
+  // Finds victims of predators
   auto bd_eaten = [this, &preds](Boid const& bd) {
     // valuta se è mangiato da (almeno) un predatore
     auto above = [this, &bd](Predator const& pred) -> bool {
@@ -470,26 +484,24 @@ void Flock::update_global_state(double delta_t, bool brd_bhv,
     return std::any_of(preds.begin(), preds.end(), above);
   };
 
-  // rimuove le prede mangiate
+  // Removes victims
   auto last = std::remove_if(std::execution::par, f_flock.begin(),
                              f_flock.end(), bd_eaten);
   f_flock.erase(last, f_flock.end());
   // sort();
 
-  //  duplica il vettore per poter aggiornare tutti i boid in parallelo
-  //  in base allo stato al frame precedente
+  //  Duplicates f_flock in copy_flock to keep track of states before updating
+  //  it
   std::vector<Boid> copy_flock = f_flock;
 
-  // utilizza il vettore di indici per accedere ai corrispondenti boid di
-  // f_flock ed in tal modo poter applicare la ricerca dei vicini tramite
-  // iteratore
+  // It initialises a vector of ints
   std::vector<int> indexes;
 
   for (int i = 0; static_cast<unsigned int>(i) < f_flock.size(); ++i) {
     indexes.push_back(i);
   }
 
-  // lambda per aggiornare lo stato
+  // lambda used to update global state
   auto boid_update = [&mtx, &preds, &preys, this, delta_t, brd_bhv, &copy_flock,
                       &obs](int const& index, Boid const& bd) -> Boid {
     // aggiorna lo stato del boid con o senza percezione predatore
@@ -607,10 +619,9 @@ void Flock::update_global_state(
                          border_repulsion);
 }
 
-
 void Flock::sort() {
-// Sorts boids in the flock in ascending order relative to x_position.
-// If two boids have the same x_position, it considers y_position
+  // Sorts boids in the flock in ascending order relative to x_position.
+  // If two boids have the same x_position, it considers y_position
 
   auto is_less = [](Boid const& bd1, Boid const& bd2) {
     if (bd1.get_pos()[0] != bd2.get_pos()[0]) {

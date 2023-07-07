@@ -25,7 +25,7 @@ double Obstacle::get_size() const { return o_size; }
 
 std::vector<Obstacle> generate_obstacles(int n_obstacles, double max_size,
                                          std::valarray<double> const& space) {
-  // Genera casualmente, secondo distribuzioni uniformi, gli ostacoli
+  // Generates randomly the positions of the obstacles
   assert(n_obstacles >= 0);
   std::vector<Obstacle> g_obstacles;
 
@@ -44,17 +44,16 @@ std::vector<Obstacle> generate_obstacles(int n_obstacles, double max_size,
 
   sort_obstacles(g_obstacles);
 
+  // Checks if there are overlapping obstacles and removes overlapping ones
+
   auto overlap = [&](Obstacle& obs1, Obstacle& obs2) {
     return (vec_norm<double>(obs1.get_pos() - obs2.get_pos()) <
             obs1.get_size() + obs2.get_size());
   };
-
-  // verifica la prima volta che non ci siano ostacoli coincidenti
   auto last = std::unique(g_obstacles.begin(), g_obstacles.end(), overlap);
   g_obstacles.erase(last, g_obstacles.end());
 
-  // se ce n'erano, rigenera e ripulisce fino a quando ho n_obstacles ostacoli
-  // non sovrapposti
+  // It regenerates osbtacles until there're no more overlapping oness
   while (g_obstacles.size() < static_cast<unsigned int>(n_obstacles)) {
     for (int i = 0; i < n_obstacles - static_cast<int>(g_obstacles.size());
          ++i) {
@@ -75,26 +74,31 @@ bool add_obstacle(std::vector<Obstacle>& g_obstacles,
   std::random_device rd;
   std::uniform_real_distribution<> ran_size(15., max_size);
   double size = ran_size(rd);
+  if (pos[0] < size || pos[1] < size || (space[0] - pos[0]) < size ||
+      (space[1] - pos[1]) < size || pos[0] > space[0] || pos[1] > space[1])
+    return false;
+
+  // Checks if it overlaps with another obstacle or with borders
   auto overlap = [&](Obstacle const& obs) {
-    return (vec_norm<double>(obs.get_pos() - pos) < obs.get_size() + size ||
-            pos[0] < size || pos[1] < size ||
-            std::abs(pos[0] - space[0]) < size ||
-            std::abs(pos[1] - space[1]) < size);
+    return (vec_norm<double>(obs.get_pos() - pos) < obs.get_size() + size);
   };
+
+  // If it doesn't, it pushbacks obstacle in the vector and returns true, if it
+  // does, it returns false
   if (std::none_of(g_obstacles.begin(), g_obstacles.end(), overlap)) {
     g_obstacles.push_back(Obstacle(pos, size));
-    sort_obstacles(g_obstacles);
     return true;
   } else {
     return false;
   }
 }
 
-// add_obstacle with fixed size (used in tests)
 void add_fixed_obstacle(std::vector<Obstacle>& g_obstacles,
                         std::valarray<double> const& pos, double size,
                         std::valarray<double> const& space) {
   sort_obstacles(g_obstacles);
+
+  // Checks if it overlaps with another obstacle or with borders
   auto overlap = [&](Obstacle& obs) {
     return (std::abs(pos[0] - obs.get_pos()[0]) < obs.get_size() + size ||
             std::abs((pos[1] - obs.get_pos()[1])) < obs.get_size() + size ||
@@ -103,6 +107,8 @@ void add_fixed_obstacle(std::vector<Obstacle>& g_obstacles,
             std::abs(pos[1] - space[1]) < size);
   };
 
+  // If it doesn't, it pushbacks obstacle in the vectorif it
+  // does, it prints at screen "Impossible to add obstacles"
   auto it = std::find_if(g_obstacles.begin(), g_obstacles.end(), overlap);
   if (it == g_obstacles.end()) {
     g_obstacles.push_back(Obstacle(pos, size));

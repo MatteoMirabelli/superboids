@@ -433,8 +433,6 @@ int main() {
 
       // update graphic obstacles
       if (graph_obs.size() != obstacles.size()) {
-        graph_obs.resize(obstacles.size());
-        assert(graph_obs.size() == obstacles.size());
         std::transform(obstacles.begin() + graph_obs.size(), obstacles.end(),
                        std::back_inserter(graph_obs),
                        [&margin, &obs_texture,
@@ -457,6 +455,8 @@ int main() {
                          return ob_circ;
                        });
       }
+
+      assert(graph_obs.size() == obstacles.size());
       // update COM tracker at discrete rate
       if (counter % 4 == 0) {  // every four frames
         pos_com_x = bd_flock.get_com().get_pos()[0];
