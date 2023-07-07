@@ -8,7 +8,7 @@
 
 namespace gf {
 
-class Bird : public sf::Drawable {
+class Bird : public sf::Drawable, public sf::Transformable {
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const {
     target.draw(bird_shape, states);
   }

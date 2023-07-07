@@ -45,7 +45,6 @@ class Tracker : public sf::Drawable, public sf::Transformable {
   sf::RectangleShape t_inner;
   Bird t_bird;
   sf::VertexArray t_path;
-  int index;
   std::valarray<float> t_range;
   std::valarray<float> t_pos;
 
