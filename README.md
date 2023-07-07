@@ -41,6 +41,13 @@ You can enable or disable testing during compilation by adding the following to 
 ```bash
 $ cmake --build build
 ```
+
+If CMake fails to find the elements belonging to the TBB library during the compilation phase, you need to remove the comments
+- `find_package(TBB REQUIRED)`
+- `target_link_libraries(Boids_engine PRIVATE TBB::tbb)`
+- `target_link_libraries(Boids.t PRIVATE TBB::tbb)`
+in the CMakeLists.txt file.
+
 4. To execute the program, use the following command:
 
 ```bash
