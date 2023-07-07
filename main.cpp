@@ -34,23 +34,21 @@ int main() {
       throw std::runtime_error("Number of boids must be larger than one!");
     }
 
-    std::cout
-        << "\n\nInsert parameter d ( >= 20 && <= 100 ) (Recommended 50): ";
+    std::cout << "\nInsert parameter d ( >= 20 && <= 100 ) (Recommended 50): ";
     double param_d{};
     std::cin >> param_d;
     if (param_d <= 20 || param_d > 100.) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout
-        << "\n\nInsert parameter d_s ( >= 10 && <= 25 ) (Recommended 20): ";
+    std::cout << "\nInsert parameter d_s ( >= 10 && <= 25 ) (Recommended 20): ";
     double param_ds{};
     std::cin >> param_ds;
     if (param_ds < 10 || param_ds > 25. || param_ds > param_d) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "\n\nInsert parameter s ( > 0 && <= 1.5 ) (Recommended 1.2): ";
+    std::cout << "\nInsert parameter s ( > 0 && <= 1.5 ) (Recommended 1.2): ";
 
     double param_s{};
     std::cin >> param_s;
@@ -59,15 +57,14 @@ int main() {
     }
 
     std::cout
-        << "\n\nInsert parameter a ( >= 0.1 && <= 0.5 ) (Recommended 0.1): ";
+        << "\nInsert parameter a ( >= 0.1 && <= 0.5 ) (Recommended 0.1): ";
     double param_a{};
     std::cin >> param_a;
     if (param_a < 0.1 || param_a > 0.5) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout
-        << "\n\nInsert parameter c ( >= 0 && <= 0.1 ) (Recommended 0.01): ";
+    std::cout << "\nInsert parameter c ( >= 0 && <= 0.1 ) (Recommended 0.01): ";
     double param_c{};
     std::cin >> param_c;
     if (param_c < 0 || param_c > 0.1) {
@@ -79,42 +76,44 @@ int main() {
 
     fk::Parameters params(param_d, param_ds, param_s, param_a, param_c);
 
-    std::cout << "\n\nInsert boids' view_angle ( >= 0 && <= 180 ): ";
+    std::cout
+        << "\nInsert boids' view_angle ( >= 0 && <= 180 ) (recommended 120): ";
     double boids_view_angle;
     std::cin >> boids_view_angle;
     if (boids_view_angle < 0 || boids_view_angle > 180.) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "\n\nInsert number of obstacles ( >= 0 ): ";
+    std::cout << "\nInsert number of obstacles ( >= 0 ): ";
     int number_of_obstacles;
     std::cin >> number_of_obstacles;
     if (number_of_obstacles < 0) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "\n\nInsert obstacles' maximum size ( > 15 && <= 70. ): ";
+    std::cout << "\nInsert obstacles' maximum size ( > 15 && <= 70. ): ";
     double obstacles_max_size;
     std::cin >> obstacles_max_size;
     if (obstacles_max_size <= 15. || obstacles_max_size > 70.) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "\n\nInsert number of predators( >= 0 ): ";
+    std::cout << "\nInsert number of predators( >= 0 ): ";
     int number_of_predators;
     std::cin >> number_of_predators;
     if (number_of_predators < 0) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "\n\nInsert predators' view_angle( >= 0 and <= 180.): ";
+    std::cout << "\nInsert predators' view_angle( >= 0 and <= 180.) "
+                 "(recommended 140): ";
     double preds_view_angle;
     std::cin >> preds_view_angle;
     if (preds_view_angle < 0 || preds_view_angle > 180.) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "\n\nInsert predators' parameter ds ( > 0  && <= 40.) "
+    std::cout << "\nInsert predators' parameter ds ( > 0  && <= 40.) "
                  "(Recommended 30): ";
     double preds_ds;
     std::cin >> preds_ds;
@@ -122,7 +121,7 @@ int main() {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "\n\nInsert predators' parameter s ( > 0 && <= 1.5) "
+    std::cout << "\nInsert predators' parameter s ( > 0 && <= 1.5) "
                  "(Recommended 1): ";
     double preds_s;
     std::cin >> preds_s;
@@ -130,7 +129,7 @@ int main() {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "\n\nInsert predators' range to detect preys ( > 0 && <= 90 ) "
+    std::cout << "\nInsert predators' range to detect preys ( > 0 && <= 90 ) "
                  "(Recommended 70): ";
     double preds_range;
     std::cin >> preds_range;
@@ -138,7 +137,7 @@ int main() {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "\n\nInsert predators' parameter hunger ( > 0 && <= 1.5 "
+    std::cout << "\nInsert predators' parameter hunger ( > 0 && <= 1.5 "
                  ")(Recommended 1.2): ";
     double preds_hunger;
     std::cin >> preds_hunger;
@@ -146,9 +145,9 @@ int main() {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "\n\nSimulation mode (insert number 0 or 1): \n";
+    std::cout << "\nSimulation mode (insert number 0 or 1): \n";
     std::cout << "0 : Periodic conditions (When boids reaches border, its "
-                 "moved to the opposide side of the screen) '\n";
+                 "moved to the opposide side of the screen) \n";
     std::cout << "1 : Border repulsion \n";
     int bhrv;
     bool behaviour{};
@@ -180,14 +179,10 @@ int main() {
     // -- SIMULATION OBJECTS --
 
     // initialization of obstacles
-    /* std::vector<ob::Obstacle> obstacles =
-        ob::generate_obstacles(5, 30., {video_x, video_y}); */
-
     std::vector<ob::Obstacle> obstacles = ob::generate_obstacles(
         number_of_obstacles, obstacles_max_size, {video_x, video_y});
 
     // flock initialization
-    // fk::Flock bd_flock{params, 100, 120., {video_x, video_y}, obstacles};
     fk::Flock bd_flock{params,
                        number_of_boids,
                        boids_view_angle,
@@ -195,9 +190,6 @@ int main() {
                        obstacles};
 
     // predators initialization
-    /* std::vector<pr::Predator> predators = pr::random_predators(
-         obstacles, 2, {video_x, video_y}, 150., 30., 1., 70., .7); */
-
     std::vector<pr::Predator> predators = pr::random_predators(
         obstacles, number_of_predators, {video_x, video_y}, preds_view_angle,
         preds_ds, preds_s, preds_range, preds_hunger);
@@ -481,18 +473,18 @@ int main() {
 
     // -- DATA OUTPUT --
 
-    /*auto now = std::chrono::system_clock::now();
+    auto now = std::chrono::system_clock::now();
     auto present_time = std::chrono::system_clock::to_time_t(now);
-    values_ss << "output/boids " << std::setw(18) <<
-    std::ctime(&present_time)
-            << ".txt";*/
-    values_ss << "output/boids.txt";
+    values_ss << "output/boids " << std::setw(18) << std::ctime(&present_time)
+              << ".txt";
+    //  values_ss << "output/boids.txt";
     std::ofstream output_file{values_ss.str()};
     if (!output_file) {
       throw std::runtime_error("Cannot open output file");
     }
     values_ss.str("");
-    output_file << "Mean distance + / - Mean d RMS  ||  Mean speed + / - "
+    output_file << "Data printed each second \n\nMean distance + / - Mean d "
+                   "RMS  ||  Mean speed + / - "
                    "Mean s RMS\n"
                 << "--------------------------------||---------------------"
                    "--------\n";
