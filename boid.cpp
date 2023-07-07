@@ -130,35 +130,36 @@ void Boid::set_par_ds(double new_ds) { b_param_ds = new_ds; }
 
 void Boid::set_par_s(double new_s) { b_param_s = new_s; }
 
-
-
 double boid_dist(Boid const& bd_1, Boid const& bd_2) {
   // distanza = norma della differenza
   return vec_norm<double>(bd_1.get_pos() - bd_2.get_pos());
 }
 
 bool is_visible(Boid const& bd_1, Boid const& bd_2) {
-  double angle = bd_2.get_view_angle();
-  assert(angle >= 0. && angle <= 180.);
+  double view_angle = bd_2.get_view_angle();
+  double boid_angle = bd_2.get_angle();
+  assert(view_angle >= 0. && view_angle <= 180.);
+
   double relative_angle =
       compute_angle<double>(bd_1.get_pos() - bd_2.get_pos());
 
-  if (relative_angle == 180. && bd_2.get_angle() < 0) {
-    return std::abs(relative_angle + bd_2.get_angle()) <= angle;
+  if (std::abs(relative_angle - boid_angle) <= 180.) {
+    return std::abs(relative_angle - boid_angle) <= view_angle;
   } else {
-    return std::abs(relative_angle - bd_2.get_angle()) <= angle;
+    return (360. - std::abs(relative_angle - boid_angle)) <= view_angle;
   }
 }
 
 bool is_obs_visible(Obstacle const& obs, Boid const& bd) {
+  double view_angle = bd.get_view_angle();
   double angle = bd.get_view_angle();
   assert(angle >= 0. && angle <= 180.);
   double relative_angle = compute_angle<double>(obs.get_pos() - bd.get_pos());
 
-  if (relative_angle == 180. && bd.get_angle() < 0) {
-    return std::abs(relative_angle + bd.get_angle()) <= angle;
+  if (std::abs(relative_angle - bd.get_angle()) <= 180.) {
+    return std::abs(relative_angle - bd.get_angle()) <= view_angle;
   } else {
-    return std::abs(relative_angle - bd.get_angle()) <= angle;
+    return (360. - std::abs(relative_angle - bd.get_angle())) <= view_angle;
   }
 }
 
