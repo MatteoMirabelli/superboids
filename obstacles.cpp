@@ -76,7 +76,8 @@ bool add_obstacle(std::vector<Obstacle>& g_obstacles,
   std::uniform_real_distribution<> ran_size(15., max_size);
   double size = ran_size(rd);
   auto overlap = [&](Obstacle const& obs) {
-    return (vec_norm<double>(obs.get_pos() - pos) < obs.get_size() + size || pos[0] < size || pos[1] < size ||
+    return (vec_norm<double>(obs.get_pos() - pos) < obs.get_size() + size ||
+            pos[0] < size || pos[1] < size ||
             std::abs(pos[0] - space[0]) < size ||
             std::abs(pos[1] - space[1]) < size);
   };
