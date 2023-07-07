@@ -33,6 +33,60 @@ int main() {
     double boid_obs_repulsion = 1.8;
     double pred_pred_repulsion = 3.;
 
+    std::cout << "BOID SIMULATION PROGRAMME \n";
+    std::cout << "Insert number of boids (>0): \n";
+    double number_of_boids{0};
+    std::cin >> number_of_boids;
+
+    std::cout << "Insert parameter d: \n";
+    std::cin >> param_d;
+
+    std::cout << "Insert parameter d_s: \n";
+    std::cin >> param_ds;
+    std::cout << "Insert parameter s: \n";
+    std::cin >> param_s;
+    std::cout << "Insert parameter a: \n";
+    std::cin >> param_a;
+    std::cout << "Insert parameter c: \n";
+    std::cin >> param_c;
+
+    std::cout << "Insert boids' view_angle \n";
+    double boids_view_angle;
+    std::cin >> boids_view_angle;
+
+    std::cout << "Insert number of obstacles: \n";
+    double number_of_obstacles;
+    std::cin >> number_of_obstacles;
+
+    std::cout << "Insert obstacles' maximum size (>15): \n";
+    double obstacles_max_size;
+    std::cin >> obstacles_max_size;
+
+    std::cout << "Insert number of predators(>=0): \n";
+    double number_of_predators;
+    std::cin >> number_of_predators;
+
+    std::cout << "Insert predators' view_angle(>=0 and <= 180.): \n";
+    double preds_view_angle;
+    std::cin >> preds_view_angle;
+
+    std::cout << "Insert predators' parameter ds: \n";
+    double preds_ds;
+    std::cin >> preds_ds;
+
+    std::cout << "Insert predators' parameter s: \n";
+    double preds_s;
+    std::cin >> preds_s;
+
+    std::cout
+        << "Insert predators' range to detect preys (parameter range): \n";
+    double preds_range;
+    std::cin >> preds_range;
+
+    std::cout << "Insert predators' parameter hunger: \n";
+    double preds_hunger;
+    std::cin >> preds_hunger;
+
     // Params are: d, d_s, s, a, c
     Parameters params(param_d, param_ds, param_s, param_a, param_c);
     // parametri finestra e video tarati sul device
@@ -43,14 +97,19 @@ int main() {
     // margini
     float margin = (window_y - video_y) / 2;
 
-    std::vector<Obstacle> obstacles =
-        generate_obstacles(5, 50., {video_x, video_y});
+    std::vector<Obstacle> obstacles = generate_obstacles(
+        number_of_obstacles, obstacles_max_size, {video_x, video_y});
 
     // inizializzo stormo
-    Flock bd_flock{params, 170, 120., {video_x, video_y}, obstacles};
+    Flock bd_flock{params,
+                   number_of_boids,
+                   boids_view_angle,
+                   {video_x, video_y},
+                   obstacles};
     // inizializzo vettore di predatori
     std::vector<Predator> predators = random_predators(
-        obstacles, 2, {video_x, video_y}, 150., 30., 1., 70., 0.7);
+        obstacles, number_of_predators, {video_x, video_y}, preds_view_angle,
+        preds_ds, preds_s, preds_range, preds_hunger);
     // predators.push_back(predator);
 
     /*sf::Texture backg;
@@ -264,10 +323,7 @@ int main() {
       // boid_pred_detection, boid_pred_repulsion, boid_obs_detection,
       // boid_obs_repulsion, pred_pred_repulsion
 
-      bd_flock.update_global_state(
-          0.0166, false, predators, obstacles, border_detection,
-          border_repulsion, boid_pred_detection, boid_pred_repulsion,
-          boid_obs_detection, boid_obs_repulsion, pred_pred_repulsion);
+      bd_flock.update_global_state(0.0166, false, predators, obstacles);
       // bd_flock.update_global_state(0.0166, true, predators, obstacles);
       // ferma cronometro: calcola tempo di computazione
       step_cmpt += std::chrono::steady_clock::now() - init;
