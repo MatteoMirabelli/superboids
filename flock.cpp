@@ -112,7 +112,7 @@ Flock::Flock(Parameters const& params, int bd_n, double view_ang,
              std::vector<Obstacle> const& obs)
     : f_flock{}, f_params{params}, f_stats{} {
   // Generates randomly boids in the suitable simulation area
-  assert(bd_n >= 0);
+  assert(bd_n > 0);
   f_com = Boid{{0., 0.}, {0., 0.}, view_ang, space, params.d_s, params.s};
   if (bd_n > 0) {
     std::random_device rd;
