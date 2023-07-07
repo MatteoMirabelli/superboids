@@ -1,5 +1,5 @@
-#include "doctest.h"
-#include "obstacles.hpp"
+#include "../doctest.h"
+#include "../simulation/obstacles.hpp"
 
 TEST_CASE("Testing the generate_obstacles function") {
   // generate_obstacles takes: number_of_obstacles, max_size, space{x,y};

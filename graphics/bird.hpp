@@ -4,7 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 
-#include "flock.hpp"
+#include "../simulation/flock.hpp"
 
 namespace gf {
 

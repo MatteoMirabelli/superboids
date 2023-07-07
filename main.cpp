@@ -11,12 +11,12 @@
 #include <sstream>
 #include <thread>
 
-#include "animation.hpp"
-#include "bird.hpp"
-#include "boid.hpp"
-#include "flock.hpp"
-#include "obstacles.hpp"
-#include "predator.hpp"
+#include "graphics/animation.hpp"
+#include "graphics/bird.hpp"
+#include "simulation/boid.hpp"
+#include "simulation/flock.hpp"
+#include "simulation/obstacles.hpp"
+#include "simulation/predator.hpp"
 
 int main() {
   // try-catch structure is used to handle exceptions
@@ -298,7 +298,7 @@ int main() {
 
     // loads font
     sf::Font font;
-    if (!font.loadFromFile("cmunsx.ttf")) {
+    if (!font.loadFromFile("textures/cmunsx.ttf")) {
       return 0;
     }
 

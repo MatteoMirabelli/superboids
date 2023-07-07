@@ -1,8 +1,8 @@
-#include "boid.hpp"
-#include "doctest.h"
-#include "flock.hpp"
-#include "obstacles.hpp"
-#include "predator.hpp"
+#include "../simulation/boid.hpp"
+#include "../doctest.h"
+#include "../simulation/flock.hpp"
+#include "../simulation/obstacles.hpp"
+#include "../simulation/predator.hpp"
 
 TEST_CASE("Testing the Flock::sort method") {
   // BOID CONSTRUCTOR takes:
