@@ -5,7 +5,7 @@
 #include <execution>
 
 #include "math.hpp"
-
+namespace ob {
 class Obstacle {
   std::valarray<double> o_pos;
   double o_size;
@@ -26,7 +26,8 @@ std::vector<Obstacle> generate_obstacles(int, double,
 // are the same, it sorts according to y_positions
 void sort_obstacles(std::vector<Obstacle>&);
 
-// Adds an obstacle with random size, and returns true in case it can add it, returns false in case it can't
+// Adds an obstacle with random size, and returns true in case it can add it,
+// returns false in case it can't
 bool add_obstacle(std::vector<Obstacle>&, std::valarray<double> const&, double,
                   std::valarray<double> const&);
 
@@ -34,5 +35,5 @@ bool add_obstacle(std::vector<Obstacle>&, std::valarray<double> const&, double,
 void add_fixed_obstacle(std::vector<Obstacle>& g_obstacles,
                         std::valarray<double> const& pos, double size,
                         std::valarray<double> const& space);
-
+}  // namespace ob
 #endif

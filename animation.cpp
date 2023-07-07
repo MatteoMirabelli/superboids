@@ -101,17 +101,17 @@ void Animate::setState(int state) {
 
 void Animate::animate() { setState(a_state + 1); }
 
-std::vector<Animate> create_animates(Flock& flock,
+std::vector<Animate> create_animates(fk::Flock& flock,
                                      std::vector<sf::Texture> const& textures,
                                      float margin) {
   std::vector<Animate> animates;
   std::transform(
       flock.begin(), flock.end(), std::back_inserter(animates),
-      [&margin, &textures](Boid& b) -> Animate {
+      [&margin, &textures](bd::Boid& b) -> Animate {
         Animate sp_boid(
             static_cast<float>(0.6 * b.get_par_ds() / textures[0].getSize().x),
             textures);
-        (vec_norm(b.get_vel()) > 200.) ? sp_boid.setState(1)
+        (mt::vec_norm<double>(b.get_vel()) > 200.) ? sp_boid.setState(1)
                                        : sp_boid.setState(0);
         sp_boid.setPosition(b.get_pos()[0] + margin, b.get_pos()[1] + margin);
         sp_boid.setRotation(180. - b.get_angle());
@@ -121,16 +121,16 @@ std::vector<Animate> create_animates(Flock& flock,
   return animates;
 }
 
-std::vector<Animate> create_animates(std::vector<Predator> const& preds,
+std::vector<Animate> create_animates(std::vector<pr::Predator> const& preds,
                                      std::vector<sf::Texture> const& textures,
                                      float margin) {
   std::vector<Animate> animates;
   std::transform(
       preds.begin(), preds.end(), std::back_inserter(animates),
-      [&margin, &textures](Predator const& pred) -> Animate {
+      [&margin, &textures](pr::Predator const& pred) -> Animate {
         Animate sp_pred(static_cast<float>(0.9 * pred.get_par_ds() / textures[0].getSize().x),
                         textures);
-        (vec_norm(pred.get_vel()) > 200.) ? sp_pred.setState(1)
+        (mt::vec_norm<double>(pred.get_vel()) > 200.) ? sp_pred.setState(1)
                                        : sp_pred.setState(0);
         sp_pred.setPosition(pred.get_pos()[0] + margin, pred.get_pos()[1] + margin);
         sp_pred.setRotation(180. - pred.get_angle());

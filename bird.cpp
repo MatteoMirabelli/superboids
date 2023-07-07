@@ -65,11 +65,11 @@ sf::ConvexShape& Bird::getShape() { return bird_shape; }
 
 void Bird::move(sf::Vector2f const& offset) { bird_shape.move(offset); }
 
-std::vector<Bird> create_birds(Flock& flock, sf::Color const& color,
+std::vector<Bird> create_birds(fk::Flock& flock, sf::Color const& color,
                                float margin) {
   std::vector<Bird> birds;
   std::transform(flock.begin(), flock.end(), std::back_inserter(birds),
-                 [&margin, &color](Boid& b) -> Bird {
+                 [&margin, &color](bd::Boid& b) -> Bird {
                    Bird tr_boid(margin / 2, color);
                    tr_boid.setPosition(b.get_pos()[0] + margin,
                                        b.get_pos()[1] + margin);
@@ -79,11 +79,11 @@ std::vector<Bird> create_birds(Flock& flock, sf::Color const& color,
   return birds;
 }
 
-std::vector<Bird> create_birds(std::vector<Predator> const& preds, sf::Color const& color,
+std::vector<Bird> create_birds(std::vector<pr::Predator> const& preds, sf::Color const& color,
                                float margin) {
   std::vector<Bird> birds;
   std::transform(preds.begin(), preds.end(), std::back_inserter(birds),
-                 [&margin, &color](Predator const& b) -> Bird {
+                 [&margin, &color](pr::Predator const& b) -> Bird {
                    Bird tr_boid(margin, color);
                    tr_boid.setPosition(b.get_pos()[0] + margin,
                                        b.get_pos()[1] + margin);
@@ -93,7 +93,7 @@ std::vector<Bird> create_birds(std::vector<Predator> const& preds, sf::Color con
   return birds;
 }
 
-void update_birds(std::vector<Bird>& birds, Flock& flock, float margin) {
+void update_birds(std::vector<Bird>& birds, fk::Flock& flock, float margin) {
   int diff = flock.size() - birds.size();
   if (diff > 0) {
     auto color = birds[0].getFillColor();
@@ -112,7 +112,7 @@ void update_birds(std::vector<Bird>& birds, Flock& flock, float margin) {
     birds.erase(birds.begin(), birds.begin() - diff);
   }
   std::transform(flock.begin(), flock.end(), birds.begin(), birds.begin(),
-                 [&margin](Boid& b, Bird& tr_boid) -> Bird {
+                 [&margin](bd::Boid& b, Bird& tr_boid) -> Bird {
                    tr_boid.setPosition(b.get_pos()[0] + margin,
                                        b.get_pos()[1] + margin);
                    tr_boid.setRotation(-b.get_angle());
@@ -120,7 +120,7 @@ void update_birds(std::vector<Bird>& birds, Flock& flock, float margin) {
                  });
 }
 
-void update_birds(std::vector<Bird>& birds, std::vector<Predator> const& flock, float margin) {
+void update_birds(std::vector<Bird>& birds, std::vector<pr::Predator> const& flock, float margin) {
   int diff = flock.size() - birds.size();
   if (diff > 0) {
     auto color = birds[0].getFillColor();
@@ -139,7 +139,7 @@ void update_birds(std::vector<Bird>& birds, std::vector<Predator> const& flock, 
     birds.erase(birds.begin(), birds.begin() - diff);
   }
   std::transform(flock.begin(), flock.end(), birds.begin(), birds.begin(),
-                 [&margin](Predator const& b, Bird& tr_boid) -> Bird {
+                 [&margin](pr::Predator const& b, Bird& tr_boid) -> Bird {
                    tr_boid.setPosition(b.get_pos()[0] + margin,
                                        b.get_pos()[1] + margin);
                    tr_boid.setRotation(-b.get_angle());

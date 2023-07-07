@@ -33,9 +33,9 @@ class Animate : public sf::Drawable, public sf::Transformable {
   void animate();
 };
 
-std::vector<Animate> create_animates(Flock&, std::vector<sf::Texture> const&,
+std::vector<Animate> create_animates(fk::Flock&, std::vector<sf::Texture> const&,
                                      float);
-std::vector<Animate> create_animates(std::vector<Predator> const&,
+std::vector<Animate> create_animates(std::vector<pr::Predator> const&,
                                      std::vector<sf::Texture> const&, float);
 
 class Tracker : public sf::Drawable, public sf::Transformable {

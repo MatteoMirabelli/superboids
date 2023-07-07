@@ -27,10 +27,10 @@ class Bird : public sf::Drawable {
   sf::ConvexShape& getShape();
 };
 
-std::vector<Bird> create_birds(Flock&, sf::Color const&, float);
-std::vector<Bird> create_birds(std::vector<Predator> const&, sf::Color const&,
+std::vector<Bird> create_birds(fk::Flock&, sf::Color const&, float);
+std::vector<Bird> create_birds(std::vector<pr::Predator> const&, sf::Color const&,
                                float);
-void update_birds(std::vector<Bird>&, Flock&, float);
-void update_birds(std::vector<Bird>&, std::vector<Predator> const&, float);
+void update_birds(std::vector<Bird>&, fk::Flock&, float);
+void update_birds(std::vector<Bird>&, std::vector<pr::Predator> const&, float);
 
 #endif

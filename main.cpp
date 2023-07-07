@@ -23,8 +23,169 @@ int main() {
   try {
     // -- GENERAL --
 
+    std::cout << "BOID SIMULATION PROGRAMME \n";
     // boolean to choose mode: classic (false) vs Star Boids (true)
     bool mode = false;
+    double border_detection{};
+    double border_repulsion{};
+    double boid_pred_detection{};
+    double boid_pred_repulsion{};
+    double boid_obs_detection{};
+    double boid_obs_repulsion{};
+    double pred_pred_repulsion{};
+    bool behaviour{};
+
+    std::cout << "Insert number of boids (>0): \n";
+    double number_of_boids{0};
+    std::cin >> number_of_boids;
+    if (number_of_boids <= 0) {
+      throw std::runtime_error("Number of boids must be larger than one!");
+    }
+
+    std::cout << "Insert parameter d (>0 && <=100): \n";
+    double param_d{};
+    std::cin >> param_d;
+    if (param_d <= 0 || param_d > 100.) {
+      throw std::runtime_error("Invalid parameter");
+    }
+
+    std::cout << "Insert parameter d_s (>0 && <=25): \n";
+    double param_ds{};
+    std::cin >> param_ds;
+    if (param_ds <= 0 || param_ds > 25.) {
+      throw std::runtime_error("Invalid parameter");
+    }
+
+    std::cout << "Insert parameter s (>0 && <=1,5): \n";
+    double param_s{};
+    std::cin >> param_s;
+    if (param_s <= 0 || param_s > 1.5) {
+      throw std::runtime_error("Invalid parameter");
+    }
+
+    std::cout << "Insert parameter a (>=0.1 && <= 0.5): \n";
+    double param_a{};
+    std::cin >> param_a;
+    if (param_a < 0.1 || param_a > 0.5) {
+      throw std::runtime_error("Invalid parameter");
+    }
+
+    std::cout << "Insert parameter c (>=0 && <= 0.1): \n";
+    double param_c{};
+    std::cin >> param_c;
+    if (param_c < 0 || param_c > 0.1) {
+      throw std::runtime_error("Invalid parameter");
+    }
+
+    // initialization of flock parameters
+    fk::Parameters params(50., 25., 1.2, 0.1, 0.01);
+
+    // fk::Parameters params(param_d, param_ds, param_s, param_a, param_c);
+
+    std::cout << "Insert boids' view_angle (>=0 && <= 180): \n";
+    double boids_view_angle;
+    std::cin >> boids_view_angle;
+    if (boids_view_angle < 0 || boids_view_angle > 180.) {
+      throw std::runtime_error("Invalid parameter");
+    }
+
+    std::cout << "Insert number of obstacles (>=0): \n";
+    double number_of_obstacles;
+    std::cin >> number_of_obstacles;
+    if (number_of_obstacles < 0) {
+      throw std::runtime_error("Invalid parameter");
+    }
+
+    std::cout << "Insert obstacles' maximum size (>15 && <= 70.): \n";
+    double obstacles_max_size;
+    std::cin >> obstacles_max_size;
+    if (obstacles_max_size <= 15. || obstacles_max_size > 70.) {
+      throw std::runtime_error("Invalid parameter");
+    }
+
+    std::cout << "Insert number of predators(>=0): \n";
+    double number_of_predators;
+    std::cin >> number_of_predators;
+    if (number_of_predators < 0) {
+      throw std::runtime_error("Invalid parameter");
+    }
+
+    std::cout << "Insert predators' view_angle(>=0 and <= 180.): \n";
+    double preds_view_angle;
+    std::cin >> preds_view_angle;
+    if (preds_view_angle < 0 || preds_view_angle > 180.) {
+      throw std::runtime_error("Invalid parameter");
+    }
+
+    std::cout << "Insert predators' parameter ds (> 0): \n";
+    double preds_ds;
+    std::cin >> preds_ds;
+    if (preds_ds <= 0) {
+      throw std::runtime_error("Invalid parameter");
+    }
+
+    std::cout << "Insert predators' parameter s (>0): \n";
+    double preds_s;
+    std::cin >> preds_s;
+    if (preds_s <= 0) {
+      throw std::runtime_error("Invalid parameter");
+    }
+
+    std::cout << "Insert predators' range to detect preys (> 0): \n";
+    double preds_range;
+    std::cin >> preds_range;
+    if (preds_range <= 0) {
+      throw std::runtime_error("Invalid parameter");
+    }
+
+    std::cout << "Insert predators' parameter hunger (> 0): \n";
+    double preds_hunger;
+    std::cin >> preds_hunger;
+    if (preds_hunger <= 0) {
+      throw std::runtime_error("Invalid parameter");
+    }
+
+    // -- WINDOW PARAMETERS --
+
+    // window and simulation space dimensions,
+    // fitted onto screen properties for better portability
+
+    // window dimensions
+    float window_x = sf::VideoMode::getFullscreenModes()[0].width;
+    float window_y = sf::VideoMode::getFullscreenModes()[0].height * 0.92;
+
+    // simulation space dimensions
+    float video_x = window_x * 0.75;
+    float video_y = window_y * 0.96;
+
+    // margin value, also fitted onto screen
+    float margin = (window_y - video_y) / 2;
+
+    // -- SIMULATION OBJECTS --
+
+    // initialization of obstacles
+    std::vector<ob::Obstacle> obstacles =
+        ob::generate_obstacles(5, 30., {video_x, video_y});
+
+    /*  std::vector<ob::Obstacle> obstacles =
+         ob::generate_obstacles(number_of_obstacles, obstacles_max_size,
+         {video_x, video_y}); */
+
+    // flock initialization
+    fk::Flock bd_flock{params, 100, 120., {video_x, video_y}, obstacles};
+    /* fk::Flock bd_flock{params,
+                        number_of_boids,
+                        boids_view_angle,
+                        {video_x, video_y},
+                        obstacles}; */
+
+    // predators initialization
+    std::vector<pr::Predator> predators = pr::random_predators(
+        obstacles, 2, {video_x, video_y}, 150., 30., 1., 70., 1.2);
+
+    /*   std::vector<pr::Predator> predators = pr::random_predators(
+           obstacles, number_of_predators, {video_x, video_y}, preds_view_angle,
+           preds_ds, preds_s, preds_range, preds_hunger); */
 
     // -- USER INPUT --
 
@@ -77,42 +238,6 @@ int main() {
                    "========================\n";
     }
     std::cin.get();
-
-    // -- WINDOW PARAMETERS --
-
-    // window and simulation space dimensions,
-    // fitted onto screen properties for better portability
-
-    // window dimensions
-    float window_x = sf::VideoMode::getFullscreenModes()[0].width;
-    float window_y = sf::VideoMode::getFullscreenModes()[0].height * 0.92;
-
-    // simulation space dimensions
-    float video_x = window_x * 0.75;
-    float video_y = window_y * 0.96;
-
-    // margin value, also fitted onto screen
-    float margin = (window_y - video_y) / 2;
-
-    // -- SIMULATION OBJECTS --
-
-    // boolean for behaviour:
-    // false = borders, true = toroidal
-    bool behaviour = true;
-
-    // initialization of flock parameters
-    Parameters params(50., 25., 1.2, 0.1, 0.01);
-
-    // initialization of obstacles
-    std::vector<Obstacle> obstacles =
-        generate_obstacles(5, 30., {video_x, video_y});
-
-    // flock initialization
-    Flock bd_flock{params, 100, 120., {video_x, video_y}, obstacles};
-
-    // predators initialization
-    std::vector<Predator> predators = random_predators(
-        obstacles, 2, {video_x, video_y}, 150., 30., 1., 70., 1.2);
 
     // -- GRAPHIC OBJECTS --
 
@@ -201,7 +326,7 @@ int main() {
     std::vector<sf::CircleShape> graph_obs;
     std::transform(
         obstacles.begin(), obstacles.end(), std::back_inserter(graph_obs),
-        [&margin, &obs_texture, &mode](Obstacle b) -> sf::CircleShape {
+        [&margin, &obs_texture, &mode](ob::Obstacle b) -> sf::CircleShape {
           sf::CircleShape ob_circ(b.get_size());
           switch (mode) {
             case false:
@@ -254,8 +379,8 @@ int main() {
 
     float pos_com_x = bd_flock.get_com().get_pos()[0];
     float pos_com_y = bd_flock.get_com().get_pos()[1];
-    float com_angle =
-        static_cast<float>(compute_angle<double>(bd_flock.get_com().get_vel()));
+    float com_angle = static_cast<float>(
+        mt::compute_angle<double>(bd_flock.get_com().get_vel()));
     float tracker_x = window_x - video_x * com_ratio - 2 * margin;
     float tracker_y = margin;
 
@@ -286,7 +411,7 @@ int main() {
         video_x + 2 * margin,
         video_y * com_ratio + 3 * margin + 5.5 * comp_text.getCharacterSize()});
     // declares and initializes object for stats tracking
-    Statistics flock_stats = bd_flock.get_stats();
+    fk::Statistics flock_stats = bd_flock.get_stats();
 
     // text for user messages
     sf::Text message_text("Sim started", font, 20);
@@ -401,8 +526,8 @@ int main() {
           indx->setPosition(bd_indx->get_pos()[0] + margin,
                             bd_indx->get_pos()[1] + margin);
           indx->setRotation(180. - bd_indx->get_angle());
-          (vec_norm<double>(bd_indx->get_vel()) > 150.) ? indx->setState(1)
-                                                        : indx->setState(0);
+          (mt::vec_norm<double>(bd_indx->get_vel()) > 150.) ? indx->setState(1)
+                                                            : indx->setState(0);
         }
 
         // update graphic predators number
@@ -424,7 +549,7 @@ int main() {
               predators[static_cast<unsigned int>(indx)].get_pos()[1] + margin);
           graph_preds_sp[static_cast<unsigned int>(indx)].setRotation(
               180. - predators[static_cast<unsigned int>(indx)].get_angle());
-          (vec_norm<double>(
+          (mt::vec_norm<double>(
                predators[static_cast<unsigned int>(indx)].get_vel()) > 150.)
               ? graph_preds_sp[static_cast<unsigned int>(indx)].setState(1)
               : graph_preds_sp[static_cast<unsigned int>(indx)].setState(0);
@@ -436,7 +561,7 @@ int main() {
         std::transform(obstacles.begin() + graph_obs.size(), obstacles.end(),
                        std::back_inserter(graph_obs),
                        [&margin, &obs_texture,
-                        &mode](Obstacle const& b) -> sf::CircleShape {
+                        &mode](ob::Obstacle const& b) -> sf::CircleShape {
                          sf::CircleShape ob_circ(b.get_size());
                          switch (mode) {
                            case false:
@@ -463,7 +588,7 @@ int main() {
         pos_com_y = bd_flock.get_com().get_pos()[1];
         com_tracker.update_pos({pos_com_x, pos_com_y});
         com_angle = static_cast<float>(
-            compute_angle<double>(bd_flock.get_com().get_vel()));
+            mt::compute_angle<double>(bd_flock.get_com().get_vel()));
         com_tracker.update_angle(com_angle);
 
         // update stats
