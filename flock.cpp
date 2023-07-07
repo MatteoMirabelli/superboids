@@ -11,7 +11,7 @@
 // Flock constructor with centre_of_mass... no more used in the simulation, but
 // used in many tests!
 fk::Flock::Flock(fk::Parameters const& params, int bd_n, bd::Boid const& com,
-             double view_ang, std::valarray<double> const& space)
+                 double view_ang, std::valarray<double> const& space)
     : f_com{com}, f_flock{}, f_params{params}, f_stats{} {
   // Generates randomly boids around centre of masss
   assert(bd_n >= 0);
@@ -40,17 +40,17 @@ fk::Flock::Flock(fk::Parameters const& params, int bd_n, bd::Boid const& com,
     std::valarray<double> final_vel{0., 0.};
     for (auto n = 0; n < bd_n - 1; ++n) {
       f_flock.push_back(bd::Boid{{dist_pos_x(rd), dist_pos_y(rd)},
-                             {dist_vel_x(rd), dist_vel_y(rd)},
-                             view_ang,
-                             space,
-                             params.d_s,
-                             params.s});
+                                 {dist_vel_x(rd), dist_vel_y(rd)},
+                                 view_ang,
+                                 space,
+                                 params.d_s,
+                                 params.s});
       final_pos += f_flock[n].get_pos();
       final_vel += f_flock[n].get_vel();
     }
     f_flock.push_back(bd::Boid{bd_n * com.get_pos() - final_pos,
-                           bd_n * com.get_vel() - final_vel, view_ang, space,
-                           params.d_s, params.s});
+                               bd_n * com.get_vel() - final_vel, view_ang,
+                               space, params.d_s, params.s});
   }
 
   sort();
@@ -58,7 +58,7 @@ fk::Flock::Flock(fk::Parameters const& params, int bd_n, bd::Boid const& com,
 
 // Flock constructor without obstacles
 fk::Flock::Flock(fk::Parameters const& params, int bd_n, double view_ang,
-             std::valarray<double> const& space)
+                 std::valarray<double> const& space)
     : f_flock{}, f_params{params}, f_stats{} {
   // Generates randomly boids in the simulation area (space)
   assert(bd_n >= 0);
@@ -108,11 +108,11 @@ fk::Flock::Flock(fk::Parameters const& params, int bd_n, double view_ang,
 
 // fk::Flock constructor with obstacles
 fk::Flock::Flock(fk::Parameters const& params, int bd_n, double view_ang,
-             std::valarray<double> const& space,
-             std::vector<ob::Obstacle> const& obs)
+                 std::valarray<double> const& space,
+                 std::vector<ob::Obstacle> const& obs)
     : f_flock{}, f_params{params}, f_stats{} {
   // Generates randomly boids in the suitable simulation area
-  assert(bd_n >= 0);
+  assert(bd_n > 0);
   f_com = bd::Boid{{0., 0.}, {0., 0.}, view_ang, space, params.d_s, params.s};
   if (bd_n > 0) {
     std::random_device rd;
@@ -133,7 +133,8 @@ fk::Flock::Flock(fk::Parameters const& params, int bd_n, double view_ang,
       // Checks wheter it overlaps or not with obstacles
       auto overlap = [&pos, &params](ob::Obstacle const& obstacle) -> bool {
         std::valarray<double> dist = pos - obstacle.get_pos();
-        return mt::vec_norm<double>(dist) < obstacle.get_size() + 0.6 * params.d_s;
+        return mt::vec_norm<double>(dist) <
+               obstacle.get_size() + 0.6 * params.d_s;
       };
 
       while (std::any_of(obs.begin(), obs.end(), overlap)) {
@@ -213,7 +214,7 @@ void fk::Flock::add_boid() {
   // It generates its speed and adds it to the flock
   std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
   f_flock.push_back(bd::Boid{pos, vel, f_flock[0].get_view_angle(),
-                         f_flock[0].get_space(), f_params.d_s, f_params.s});
+                             f_flock[0].get_space(), f_params.d_s, f_params.s});
   sort();
   update_com();
 }
@@ -244,7 +245,8 @@ void fk::Flock::add_boid(std::vector<ob::Obstacle> const& obstacles) {
   };
   auto overlap = [&pos, this](ob::Obstacle const& obstacle) -> bool {
     std::valarray<double> dist = pos - obstacle.get_pos();
-    return mt::vec_norm<double>(dist) < obstacle.get_size() + 0.6 * f_params.d_s;
+    return mt::vec_norm<double>(dist) <
+           obstacle.get_size() + 0.6 * f_params.d_s;
   };
 
   // Until boid coincide with another one or overlaps with obstacle, it
@@ -259,7 +261,7 @@ void fk::Flock::add_boid(std::vector<ob::Obstacle> const& obstacles) {
   // It generates its speed and adds it to the flock
   std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
   f_flock.push_back(bd::Boid{pos, vel, f_flock[0].get_view_angle(),
-                         f_flock[0].get_space(), f_params.d_s, f_params.s});
+                             f_flock[0].get_space(), f_params.d_s, f_params.s});
   sort();
   update_com();
 }
@@ -338,14 +340,16 @@ void fk::Flock::update_com() {
   f_com.get_pos() /= static_cast<double>(f_flock.size());
 }
 
-std::vector<bd::Boid> fk::Flock::get_neighbours(std::vector<bd::Boid>::iterator it) {
+std::vector<bd::Boid> fk::Flock::get_neighbours(
+    std::vector<bd::Boid>::iterator it) {
   return get_vector_neighbours(f_flock, it, f_params.d);
 }
 
 // Avoid_pred for tests
-std::valarray<double> fk::Flock::avoid_pred(bd::Boid const& bd, pr::Predator const& pred,
-                                        double boid_pred_detection,
-                                        double boid_pred_repulsion) {
+std::valarray<double> fk::Flock::avoid_pred(bd::Boid const& bd,
+                                            pr::Predator const& pred,
+                                            double boid_pred_detection,
+                                            double boid_pred_repulsion) {
   std::valarray<double> delta_vel = {0., 0.};
   // Determines wheter to apply or not separation from predator
   (bd::boid_dist(pred, bd) < boid_pred_detection * f_params.d)
@@ -355,7 +359,8 @@ std::valarray<double> fk::Flock::avoid_pred(bd::Boid const& bd, pr::Predator con
   return delta_vel;
 }
 
-std::valarray<double> fk::Flock::avoid_pred(bd::Boid const& bd, pr::Predator const& pred) {
+std::valarray<double> fk::Flock::avoid_pred(bd::Boid const& bd,
+                                            pr::Predator const& pred) {
   std::valarray<double> delta_vel = {0., 0.};
   // Determines wheter to apply or not separation from predator
   (bd::boid_dist(pred, bd) < 1.2 * f_params.d)
@@ -365,7 +370,8 @@ std::valarray<double> fk::Flock::avoid_pred(bd::Boid const& bd, pr::Predator con
 }
 
 // vel correction without obstacles (used in tests)
-std::valarray<double> fk::Flock::vel_correction(std::vector<bd::Boid>::iterator it) {
+std::valarray<double> fk::Flock::vel_correction(
+    std::vector<bd::Boid>::iterator it) {
   assert(it >= f_flock.begin() && it < f_flock.end());
   // Find its neighbours
   auto neighbours = get_neighbours(it);
@@ -395,8 +401,9 @@ std::valarray<double> fk::Flock::vel_correction(std::vector<bd::Boid>::iterator 
 }
 
 // vel correction without predators and copy_flock: used in update state
-std::valarray<double> fk::Flock::vel_correction(std::vector<bd::Boid> const& copy_flock,
-                                            std::vector<bd::Boid>::iterator it) {
+std::valarray<double> fk::Flock::vel_correction(
+    std::vector<bd::Boid> const& copy_flock,
+    std::vector<bd::Boid>::iterator it) {
   assert(it >= copy_flock.begin() && it < copy_flock.end() &&
          copy_flock.size() == f_flock.size());
   // Find its neighbours
@@ -427,10 +434,9 @@ std::valarray<double> fk::Flock::vel_correction(std::vector<bd::Boid> const& cop
 }
 
 // Overload di vel_correction with more predators used in tests
-std::valarray<double> fk::Flock::vel_correction(std::vector<bd::Boid>::iterator it,
-                                            std::vector<pr::Predator> const& preds,
-                                            double boid_pred_detection,
-                                            double boid_pred_repulsion) {
+std::valarray<double> fk::Flock::vel_correction(
+    std::vector<bd::Boid>::iterator it, std::vector<pr::Predator> const& preds,
+    double boid_pred_detection, double boid_pred_repulsion) {
   assert(it >= f_flock.begin() && it < f_flock.end());
 
   auto neighbours = get_neighbours(it);
@@ -467,8 +473,8 @@ std::valarray<double> fk::Flock::vel_correction(std::vector<bd::Boid>::iterator 
 }
 
 void fk::Flock::update_global_state(double delta_t, bool brd_bhv,
-                                std::vector<pr::Predator>& preds,
-                                std::vector<ob::Obstacle> const& obs) {
+                                    std::vector<pr::Predator>& preds,
+                                    std::vector<ob::Obstacle> const& obs) {
   // It creates a vector of pairs of boids and ints that stores preys. The int
   // states for the predator whose preys it is.
   std::vector<std::pair<bd::Boid, int>> preys;
@@ -643,13 +649,15 @@ void fk::Flock::update_stats() {
 
   for (auto it = f_flock.begin(); it < f_flock.end(); ++it) {
     mean_vel += mt::vec_norm<double>(it->get_vel());
-    square_mean_vel += (mt::vec_norm<double>(it->get_vel()) * mt::vec_norm<double>(it->get_vel()));
+    square_mean_vel += (mt::vec_norm<double>(it->get_vel()) *
+                        mt::vec_norm<double>(it->get_vel()));
 
     for (auto ut = it;
          ut < f_flock.end() &&
          std::abs(it->get_pos()[0] - ut->get_pos()[0]) < f_params.d;
          ++ut) {
-      if (bd::boid_dist(*it, *ut) <= f_params.d && bd::boid_dist(*it, *ut) > 0) {
+      if (bd::boid_dist(*it, *ut) <= f_params.d &&
+          bd::boid_dist(*it, *ut) > 0) {
         mean_dist += bd::boid_dist(*it, *ut);
         square_mean_dist += (bd::boid_dist(*it, *ut) * bd::boid_dist(*it, *ut));
         ++number_of_couples;
