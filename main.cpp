@@ -34,21 +34,21 @@ int main() {
       throw std::runtime_error("Number of boids must be larger than one!");
     }
 
-    std::cout << "Insert parameter d ( > 0 && <= 100 ) (Recommended 50): ";
+    std::cout << "Insert parameter d ( >= 20 && <= 100 ) (Recommended 50): ";
     double param_d{};
     std::cin >> param_d;
-    if (param_d <= 0 || param_d > 100.) {
+    if (param_d <= 20 || param_d > 100.) {
       throw std::runtime_error("Invalid parameter");
     }
 
     std::cout << "Insert parameter d_s ( >= 10 && <= 25 ) (Recommended 20): ";
     double param_ds{};
     std::cin >> param_ds;
-    if (param_ds < 10 || param_ds > 25.) {
+    if (param_ds < 10 || param_ds > 25. || param_ds < param_d) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert parameter s ( > 0 && <= 1,5 ) (Recommended 1.2): ";
+    std::cout << "Insert parameter s ( > 0 && <= 1.5 ) (Recommended 1.2): ";
 
     double param_s{};
     std::cin >> param_s;
@@ -96,7 +96,7 @@ int main() {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert number of predators( >=0 ): ";
+    std::cout << "Insert number of predators( >= 0 ): ";
     double number_of_predators;
     std::cin >> number_of_predators;
     if (number_of_predators < 0) {
