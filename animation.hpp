@@ -5,6 +5,8 @@
 #include <valarray>
 #include <vector>
 
+#include "bird.hpp"
+
 class Animate : public sf::Drawable, public sf::Transformable {
   float a_scale;
   int a_state;
@@ -16,20 +18,30 @@ class Animate : public sf::Drawable, public sf::Transformable {
 
  public:
   Animate(sf::Texture const&);
-  Animate(float const&, sf::Texture const&);
+  Animate(float, sf::Texture const&);
+  Animate(float, std::vector<sf::Texture> const&);
+  Animate() = default;
   void addTexture(sf::Texture const&);
   void addTextures(std::vector<sf::Texture> const&);
   void addTextures(std::string const&);
-  void setPosition(float const&, float const&);
-  void setRotation(float const&);
-  void setState(int const&);
+  std::vector<sf::Texture> const& getTextures() const;
+  void setPosition(float, float);
+  void setPosition(sf::Vector2f const&);
+  void setRotation(float);
+  void setScale(float);
+  void setState(int);
   void animate();
 };
+
+std::vector<Animate> create_animates(Flock&, std::vector<sf::Texture> const&,
+                                     float);
+std::vector<Animate> create_animates(std::vector<Predator> const&,
+                                     std::vector<sf::Texture> const&, float);
 
 class Tracker : public sf::Drawable, public sf::Transformable {
   sf::RectangleShape t_outer;
   sf::RectangleShape t_inner;
-  sf::CircleShape t_circle;
+  Bird t_bird;
   sf::VertexArray t_path;
   int index;
   std::valarray<float> t_range;
@@ -44,8 +56,9 @@ class Tracker : public sf::Drawable, public sf::Transformable {
   void setPosition(sf::Vector2f const&);
   void setFillColors(sf::Color const&, sf::Color const&, sf::Color const&);
   void setOutlineColors(sf::Color const&, sf::Color const&, sf::Color const&);
-  void setOutlineThickness(float const&, float const&, float const&);
+  void setOutlineThickness(float, float, float);
   void update_pos(std::valarray<float> const&);
+  void update_angle(float);
   sf::RectangleShape const& getOuter() const;
 };
 

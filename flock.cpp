@@ -255,6 +255,7 @@ int Flock::size() const { return static_cast<int>(f_flock.size()); }
 void Flock::push_back(Boid const& boid) { f_flock.push_back(boid); }
 
 Boid const& Flock::get_boid(int n) const {
+  assert(n >= 1 && n <= f_flock.size());
   return f_flock[static_cast<unsigned int>(n - 1)];
 }
 

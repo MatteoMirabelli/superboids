@@ -3,20 +3,33 @@
 #include <SFML/Graphics.hpp>
 #include <cassert>
 #include <cmath>
+#include <execution>
 #include <filesystem>
 
-// costruttore, draw e metodi di Animate
+// constructor, draw and methods for Animate class
 
 Animate::Animate(sf::Texture const& texture)
-    : a_scale(0.), a_state(0), a_textures(), a_sprite(texture) {
+    : a_scale(10.), a_state(0), a_textures(), a_sprite(texture) {
   a_textures.push_back(texture);
   a_sprite.setOrigin(sf::Vector2f(a_sprite.getGlobalBounds().width / 2,
                                   a_sprite.getGlobalBounds().height / 2));
 }
 
-Animate::Animate(float const& scale, sf::Texture const& texture)
-    : a_scale(scale), a_state(0), a_textures(), a_sprite(texture) {
+Animate::Animate(float scale, sf::Texture const& texture)
+    : a_scale(), a_state(0), a_textures(), a_sprite(texture) {
+  assert(scale > 0.);
+  a_scale = scale;
   a_textures.push_back(texture);
+  a_sprite.setScale(scale, scale);
+  a_sprite.setOrigin(sf::Vector2f(a_sprite.getGlobalBounds().width / 2,
+                                  a_sprite.getGlobalBounds().height / 2));
+}
+
+Animate::Animate(float scale, std::vector<sf::Texture> const& textures)
+    : a_scale(), a_state(0), a_textures(textures), a_sprite(textures[0]) {
+  assert(scale > 0.);
+  a_scale = scale;
+  a_textures = textures;
   a_sprite.setScale(scale, scale);
   a_sprite.setOrigin(sf::Vector2f(a_sprite.getGlobalBounds().width / 2,
                                   a_sprite.getGlobalBounds().height / 2));
@@ -50,18 +63,36 @@ void Animate::addTextures(std::string const& path) {
   }
 }
 
-void Animate::setPosition(float const& x, float const& y) {
-  // per movimento
+std::vector<sf::Texture> const& Animate::getTextures() const {
+  return a_textures;
+}
+
+void Animate::setPosition(float x, float y) {
+  // for movement
   sf::Vector2f position(x, y);
   a_sprite.setPosition(position);
 }
 
-void Animate::setRotation(float const& angle) {
-  // per rotazione
+void Animate::setPosition(sf::Vector2f const& position) {
+  // for movement (overload)
+  a_sprite.setPosition(position);
+}
+
+void Animate::setRotation(float angle) {
+  // for rotation
   a_sprite.setRotation(angle);
 }
 
-void Animate::setState(int const& state) {
+void Animate::setScale(float scale) {
+  // for scaling
+  assert(scale > 0);
+  a_scale = scale;
+  a_sprite.setScale(scale, scale);
+  a_sprite.setOrigin(sf::Vector2f(a_sprite.getGlobalBounds().width / 2,
+                                  a_sprite.getGlobalBounds().height / 2));
+}
+
+void Animate::setState(int state) {
   assert(state >= 0);
   int state_ = state % (a_textures.size() - 1);
   a_state = state_;
@@ -70,13 +101,52 @@ void Animate::setState(int const& state) {
 
 void Animate::animate() { setState(a_state + 1); }
 
-// costruttore, draw e metodi di Tracker
+std::vector<Animate> create_animates(Flock& flock,
+                                     std::vector<sf::Texture> const& textures,
+                                     float margin) {
+  std::vector<Animate> animates;
+  std::transform(
+      flock.begin(), flock.end(), std::back_inserter(animates),
+      [&margin, &textures](Boid& b) -> Animate {
+        Animate sp_boid(
+            static_cast<float>(0.6 * b.get_par_ds() / textures[0].getSize().x),
+            textures);
+        (vec_norm(b.get_vel()) > 200.) ? sp_boid.setState(1)
+                                       : sp_boid.setState(0);
+        sp_boid.setPosition(b.get_pos()[0] + margin, b.get_pos()[1] + margin);
+        sp_boid.setRotation(180. - b.get_angle());
+        return sp_boid;
+      });
+  assert(animates.size() == flock.size());
+  return animates;
+}
+
+std::vector<Animate> create_animates(std::vector<Predator> const& preds,
+                                     std::vector<sf::Texture> const& textures,
+                                     float margin) {
+  std::vector<Animate> animates;
+  std::transform(
+      preds.begin(), preds.end(), std::back_inserter(animates),
+      [&margin, &textures](Predator const& pred) -> Animate {
+        Animate sp_pred(static_cast<float>(0.9 * pred.get_par_ds() / textures[0].getSize().x),
+                        textures);
+        (vec_norm(pred.get_vel()) > 200.) ? sp_pred.setState(1)
+                                       : sp_pred.setState(0);
+        sp_pred.setPosition(pred.get_pos()[0] + margin, pred.get_pos()[1] + margin);
+        sp_pred.setRotation(180. - pred.get_angle());
+        return sp_pred;
+      });
+  assert(animates.size() == preds.size());
+  return animates;
+}
+
+// constructor, draw and methods of Tracker
 
 Tracker::Tracker(std::valarray<float> const& range,
                  std::valarray<float> const& pos, float scale, float margin)
     : t_outer(),
       t_inner(),
-      t_circle(),
+      t_bird(Bird(10.)),
       t_path(sf::LineStrip, 0),
       t_range(range),
       t_pos(pos) {
@@ -87,17 +157,16 @@ Tracker::Tracker(std::valarray<float> const& range,
   t_outer.setSize(sf::Vector2f(t_range[0] * scale + 2 * margin,
                                t_range[1] * scale + 2 * margin));
   t_inner.move(margin, margin);
-  t_circle.setRadius(margin / 2);
-  t_circle.setOrigin(margin / 2, margin / 2);
-  t_circle.setPosition(t_pos[0] * scale + margin, t_pos[1] * scale + margin);
+  t_bird.setSize(margin);
+  t_bird.setPosition(t_pos[0] * scale + margin, t_pos[1] * scale + margin);
 }
 
 void Tracker::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   target.draw(t_outer, states);
   target.draw(t_inner, states);
   target.draw(t_path, states);
-  if (t_inner.getGlobalBounds().contains(t_circle.getPosition())) {
-    target.draw(t_circle, states);
+  if (t_inner.getGlobalBounds().contains(t_bird.getPosition())) {
+    target.draw(t_bird, states);
   }
 }
 
@@ -105,14 +174,14 @@ void Tracker::setPosition(sf::Vector2f const& position) {
   sf::Vector2f displacement = position - t_outer.getPosition();
   t_outer.setPosition(position);
   t_inner.move(displacement);
-  t_circle.move(displacement);
+  t_bird.move(displacement);
 }
 
 void Tracker::setFillColors(sf::Color const& outer, sf::Color const& inner,
                             sf::Color const& circle) {
   t_outer.setFillColor(outer);
   t_inner.setFillColor(inner);
-  t_circle.setFillColor(circle);
+  t_bird.setFillColor(circle);
   for (int idx = 0; static_cast<unsigned int>(idx) < t_path.getVertexCount();
        ++idx) {
     t_path[idx].color = sf::Color(circle.r, circle.g, circle.b, 100);
@@ -123,29 +192,28 @@ void Tracker::setOutlineColors(sf::Color const& outer, sf::Color const& inner,
                                sf::Color const& circle) {
   t_outer.setOutlineColor(outer);
   t_inner.setOutlineColor(inner);
-  t_circle.setOutlineColor(circle);
+  t_bird.getShape().setOutlineColor(circle);
 }
 
-void Tracker::setOutlineThickness(float const& outer, float const& inner,
-                                  float const& circle) {
+void Tracker::setOutlineThickness(float outer, float inner, float circle) {
   t_outer.setOutlineThickness(outer);
   t_inner.setOutlineThickness(inner);
-  t_circle.setOutlineThickness(circle);
+  t_bird.getShape().setOutlineThickness(circle);
 }
 
 void Tracker::update_pos(std::valarray<float> const& position) {
   assert(position.size() == 2);
   t_pos = position;
-  t_circle.setPosition(
+  t_bird.setPosition(
       t_pos[0] * t_inner.getSize().x / t_range[0] + t_inner.getPosition().x,
       t_pos[1] * t_inner.getSize().y / t_range[1] + t_inner.getPosition().y);
   if (t_pos[0] > 0. && t_pos[1] > 0. && t_pos[0] < t_range[0] &&
       t_pos[1] < t_range[1]) {
     if (t_path.getVertexCount() < 30) {
       sf::Vertex vertex(
-          t_circle.getPosition(),
-          sf::Color(t_circle.getFillColor().r, t_circle.getFillColor().g,
-                    t_circle.getFillColor().b, 100));
+          t_bird.getPosition(),
+          sf::Color(t_bird.getFillColor().r, t_bird.getFillColor().g,
+                    t_bird.getFillColor().b, 100));
       t_path.append(vertex);
     } else {
       for (int idx = 0;
@@ -154,14 +222,16 @@ void Tracker::update_pos(std::valarray<float> const& position) {
         t_path[static_cast<unsigned int>(idx)].position =
             t_path[static_cast<unsigned int>(idx) + 1].position;
       }
-      t_path[t_path.getVertexCount() - 1].position = t_circle.getPosition();
+      t_path[t_path.getVertexCount() - 1].position = t_bird.getPosition();
     }
   }
 }
 
+void Tracker::update_angle(float angle) { t_bird.setRotation(angle); }
+
 sf::RectangleShape const& Tracker::getOuter() const { return t_outer; }
 
-// costruttore, draw e metodi di StatusBar
+// constructor, draw and methods of StatusBar
 
 StatusBar::StatusBar(std::string const& title, sf::Font const& font,
                      float width, float height,
@@ -192,9 +262,9 @@ StatusBar::StatusBar(std::string const& title, sf::Font const& font,
   s_max.setFillColor(sf::Color::Black);
   s_min_max.str("");
   s_text.setOrigin(0, 0);
-  s_min.setPosition(0.05 * s_min.getLocalBounds().width, s_outer.getPosition().y +
-                           s_outer.getGlobalBounds().height +
-                           s_min.getCharacterSize() / 7);
+  s_min.setPosition(0.05 * s_min.getLocalBounds().width,
+                    s_outer.getPosition().y + s_outer.getGlobalBounds().height +
+                        s_min.getCharacterSize() / 7);
   s_max.setOrigin(1.1 * s_max.getLocalBounds().width, 0);
   s_max.setPosition(s_outer.getGlobalBounds().width,
                     s_outer.getPosition().y + s_outer.getGlobalBounds().height +
