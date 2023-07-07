@@ -3,34 +3,34 @@
 #include <algorithm>
 #include <random>
 
-Predator::Predator(std::valarray<double> const& pos,
+pr::Predator::Predator(std::valarray<double> const& pos,
                    std::valarray<double> const& vel, double view_ang,
                    double param_d_s, double param_s,
                    std::valarray<double> const& space, double range,
                    double hunger)
-    : Boid(pos, vel, view_ang, space, param_d_s, param_s),
+    : bd::Boid(pos, vel, view_ang, space, param_d_s, param_s),
       p_range(range),
       p_hunger(hunger) {}
 
-Predator::Predator(double x, double y, double vx, double vy, double view_ang,
+pr::Predator::Predator(double x, double y, double vx, double vy, double view_ang,
                    double param_d_s, double param_s, double sx, double sy,
                    double range, double hunger)
-    : Boid(x, y, vx, vy, view_ang, sx, sy, param_d_s, param_s),
+    : bd::Boid(x, y, vx, vy, view_ang, sx, sy, param_d_s, param_s),
       p_range(range),
       p_hunger(hunger) {}
 
-double Predator::get_angle() const { return Boid::get_angle(); }
+double pr::Predator::get_angle() const { return bd::Boid::get_angle(); }
 
-double Predator::get_range() const { return p_range; }
+double pr::Predator::get_range() const { return p_range; }
 
-double Predator::get_hunger() const { return p_hunger; }
+double pr::Predator::get_hunger() const { return p_hunger; }
 
 // it sorts preys according to x position and calculates the centre of mass of
 // its preys
-std::valarray<double> Predator::predate(std::vector<Boid>& preys) {
+std::valarray<double> pr::Predator::predate(std::vector<bd::Boid>& preys) {
   std::valarray<double> prey_com_pos(2);
   if (preys.size() > 0) {
-    auto nearest = [&](Boid const& b1, Boid const& b2) {
+    auto nearest = [&](bd::Boid const& b1, bd::Boid const& b2) {
       return boid_dist(b1, *this) < boid_dist(b2, *this);
     };
 
@@ -51,13 +51,13 @@ std::valarray<double> Predator::predate(std::vector<Boid>& preys) {
   }
 }
 
-std::vector<Predator> random_predators(std::vector<Obstacle> const& obs,
+std::vector<pr::Predator> pr::random_predators(std::vector<ob::Obstacle> const& obs,
                                        int pred_num,
                                        std::valarray<double> const& pred_space,
                                        double pred_view_ang, double pred_ds,
                                        double pred_s, double pred_range,
                                        double pred_hunger) {
-  std::vector<Predator> predators;
+  std::vector<pr::Predator> predators;
   assert(pred_num >= 0 && pred_view_ang > 0. && pred_ds > 0. && pred_s > 0. &&
          pred_range > 0. && pred_hunger > 0.);
   if (pred_num == 0) return predators;
@@ -73,15 +73,15 @@ std::vector<Predator> random_predators(std::vector<Obstacle> const& obs,
 
   auto generator = [&dist_pos_x, &dist_pos_y, &dist_vel_x, &dist_vel_y, &rd,
                     &pred_space, &pred_view_ang, &pred_ds, &pred_s, &pred_range,
-                    &pred_hunger, &obs]() -> Predator {
+                    &pred_hunger, &obs]() -> pr::Predator {
     // It generates the positons
     std::valarray<double> pos = {dist_pos_x(rd) * 0.4 * (pred_ds) + 20.,
                                  dist_pos_y(rd) * 0.4 * (pred_ds) + 20.};
 
     // Checks wheter there're are no oveerlapping obstacles
-    auto overlap = [&pos, &pred_ds](Obstacle const& obstacle) -> bool {
+    auto overlap = [&pos, &pred_ds](ob::Obstacle const& obstacle) -> bool {
       std::valarray<double> dist = pos - obstacle.get_pos();
-      return vec_norm(dist) < obstacle.get_size() + 0.6 * pred_ds;
+      return mt::vec_norm<double>(dist) < obstacle.get_size() + 0.6 * pred_ds;
     };
 
     while (std::any_of(obs.begin(), obs.end(), overlap)) {
@@ -92,14 +92,14 @@ std::vector<Predator> random_predators(std::vector<Obstacle> const& obs,
     // If there are no predators overlapping with obstacles, it returns the
     // predator
     std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
-    return Predator{pos,    vel,        pred_view_ang, pred_ds,
+    return pr::Predator{pos,    vel,        pred_view_ang, pred_ds,
                     pred_s, pred_space, pred_range,    pred_hunger};
   };
 
   // Generates predators
   std::generate_n(std::back_insert_iterator(predators), pred_num, generator);
 
-  auto sort_pred = [](Predator const& pred1, Predator const& pred2) {
+  auto sort_pred = [](pr::Predator const& pred1, pr::Predator const& pred2) {
     if (pred1.get_pos()[0] == pred2.get_pos()[0]) {
       return pred1.get_pos()[1] < pred2.get_pos()[1];
     } else {
@@ -110,7 +110,7 @@ std::vector<Predator> random_predators(std::vector<Obstacle> const& obs,
   std::sort(predators.begin(), predators.end(), sort_pred);
 
   // Checks if there are overlapping predator
-  auto compare_pred = [&](Predator const& b1, Predator const& b2) {
+  auto compare_pred = [&](pr::Predator const& b1, pr::Predator const& b2) {
     return boid_dist(b1, b2) < 0.3 * pred_ds;
   };
 
@@ -126,8 +126,8 @@ std::vector<Predator> random_predators(std::vector<Obstacle> const& obs,
   return predators;
 }
 
-void add_predator(std::vector<Predator>& predators,
-                  std::vector<Obstacle> const& obstacles,
+void pr::add_predator(std::vector<pr::Predator>& predators,
+                  std::vector<ob::Obstacle> const& obstacles,
                   std::valarray<double> const& pred_space, double pred_ang,
                   double pred_ds, double pred_s, double pred_range,
                   double pred_hunger) {
@@ -146,13 +146,13 @@ void add_predator(std::vector<Predator>& predators,
   std::valarray<double> pos = {dist_pos_x(rd) * 0.4 * (pred_ds) + 20.,
                                dist_pos_y(rd) * 0.4 * (pred_ds) + 20.};
 
-  auto overlap_pred = [&pos, &pred_ds](Predator& p1) -> bool {
-    return vec_norm(static_cast<std::valarray<double>>(p1.get_pos() - pos)) <
+  auto overlap_pred = [&pos, &pred_ds](pr::Predator& p1) -> bool {
+    return mt::vec_norm<double>(static_cast<std::valarray<double>>(p1.get_pos() - pos)) <
            0.6 * pred_ds;
   };
-  auto overlap_obs = [&pos, &pred_ds](Obstacle const& obstacle) -> bool {
+  auto overlap_obs = [&pos, &pred_ds](ob::Obstacle const& obstacle) -> bool {
     std::valarray<double> dist = pos - obstacle.get_pos();
-    return vec_norm(dist) < obstacle.get_size() + 0.6 * pred_ds;
+    return mt::vec_norm<double>(dist) < obstacle.get_size() + 0.6 * pred_ds;
   };
 
   // Until predator overlaps with obstacles or other predators, it regenerates
@@ -164,14 +164,14 @@ void add_predator(std::vector<Predator>& predators,
 
   // Adds predator
   std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
-  predators.push_back(Predator{pos, vel, pred_ang, pred_ds, pred_s, pred_space,
+  predators.push_back(pr::Predator{pos, vel, pred_ang, pred_ds, pred_s, pred_space,
                                pred_range, pred_hunger});
 }
 
-std::vector<Predator> get_vector_neighbours(
-    std::vector<Predator> const& full_vec, std::vector<Predator>::iterator it,
+std::vector<pr::Predator> pr::get_vector_neighbours(
+    std::vector<pr::Predator> const& full_vec, std::vector<pr::Predator>::iterator it,
     double dist) {
-  std::vector<Predator> neighbours;
+  std::vector<pr::Predator> neighbours;
   assert(it >= full_vec.begin() && it <= full_vec.end());
 
   // With the condition that the vector is sorted, it checks predators to the
@@ -213,17 +213,17 @@ std::vector<Predator> get_vector_neighbours(
 }
 
 // Updates state of all predators
-void update_predators_state(std::vector<Predator>& predators, double delta_t,
+void pr::update_predators_state(std::vector<pr::Predator>& predators, double delta_t,
                             bool bhv,
-                            std::vector<std::pair<Boid, int>> const& preys,
-                            std::vector<Obstacle> const& obstacles) {
-  std::vector<Predator> copy_predators = predators;
+                            std::vector<std::pair<bd::Boid, int>> const& preys,
+                            std::vector<ob::Obstacle> const& obstacles) {
+  std::vector<pr::Predator> copy_predators = predators;
   bool predation = (preys.size() > 0);
   for (auto idx = predators.begin(); idx != predators.end(); ++idx) {
     std::valarray<double> pred_separation = {0., 0.};
 
     // For each predator, it does:
-    for (auto neighbour_pred : get_vector_neighbours(
+    for (auto neighbour_pred : pr::get_vector_neighbours(
              copy_predators, copy_predators.begin() + (idx - predators.begin()),
              idx->get_par_ds())) {
       // apply separation from others
@@ -233,7 +233,7 @@ void update_predators_state(std::vector<Predator>& predators, double delta_t,
     // If at least one predator has at least one prey
     if (predation) {
       // Checks wheter a prey is its, and, in case, add to its "own_preys"
-      std::vector<Boid> own_preys;
+      std::vector<bd::Boid> own_preys;
       for (auto prey : preys)
         if (prey.second == idx - predators.begin())
           own_preys.push_back(prey.first);
@@ -254,7 +254,7 @@ void update_predators_state(std::vector<Predator>& predators, double delta_t,
   }
 
   // Sorts predators
-  auto sort_pred = [](Predator const& pred1, Predator const& pred2) {
+  auto sort_pred = [](pr::Predator const& pred1, pr::Predator const& pred2) {
     if (pred1.get_pos()[0] == pred2.get_pos()[0]) {
       return pred1.get_pos()[1] < pred2.get_pos()[1];
     } else {
@@ -267,18 +267,18 @@ void update_predators_state(std::vector<Predator>& predators, double delta_t,
 
 // The same as previous function, but with parameters to be passed to
 // avoid_obstacles and update_state; Used in tests and to find nice values
-void update_predators_state(
-    std::vector<Predator>& predators, double delta_t, bool bhv,
-    std::vector<std::pair<Boid, int>> const& preys,
-    std::vector<Obstacle> const& obstacles, double pred_pred_repulsion,
+void pr::update_predators_state(
+    std::vector<pr::Predator>& predators, double delta_t, bool bhv,
+    std::vector<std::pair<bd::Boid, int>> const& preys,
+    std::vector<ob::Obstacle> const& obstacles, double pred_pred_repulsion,
     double pred_obs_detection, double pred_obstacle_separation,
     double pred_brd_detection, double pred_brd_repulsion) {
-  std::vector<Predator> copy_predators = predators;
+  std::vector<pr::Predator> copy_predators = predators;
   bool predation = (preys.size() > 0);
   for (auto idx = predators.begin(); idx != predators.end(); ++idx) {
     std::valarray<double> pred_separation = {0., 0.};
 
-    for (auto neighbour_pred : get_vector_neighbours(
+    for (auto neighbour_pred : pr::get_vector_neighbours(
              copy_predators, copy_predators.begin() + (idx - predators.begin()),
              idx->get_par_ds())) {
       pred_separation -= pred_pred_repulsion * idx->get_par_s() *
@@ -287,7 +287,7 @@ void update_predators_state(
 
     if (predation) {
   
-      std::vector<Boid> own_preys;
+      std::vector<bd::Boid> own_preys;
       for (auto prey : preys) {
         if (prey.second == idx - predators.begin())
           own_preys.push_back(prey.first);
@@ -307,7 +307,7 @@ void update_predators_state(
     }
   }
 
-  auto sort_pred = [](Predator const& pred1, Predator const& pred2) {
+  auto sort_pred = [](pr::Predator const& pred1, pr::Predator const& pred2) {
     if (pred1.get_pos()[0] == pred2.get_pos()[0]) {
       return pred1.get_pos()[1] < pred2.get_pos()[1];
     } else {

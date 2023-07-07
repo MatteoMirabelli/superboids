@@ -4,6 +4,7 @@
 #include <cmath>
 #include <valarray>
 
+namespace mt {
 // It return the norm of a vector
 template <typename T>
 T vec_norm(std::valarray<T> vec) {
@@ -19,7 +20,7 @@ T compute_angle(std::valarray<T> const& vec) {
     angle = -90.;
   } else if (vec[1] == 0. && vec[0] > 0.) {
     angle = 90.;
-  } else if (vec[1] == 0. && vec[0] == 0.) {  
+  } else if (vec[1] == 0. && vec[0] == 0.) {
     angle = 0.;
   } else if (vec[0] == 0. && vec[1] > 0.) {
     angle = 0.;
@@ -32,5 +33,5 @@ T compute_angle(std::valarray<T> const& vec) {
   }
   return angle;
 }
-
+}  // namespace mt
 #endif
