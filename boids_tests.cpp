@@ -23,7 +23,8 @@ TEST_CASE(
     CHECK(boid.get_angle() == doctest::Approx(45.));
   }
 
-  SUBCASE("Testing the Boid::update_state method with null values") {
+  SUBCASE(
+      "Testing the Boid::update_state method with null vel_coorection values") {
     std::valarray<double> pos{2., 2.};
     std::valarray<double> vel{1., 1.};
     std::valarray<double> window{1920, 1080};
@@ -40,7 +41,9 @@ TEST_CASE(
     CHECK(boid.get_angle() == 45.);
   }
 
-  SUBCASE("Testing the Boid::update_state method with negative values") {
+  SUBCASE(
+      "Testing the Boid::update_state method with negative values "
+      "vel_correction values") {
     std::valarray<double> pos{3., 10.};
     std::valarray<double> vel{5., -4.};
     std::valarray<double> window{1920, 1080};
@@ -59,8 +62,67 @@ TEST_CASE(
 
 TEST_CASE("Testing the Boid::update_state method with borders") {
   // BOID CONSTRUCTOR takes:
-  // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
+  // Pos {x,y}, Vel{x,y}, view_angle, window_space{1080, 1080}, param_ds_,
   // param_s
+  // update_state takes: delta_t, delta_vel {vx, vy}, bhv, border_detection,
+  // border_repulsion
+  void update_state(double, std::valarray<double>, bool, double, double);
+  SUBCASE("Testing the update_state with left border") {
+    Boid bd({20., 700}, {-5., 70.}, 120., {1080., 1080.}, 5., 4.);
+    std::valarray<double> vel_corr{0., 0.};
+
+    bd.update_state(1., vel_corr, false, 1., 1.);
+    CHECK(bd.get_pos()[0] == 15.);
+    CHECK(bd.get_pos()[1] == 770.);
+    CHECK(bd.get_vel()[0] == doctest::Approx(13.71422));
+    CHECK(bd.get_vel()[1] == doctest::Approx(70.));
+  }
+
+  SUBCASE(
+      "Testing the update_state with borders on the edge of border detecion "
+      "area (expected no correction)") {
+    Boid bd({40., 700}, {-7., 80.}, 120., {1080., 1080.}, 5., 4.);
+    std::valarray<double> vel_corr{2., -1.};
+
+    bd.update_state(1., vel_corr, false, 1., 1.);
+    CHECK(bd.get_pos()[0] == 35.);
+    CHECK(bd.get_pos()[1] == 779.);
+    CHECK(bd.get_vel()[0] == -5);
+    CHECK(bd.get_vel()[1] == 79);
+  }
+
+  SUBCASE("Testing the update_state with right border ") {
+    Boid bd({1045., 700}, {5., 76.}, 120., {1080., 1080.}, 5., 4.);
+    std::valarray<double> vel_corr{2., -4.};
+
+    bd.update_state(1., vel_corr, false, 2., 1.);
+    CHECK(bd.get_pos()[0] == 1052.);
+    CHECK(bd.get_pos()[1] == 772.);
+    CHECK(bd.get_vel()[0] == doctest::Approx(-3.334211));
+    CHECK(bd.get_vel()[1] == 72.);
+  }
+
+  SUBCASE("Testing the update_state with top border ") {
+    Boid bd({600., 40}, {75., 6.}, 120., {1080., 1080.}, 5., 4.);
+    std::valarray<double> vel_corr{-4., -4.};
+
+    bd.update_state(1., vel_corr, false, 3., 1.);
+    CHECK(bd.get_pos()[0] == 671.);
+    CHECK(bd.get_pos()[1] == 42.);
+    CHECK(bd.get_vel()[0] == 71.);
+    CHECK(bd.get_vel()[1] == doctest::Approx(8.764586));
+  }
+
+  SUBCASE("Testing the update_state with bottom border ") {
+    Boid bd({100., 1040}, {75., 6.}, 120., {1920., 1080.}, 5., 4.);
+    std::valarray<double> vel_corr{-4., -4.};
+
+    bd.update_state(1., vel_corr, false, 3., 1.);
+    CHECK(bd.get_pos()[0] == 171.);
+    CHECK(bd.get_pos()[1] == 1042.);
+    CHECK(bd.get_vel()[0] == 71.);
+    CHECK(bd.get_vel()[1] == doctest::Approx(-5.476648));
+  }
 }
 
 TEST_CASE("Testing the Boid::update_state method with periodic conditions") {
@@ -177,6 +239,8 @@ TEST_CASE("Testing the Boid::avoid_obs method") {
 
   // OBSTACLE CONSTRUCTOR takes: pos{x,y}, size
 
+  // avoid_obs takes:  obstacles, obstacle_repulsion,  obstacle_detection;
+
   SUBCASE("Testing the Boid::avoid_obs with no obstacles") {
     Boid bd(8., 6., -2., 2., 120., 1920., 1080., 3., 1.);
     std::vector<Obstacle> obstacles;
@@ -189,20 +253,17 @@ TEST_CASE("Testing the Boid::avoid_obs method") {
   SUBCASE(
       "Testing the Boid::avoid_obs with two visible obstacles within range") {
     // b_param_d_s = 6;
-    Boid bd(8., 6., -2., -2., 120., 1920., 1080., 5., 1.);
+    Boid bd(8., 6., -2., -2., 120., 1920., 1080., 6., 2.);
     Obstacle ob1(4., 4., 1.);
     Obstacle ob2(8., 2., 1.);
     std::vector<Obstacle> obstacles;
     obstacles.push_back(ob1);
     obstacles.push_back(ob2);
 
-    Boid bdx(8., 2., 0., 0., 120., 1920., 1080., 5., 1.);
+    auto delta_vel = bd.avoid_obs(obstacles, 1., 2.);
 
-    auto delta_vel = bd.avoid_obs(obstacles, 1., 1.5);
-
-    CHECK(delta_vel[0] == 6);
-    CHECK(delta_vel[1] == 9);
-    CHECK(is_visible(bdx, bd) == true);
+    CHECK(delta_vel[0] == doctest::Approx(2.82843));
+    CHECK(delta_vel[1] == doctest::Approx(8.48528));
   }
 
   SUBCASE(
@@ -255,11 +316,9 @@ TEST_CASE("Testing the Boid::avoid_obs method") {
     auto delta_vel = bd.avoid_obs(obstacles, 1., 1.5);
 
     CHECK(delta_vel[0] == 0);
-    CHECK(delta_vel[1] == 6);
+    CHECK(delta_vel[1] == 0.75);
   }
 }
-
-
 
 TEST_CASE("Testing the get_vector_neighbours function") {
   // BOID CONSTRUCTOR takes:

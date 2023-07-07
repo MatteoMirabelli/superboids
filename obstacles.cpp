@@ -45,10 +45,8 @@ std::vector<Obstacle> generate_obstacles(int n_obstacles, double max_size,
   sort_obstacles(g_obstacles);
 
   auto overlap = [&](Obstacle& obs1, Obstacle& obs2) {
-    return (std::abs(obs1.get_pos()[0] - obs2.get_pos()[0]) <
-                obs1.get_size() + obs2.get_size() ||
-            std::abs((obs1.get_pos()[1] - obs2.get_pos()[1])) <
-                obs1.get_size() + obs2.get_size());
+    return (vec_norm<double>(obs1.get_pos() - obs2.get_pos()) <
+            obs1.get_size() + obs2.get_size());
   };
 
   // verifica la prima volta che non ci siano ostacoli coincidenti
@@ -78,8 +76,7 @@ bool add_obstacle(std::vector<Obstacle>& g_obstacles,
   std::uniform_real_distribution<> ran_size(15., max_size);
   double size = ran_size(rd);
   auto overlap = [&](Obstacle const& obs) {
-    return (vec_norm<double>(obs.get_pos() - pos) < obs.get_size() + size ||
-            pos[0] < size || pos[1] < size ||
+    return (vec_norm<double>(obs.get_pos() - pos) < obs.get_size() + size || pos[0] < size || pos[1] < size ||
             std::abs(pos[0] - space[0]) < size ||
             std::abs(pos[1] - space[1]) < size);
   };
@@ -92,19 +89,27 @@ bool add_obstacle(std::vector<Obstacle>& g_obstacles,
   }
 }
 
-/*bool remove_obstacle(std::vector<Obstacle>& g_obstacles,
-                     std::valarray<double> const& pos) {
-  auto cover = [&](Obstacle const& obs) {
-    return (vec_norm<double>(obs.get_pos() - pos) < obs.get_size());
+// add_obstacle with fixed size (used in tests)
+void add_fixed_obstacle(std::vector<Obstacle>& g_obstacles,
+                        std::valarray<double> const& pos, double size,
+                        std::valarray<double> const& space) {
+  sort_obstacles(g_obstacles);
+  auto overlap = [&](Obstacle& obs) {
+    return (std::abs(pos[0] - obs.get_pos()[0]) < obs.get_size() + size ||
+            std::abs((pos[1] - obs.get_pos()[1])) < obs.get_size() + size ||
+            pos[0] < size || pos[1] < size ||
+            std::abs(pos[0] - space[0]) < size ||
+            std::abs(pos[1] - space[1]) < size);
   };
-  auto it = std::find_if(g_obstacles.begin(), g_obstacles.end(), cover);
-  if (it != g_obstacles.end()) {
-    g_obstacles.erase(it);
-    return true;
+
+  auto it = std::find_if(g_obstacles.begin(), g_obstacles.end(), overlap);
+  if (it == g_obstacles.end()) {
+    g_obstacles.push_back(Obstacle(pos, size));
+    sort_obstacles(g_obstacles);
   } else {
-    return false;
+    std::cout << "Impossible to add this obstacle" << '\n';
   }
-}*/
+}
 
 void sort_obstacles(std::vector<Obstacle>& g_obstacles) {
   auto is_less = [](Obstacle const& obs1, Obstacle const& obs2) {

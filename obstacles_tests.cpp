@@ -43,82 +43,91 @@ TEST_CASE("Testing the generate_obstacles function") {
   }
 }
 
-TEST_CASE("Testing the add_obstacle function") {
+TEST_CASE("Testing the add_fixed_obstacle function") {
   // OBSTACLE CONSTRUCTOR takes: pos{x,y}, size;
-  // add_obstacle takes: vector_of_obstacles, pos {x,y}, size, space{x,y};
+  // add_fixed_obstacle takes: vector_of_obstacles, pos {x,y}, size, space{x,y};
 
-  SUBCASE("Testing the add_obstacle with two not overlapping obstacles") {
+  SUBCASE("Testing the add_fixed_obstacle with two not overlapping obstacles") {
     std::valarray<double> space{1920., 1080};
     std::valarray<double> pos1{50., 60.};
     std::valarray<double> pos2{100., 100.};
 
     std::vector<Obstacle> g_obstacles;
-    add_obstacle(g_obstacles, pos1, 25., space);
-    add_obstacle(g_obstacles, pos2, 20., space);
+    add_fixed_obstacle(g_obstacles, pos1, 20., space);
+    add_fixed_obstacle(g_obstacles, pos2, 20., space);
 
     CHECK(g_obstacles[0].get_pos()[0] == 50.);
     CHECK(g_obstacles[0].get_pos()[1] == 60.);
-    CHECK(g_obstacles[0].get_size() <= 25.);
-    CHECK(g_obstacles[0].get_size() >= 15.);
+    CHECK(g_obstacles[0].get_size() == 20.);
     CHECK(g_obstacles[1].get_pos()[0] == 100.);
     CHECK(g_obstacles[1].get_pos()[1] == 100.);
-    CHECK(g_obstacles[1].get_size() <= 20.);
-    CHECK(g_obstacles[1].get_size() >= 15.);
+    CHECK(g_obstacles[1].get_size() == 20.);
+  }
+
+  SUBCASE("Testing the add_fixed_obstacle with two overlapping obstacles") {
+    std::valarray<double> space{1920., 1080};
+    std::valarray<double> pos1{50., 60.};
+    std::valarray<double> pos2{60., 100.};
+
+    std::vector<Obstacle> g_obstacles;
+    add_fixed_obstacle(g_obstacles, pos1, 20., space);
+    add_fixed_obstacle(g_obstacles, pos2, 20., space);
+
+    CHECK(g_obstacles.size() == 1);
+    CHECK(g_obstacles[0].get_pos()[0] == 50.);
+    CHECK(g_obstacles[0].get_pos()[1] == 60.);
+    CHECK(g_obstacles[0].get_size() == 20.);
   }
 
   SUBCASE(
-      "Testing the add_obstacle function with obstacle on the left border of "
+      "Testing the add_fixed_obstacle function with obstacle on the border of "
       "simulation area") {
     std::valarray<double> space{1920., 1080};
     std::valarray<double> pos1{150., 160.};
     std::valarray<double> pos2{10., 100.};
 
     std::vector<Obstacle> g_obstacles;
-    add_obstacle(g_obstacles, pos1, 20., space);
-    add_obstacle(g_obstacles, pos2, 20., space);
+    add_fixed_obstacle(g_obstacles, pos1, 20., space);
+    add_fixed_obstacle(g_obstacles, pos2, 20., space);
 
     CHECK(g_obstacles.size() == 1);
     CHECK(g_obstacles[0].get_pos()[0] == 150.);
     CHECK(g_obstacles[0].get_pos()[1] == 160.);
-    CHECK(g_obstacles[0].get_size() <= 20.);
-    CHECK(g_obstacles[0].get_size() >= 15.);
+    CHECK(g_obstacles[0].get_size() == 20.);
   }
 
   SUBCASE(
-      "Testing the add_obstacle function with obstacle on the right border of "
+      "Testing the add_fixed_obstacle function with obstacle on the border of "
       "simulation area") {
     std::valarray<double> space{1920., 1080};
     std::valarray<double> pos1{150., 160.};
-    std::valarray<double> pos2{1915., 1060.};
+    std::valarray<double> pos2{1890., 1060.};
 
     std::vector<Obstacle> g_obstacles;
-    add_obstacle(g_obstacles, pos1, 20., space);
-    add_obstacle(g_obstacles, pos2, 40., space);
+    add_fixed_obstacle(g_obstacles, pos1, 20., space);
+    add_fixed_obstacle(g_obstacles, pos2, 40., space);
 
     CHECK(g_obstacles.size() == 1);
     CHECK(g_obstacles[0].get_pos()[0] == 150.);
     CHECK(g_obstacles[0].get_pos()[1] == 160.);
-    CHECK(g_obstacles[0].get_size() <= 20.);
-    CHECK(g_obstacles[0].get_size() >= 15.);
+    CHECK(g_obstacles[0].get_size() == 20.);
   }
 
-  SUBCASE("Testing the add_obstacle function with two tangent obstacles") {
+  SUBCASE("Testing the add_fixed_obstacle function with two tangent obstacles") {
     std::valarray<double> space{1920., 1080};
     std::valarray<double> pos1{50., 60.};
     std::valarray<double> pos2{90., 100.};
 
     std::vector<Obstacle> g_obstacles;
-    add_obstacle(g_obstacles, pos1, 20., space);
-    add_obstacle(g_obstacles, pos2, 20., space);
+    add_fixed_obstacle(g_obstacles, pos1, 20., space);
+    add_fixed_obstacle(g_obstacles, pos2, 20., space);
 
     CHECK(g_obstacles[0].get_pos()[0] == 50.);
     CHECK(g_obstacles[0].get_pos()[1] == 60.);
-    CHECK(g_obstacles[0].get_size() <= 20.);
-    CHECK(g_obstacles[0].get_size() >= 15.);
+    CHECK(g_obstacles[0].get_size() == 20.);
     CHECK(g_obstacles[1].get_pos()[0] == 90.);
     CHECK(g_obstacles[1].get_pos()[1] == 100.);
-    CHECK(g_obstacles[1].get_size() <= 20.);
-    CHECK(g_obstacles[1].get_size() >= 15.);
+    CHECK(g_obstacles[1].get_size() == 20.);
   }
 }
 

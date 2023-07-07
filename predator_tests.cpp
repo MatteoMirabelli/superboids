@@ -88,7 +88,7 @@ TEST_CASE("Testing the get_vector_neighbours") {
   CHECK(neighbours2[0].get_pos()[1] == 112.);
 }
 
-/* TEST_CASE("Testing the update_predator_state with two predators") {
+TEST_CASE("Testing the update_predator_state with two predators") {
   // PREDATOR CONSTRUCTOR takes:
   // Pos {x,y}, Vel{x,y}, view_angle,  param_ds_,
   // param_s, window_space{1920, 1080}, p_range, p_hunger
@@ -114,10 +114,10 @@ TEST_CASE("Testing the get_vector_neighbours") {
   std::vector<Predator> preds;
   preds.push_back(pd1);
   preds.push_back(pd2);
-  std::pair<Boid, int> pair1(bd1, 0);
-  std::pair<Boid, int> pair2(bd1, 1);
-  std::pair<Boid, int> pair3(bd2, 0);
-  std::pair<Boid, int> pair4(bd2, 1);
+  std::pair<Boid, int> pair1({bd1, 0});
+  std::pair<Boid, int> pair2({bd1, 1});
+  std::pair<Boid, int> pair3({bd2, 0});
+  std::pair<Boid, int> pair4({bd2, 1});
   std::vector<std::pair<Boid, int>> preys;
   preys.push_back(pair1);
   preys.push_back(pair2);
@@ -128,19 +128,19 @@ TEST_CASE("Testing the get_vector_neighbours") {
   g_obstacles.push_back(ob1);
   g_obstacles.push_back(ob2);
 
-  update_predators_state(preds, 1., true, preys, g_obstacles, 4., 1., 1., 1.,
+  update_predators_state(preds, 1., true, preys, g_obstacles, 4., 2., 1., 1.,
                          1.);
 
-  CHECK(preds[1].get_pos()[0] == 133);
-  CHECK(preds[1].get_pos()[1] == 155);
-  CHECK(preds[1].get_vel()[0] == -15);
-  CHECK(preds[1].get_vel()[1] == 42);
+  CHECK(preds[0].get_pos()[0] == doctest::Approx(120.818));
+  CHECK(preds[0].get_pos()[1] == doctest::Approx(119.021));
+  CHECK(preds[0].get_vel()[0] == doctest::Approx(-69.1096));
+  CHECK(preds[0].get_vel()[1] == doctest::Approx(11.1291));
 
-  CHECK(preds[0].get_pos()[0] == 201);
-  CHECK(preds[0].get_pos()[1] == 122);
-  CHECK(preds[0].get_vel()[0] == 45);
-  CHECK(preds[0].get_vel()[1] == 14);
-} */
+  CHECK(preds[1].get_pos()[0] == doctest::Approx(174.021));
+  CHECK(preds[1].get_pos()[1] == doctest::Approx(77.8183));
+  CHECK(preds[1].get_vel()[0] == doctest::Approx(35.3791));
+  CHECK(preds[1].get_vel()[1] == doctest::Approx(-60.4013));
+}
 
 TEST_CASE("Testing the random_predators generation") {
   // PREDATOR CONSTRUCTOR takes:

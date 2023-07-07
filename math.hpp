@@ -7,7 +7,6 @@
 template <typename T>
 T vec_norm(std::valarray<T> vec) {
   return std::sqrt(std::pow(vec, {2., 2.}).sum());
-  return std::sqrt(std::pow(vec, {2, 2}).sum());
 }
 
 template <typename T>

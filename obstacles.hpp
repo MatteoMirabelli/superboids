@@ -30,4 +30,9 @@ void sort_obstacles(std::vector<Obstacle>&);
 bool add_obstacle(std::vector<Obstacle>&, std::valarray<double> const&, double,
                   std::valarray<double> const&);
 
+//Add_obstacle WITHOUT random size, used in tests
+void add_fixed_obstacle(std::vector<Obstacle>& g_obstacles,
+                        std::valarray<double> const& pos, double size,
+                        std::valarray<double> const& space);
+
 #endif

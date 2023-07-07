@@ -8,6 +8,8 @@
 #include <random>
 #include <utility>
 
+// Flock constructor with centre_of_mass... no more used in the simulation, but
+// used in many tests!
 Flock::Flock(Parameters const& params, int bd_n, Boid const& com,
              double view_ang, std::valarray<double> const& space)
     : f_com{com}, f_flock{}, f_params{params}, f_stats{} {
@@ -55,6 +57,7 @@ Flock::Flock(Parameters const& params, int bd_n, Boid const& com,
   sort();
 }
 
+// Flock constructor without obstacles
 Flock::Flock(Parameters const& params, int bd_n, double view_ang,
              std::valarray<double> const& space)
     : f_flock{}, f_params{params}, f_stats{} {
@@ -105,6 +108,7 @@ Flock::Flock(Parameters const& params, int bd_n, double view_ang,
   update_com();
 }
 
+// Flock constructor with obstacles
 Flock::Flock(Parameters const& params, int bd_n, double view_ang,
              std::valarray<double> const& space,
              std::vector<Obstacle> const& obs)
@@ -180,6 +184,7 @@ Flock::Flock(Parameters const& params, int bd_n, double view_ang,
   }
 }
 
+// Add_boid in a random position without obstacles
 void Flock::add_boid() {
   std::random_device rd;
   int x_max =
@@ -211,6 +216,7 @@ void Flock::add_boid() {
   update_com();
 }
 
+// Add_boid in a random position considering obstacles
 void Flock::add_boid(std::vector<Obstacle> const& obstacles) {
   std::random_device rd;
   int x_max =
@@ -252,12 +258,14 @@ std::vector<Boid>::iterator Flock::end() { return f_flock.end(); }
 
 int Flock::size() const { return static_cast<int>(f_flock.size()); }
 
+// Add a boid in a flock, used in tests
 void Flock::push_back(Boid const& boid) {
   assert(boid.get_par_ds() == f_params.d_s);
   assert(boid.get_par_s() == f_params.s);
   f_flock.push_back(boid);
 }
 
+// Used in tests
 std::vector<Boid> const& Flock::get_flock() const { return f_flock; }
 
 Boid const& Flock::get_boid(int n) const {
@@ -339,13 +347,13 @@ std::valarray<double> Flock::avoid_pred(Boid const& bd, Predator const& pred,
 std::valarray<double> Flock::avoid_pred(Boid const& bd, Predator const& pred) {
   std::valarray<double> delta_vel = {0., 0.};
   // valuta subito se applicare separazione al predatore
-  (boid_dist(pred, bd) < f_params.d)
-      ? delta_vel -= 1.5 * f_params.s * (pred.get_pos() - bd.get_pos())
+  (boid_dist(pred, bd) < 1.2 * f_params.d)
+      ? delta_vel -= 0.3 * f_params.s * (pred.get_pos() - bd.get_pos())
       : delta_vel;
   return delta_vel;
 }
 
-// vel correction senza predatori
+// vel correction without obstacles (used in tests)
 std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
   assert(it >= f_flock.begin() && it < f_flock.end());
   auto neighbours = get_neighbours(it);
@@ -372,7 +380,7 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it) {
   return delta_vel;
 }
 
-// vel correction senza predatore e con copy flock: per l'update state
+// vel correction with predators and copy_flock: used in update state
 std::valarray<double> Flock::vel_correction(std::vector<Boid> const& copy_flock,
                                             std::vector<Boid>::iterator it) {
   assert(it >= copy_flock.begin() && it < copy_flock.end() &&
@@ -401,7 +409,7 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid> const& copy_flock,
   return delta_vel;
 }
 
-// Overload di vel_correction con più predatori per i test (3)
+// Overload di vel_correction with more predators used in tests
 std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
                                             std::vector<Predator> const& preds,
                                             double boid_pred_detection,
@@ -441,20 +449,7 @@ std::valarray<double> Flock::vel_correction(std::vector<Boid>::iterator it,
   return delta_vel;
 }
 
-// NOTA SULL'IMPLEMENTAZIONE CON COPY FLOCK
-// La ratio del tutto è che quando aggiorniamo lo stato conviene usare copy
-// flock per tenere lo stato all'istante precedente e da lì stampare su f_flock.
-// Viceversa se usassimo f_flock per lo stato precedente alla fine dovremmo fare
-// la copia di copy_flock su f_flock, che significherebbe di nuovo scorrere due
-// vettori. L'uso degli indici nell'update state è per questo e per non perdere
-// la coerenza quando si parallelizza. Ragionevolmente per i nuovi vel
-// correction passo i parametri dello stormo (in quanto solo per esso hanno
-// senso) mentre il get vector neighbours è più ampio. Anzi, sarei quasi tentato
-// di metterlo nel file Boid.
 
-// si è mantenuta un unica funzione, in quanto nel programma vengono
-// inizializzati vettori di ostacoli e predatori anche vuoti, di modo da
-// permettere l'aggiunta di nuovi elementi al runtime
 void Flock::update_global_state(double delta_t, bool brd_bhv,
                                 std::vector<Predator>& preds,
                                 std::vector<Obstacle> const& obs) {
@@ -529,7 +524,7 @@ void Flock::update_global_state(double delta_t, bool brd_bhv,
   update_predators_state(preds, delta_t, brd_bhv, preys, obs);
 }
 
-// Update_global per i test e per trovare i parametri giusti
+// Update_global_state used during development in order to find correct values
 void Flock::update_global_state(
     double delta_t, bool brd_bhv, std::vector<Predator>& preds,
     std::vector<Obstacle> const& obs, double border_detection,
@@ -612,10 +607,10 @@ void Flock::update_global_state(
                          border_repulsion);
 }
 
+
 void Flock::sort() {
-  // Ordina i boids del vettore f_flock in ordine crescente secondo la
-  // posizione in x. Se le posizioni in x sono uguali, allora ordina secondo
-  // le posizioni in y
+// Sorts boids in the flock in ascending order relative to x_position.
+// If two boids have the same x_position, it considers y_position
 
   auto is_less = [](Boid const& bd1, Boid const& bd2) {
     if (bd1.get_pos()[0] != bd2.get_pos()[0]) {
