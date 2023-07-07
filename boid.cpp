@@ -121,19 +121,19 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
     (b_pos[1] < 20.) ? b_pos[1] = b_space[1] - 21. : b_pos[1];
   } else {
     // implementazione con bordi
-    (b_pos[0] > b_space[0] - 30. - 2.2 * b_param_ds)
+    (b_pos[0] > b_space[0] - 30. - 13. * b_param_ds)
         ? b_vel[0] -=
-          3.5 * b_param_s / (b_pos[0] - b_space[0] + 30. + 2.2 * b_param_ds)
+          3.5 * b_param_s / (b_pos[0] - b_space[0] + 30. + 2.5 * b_param_ds)
         : b_vel[0];
-    (b_pos[0] < 2.2 * b_param_ds + 30.)
-        ? b_vel[0] += 3.5 * b_param_s / (2.2 * b_param_ds + 30. - b_pos[0])
+    (b_pos[0] < 13. * b_param_ds + 30.)
+        ? b_vel[0] += 3.5 * b_param_s / (2.5 * b_param_ds + 30. - b_pos[0])
         : b_vel[0];
-    (b_pos[1] > b_space[1] - 30. - 2.2 * b_param_ds)
+    (b_pos[1] > b_space[1] - 30. - 13. * b_param_ds)
         ? b_vel[1] -=
-          3.5 * b_param_s / (b_pos[1] - b_space[1] + 30. + 2.2 * b_param_ds)
+          3.5 * b_param_s / (b_pos[1] - b_space[1] + 30. + 2.5 * b_param_ds)
         : b_vel[1];
-    (b_pos[1] < 2.2 * b_param_ds + 30.)
-        ? b_vel[1] += 3.5 * b_param_s / (2.2 * b_param_ds + 30. - b_pos[1])
+    (b_pos[1] < 13. * b_param_ds + 30.)
+        ? b_vel[1] += 3.5 * b_param_s / (2.5 * b_param_ds + 30. - b_pos[1])
         : b_vel[1];
   }
 
@@ -147,46 +147,38 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
 
 // Avoid_obs for tests
 std::valarray<double> Boid::avoid_obs(std::vector<Obstacle> const& obstacles,
-                                      double obstacle_repulsion,
-                                      double obstacle_detection) const {
+                                      double obstacle_detection,
+                                      double obstacle_repulsion) const {
   if (obstacles.size() == 0) {
     return std::valarray<double>{0., 0.};
   } else {
     std::valarray<double> delta_vel{0., 0.};
-    /* for (auto const& ob : obstacles) {
-       std::valarray<double> dist = ob.get_pos() - b_pos;
-       if (vec_norm(dist) < ob.get_size() + d * b_param_ds) {
-         delta_vel -= (k * b_param_s * (ob.get_pos() - b_pos));
-       } */
 
     double rep = obstacle_repulsion * vec_norm<double>(b_vel);
     for (auto const& ob : obstacles) {
+      double range = ob.get_size() + obstacle_detection * b_param_ds;
       ((b_pos[0] - ob.get_pos()[0]) > 0 &&
-       vec_norm<double>(b_pos - ob.get_pos()) >
-           ob.get_size() + obstacle_detection * b_param_ds)
-          ? delta_vel[0] +=
-            rep * b_param_s / (vec_norm<double>(b_pos - ob.get_pos()))
+       vec_norm<double>(b_pos - ob.get_pos()) < range &&
+       is_obs_visible(ob, *this))
+          ? delta_vel[0] += rep * b_param_s / (b_pos[0] - ob.get_pos()[0])
           : delta_vel[0];
 
       ((b_pos[0] - ob.get_pos()[0]) < 0 &&
-       vec_norm<double>(b_pos - ob.get_pos()) >
-           ob.get_size() + obstacle_detection * b_param_ds)
-          ? delta_vel[0] -=
-            rep * b_param_s / (vec_norm<double>(b_pos - ob.get_pos()))
+       vec_norm<double>(b_pos - ob.get_pos()) < range &&
+       is_obs_visible(ob, *this))
+          ? delta_vel[0] -= rep * b_param_s / (ob.get_pos()[0] - b_pos[0])
           : delta_vel[0];
 
       ((b_pos[1] - ob.get_pos()[1]) > 0 &&
-       vec_norm<double>(b_pos - ob.get_pos()) >
-           ob.get_size() + obstacle_detection * b_param_ds)
-          ? delta_vel[1] +=
-            rep * b_param_s / (vec_norm<double>(b_pos - ob.get_pos()))
+       vec_norm<double>(b_pos - ob.get_pos()) < range &&
+       is_obs_visible(ob, *this))
+          ? delta_vel[1] += rep * b_param_s / (b_pos[1] - ob.get_pos()[1])
           : delta_vel[1];
 
       ((b_pos[1] - ob.get_pos()[1]) < 0 &&
-       vec_norm<double>(b_pos - ob.get_pos()) >
-           ob.get_size() + obstacle_detection * b_param_ds)
-          ? delta_vel[1] -=
-            rep * b_param_s / (vec_norm<double>(b_pos - ob.get_pos()))
+       vec_norm<double>(b_pos - ob.get_pos()) < range &&
+       is_obs_visible(ob, *this))
+          ? delta_vel[1] -= rep * b_param_s / (ob.get_pos()[1] - b_pos[1])
           : delta_vel[1];
     }
     return delta_vel;
@@ -199,12 +191,34 @@ std::valarray<double> Boid::avoid_obs(
     return std::valarray<double>{0., 0.};
   } else {
     std::valarray<double> delta_vel{0., 0.};
+
+    double rep = 1.8 * vec_norm<double>(b_vel);
     for (auto const& ob : obstacles) {
-      std::valarray<double> dist = ob.get_pos() - b_pos;
-      if (vec_norm(dist) < ob.get_size() + b_param_ds &&
-          is_obs_visible(ob, *this)) {
-        delta_vel -= 1.5 * b_param_s * (ob.get_pos() - b_pos);
-      }
+      double range = ob.get_size() + 2.7 * b_param_ds;
+
+      ((b_pos[0] - ob.get_pos()[0]) > 0 &&
+       vec_norm<double>(b_pos - ob.get_pos()) < range &&
+       is_obs_visible(ob, *this))
+          ? delta_vel[0] += rep * b_param_s / (b_pos[0] - ob.get_pos()[0])
+          : delta_vel[0];
+
+      ((b_pos[0] - ob.get_pos()[0]) < 0 &&
+       vec_norm<double>(b_pos - ob.get_pos()) < range &&
+       is_obs_visible(ob, *this))
+          ? delta_vel[0] -= rep * b_param_s / (ob.get_pos()[0] - b_pos[0])
+          : delta_vel[0];
+
+      ((b_pos[1] - ob.get_pos()[1]) > 0 &&
+       vec_norm<double>(b_pos - ob.get_pos()) < range &&
+       is_obs_visible(ob, *this))
+          ? delta_vel[1] += rep * b_param_s / (b_pos[1] - ob.get_pos()[1])
+          : delta_vel[1];
+
+      ((b_pos[1] - ob.get_pos()[1]) < 0 &&
+       vec_norm<double>(b_pos - ob.get_pos()) < range &&
+       is_obs_visible(ob, *this))
+          ? delta_vel[1] -= rep * b_param_s / (ob.get_pos()[1] - b_pos[1])
+          : delta_vel[1];
     }
     return delta_vel;
   }
@@ -259,34 +273,6 @@ bool is_visible(Boid const& bd_1, Boid const& bd_2) {
   double relative_angle =
       compute_angle<double>(bd_1.get_pos() - bd_2.get_pos());
 
-  /* if (boid_angle == 0) {
-    return std::abs(relative_angle) <= view_angle;
-  } else if (boid_angle == 180.) {
-    return (180. - std::abs(relative_angle)) <= view_angle;
-  } else if (boid_angle = 90.0 && relative_angle >= 0) {
-    return std::abs(relative_angle - boid_angle) < view_angle;
-  } else if (boid_angle = 90.0 && relative_angle <= -90.0) {
-    return (90 + std::abs(relative_angle)) <= view_angle;
-  } else if (boid_angle =
-                 90.0 && relative_angle > -90.0 && relative_angle < -180.) {
-    return (180. - std::abs(relative_angle)) <= view_angle;
-  } else if (boid_angle > 0 && relative_angle > 0) {
-    return std::abs(boid_angle - relative_angle) <= view_angle;
-  } else if (boid_angle > 0 && relative_angle <= 0) {
-    return (boid_angle + std::abs(relative_angle)) <= view_angle;
-  } else if (boid_angle < 0 && relative_angle > 0) {
-    return (std::abs(boid_angle) + relative_angle) <= view_angle;
-  } else if (boid_angle < 0 && relative_angle < 0) {
-    return (std::abs(relative_angle) - std::abs(boid_angle)) <= view_angle;
-  } else {
-     if (relative_angle == 180. && bd_2.get_angle() < 0) {
-      return std::abs(relative_angle + bd_2.get_angle()) <= view_angle;
-    } else if (relative_angle < 0. && boid_angle == 180.) {
-      return std::abs(relative_angle + bd_2.get_angle()) <= view_angle;
-    } else {
-      return std::abs(relative_angle - bd_2.get_angle()) <= view_angle;
-    } */
-
   if (std::abs(relative_angle - boid_angle) <= 180.) {
     return std::abs(relative_angle - boid_angle) <= view_angle;
   } else {
@@ -306,9 +292,6 @@ bool is_obs_visible(Obstacle const& obs, Boid const& bd) {
     return (360. - std::abs(relative_angle - bd.get_angle())) <= view_angle;
   }
 }
-
-// inizialmente speravo di poterlo sfruttare per i predatori, invece ho dovuto
-// reimplementare. Si può anche riportare in flock
 
 std::vector<Boid> get_vector_neighbours(std::vector<Boid> const& full_vec,
                                         std::vector<Boid>::iterator it,

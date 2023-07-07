@@ -166,7 +166,7 @@ void update_predators_state(std::vector<Predator>& predators, double delta_t,
              copy_predators, copy_predators.begin() + (idx - predators.begin()),
              idx->get_par_ds())) {
       pred_separation -=
-          7 * idx->get_par_s() * (neighbour_pred.get_pos() - idx->get_pos());
+          3 * idx->get_par_s() * (neighbour_pred.get_pos() - idx->get_pos());
     }
     if (predation) {
       // trova le prede di questo predatore nel vettore di (prede, indici)

@@ -273,67 +273,6 @@ void Flock::update_com() {
 }
 
 std::vector<Boid> Flock::get_neighbours(std::vector<Boid>::iterator it) {
-  /* std::vector<Boid> neighbours;
-  if (it >= f_flock.begin() && it < f_flock.end()) {
-    if (it == f_flock.begin()) {
-      auto et = it;
-      for (; et < --f_flock.end() &&
-             std::abs(it->get_pos()[0] - et->get_pos()[0]) < f_params.d;
-           ++et) {
-        if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
-            is_visible(*et, *it) == true) {
-          neighbours.push_back(*et);
-        }
-      }
-      if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
-          is_visible(*et, *it) == true) {
-        neighbours.push_back(*et);
-      }
-    } else if (it == --f_flock.end()) {
-      auto et = it;
-      for (; et > f_flock.begin() &&
-             std::abs(it->get_pos()[0] - et->get_pos()[0]) < f_params.d;
-           --et) {
-        if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
-            is_visible(*et, *it) == true) {
-          neighbours.push_back(*et);
-        }
-      }
-      if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
-          is_visible(*et, *it) == true) {
-        neighbours.push_back(*et);
-      }
-    } else {
-      auto et = it;
-      for (; et < --f_flock.end() &&
-             std::abs(it->get_pos()[0] - et->get_pos()[0]) < f_params.d;
-           ++et) {
-        if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
-            is_visible(*et, *it) == true) {
-          neighbours.push_back(*et);
-        }
-      }
-      if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
-          is_visible(*et, *it) == true) {
-        neighbours.push_back(*et);
-      }
-      et = it;
-      for (; et > f_flock.begin() &&
-             std::abs(it->get_pos()[0] - et->get_pos()[0]) < f_params.d;
-           --et) {
-        if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
-            is_visible(*et, *it) == true) {
-          neighbours.push_back(*et);
-        }
-      }
-      if (boid_dist(*et, *it) < f_params.d && boid_dist(*et, *it) > 0. &&
-          is_visible(*et, *it) == true) {
-        neighbours.push_back(*et);
-      }
-    }
-  }
-  return neighbours; */
-
   return get_vector_neighbours(f_flock, it, f_params.d);
 }
 
@@ -353,8 +292,8 @@ std::valarray<double> Flock::avoid_pred(Boid const& bd, Predator const& pred,
 std::valarray<double> Flock::avoid_pred(Boid const& bd, Predator const& pred) {
   std::valarray<double> delta_vel = {0., 0.};
   // valuta subito se applicare separazione al predatore
-  (boid_dist(pred, bd) < f_params.d)
-      ? delta_vel -= 1.5 * f_params.s * (pred.get_pos() - bd.get_pos())
+  (boid_dist(pred, bd) < 1.2 * f_params.d)
+      ? delta_vel -= 0.3 * f_params.s * (pred.get_pos() - bd.get_pos())
       : delta_vel;
   return delta_vel;
 }

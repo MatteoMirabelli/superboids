@@ -25,13 +25,13 @@ int main() {
     double param_s = 1.;
     double param_a = 0.02;
     double param_c = 0.01;
-    double border_detection = 13.; // !
-    double border_repulsion = 2.5; // !
-    double boid_pred_detection = 1.;
-    double boid_pred_repulsion = 1.;
-    double boid_obs_detection = 1.;
-    double boid_obs_repulsion = 0.07;
-    double pred_pred_repulsion = 1.;
+    double border_detection = 13.;  // !
+    double border_repulsion = 2.5;  // !
+    double boid_pred_detection = 1.2;
+    double boid_pred_repulsion = 0.3;
+    double boid_obs_detection = 2.7;
+    double boid_obs_repulsion = 1.8;
+    double pred_pred_repulsion = 3.;
 
     // Params are: d, d_s, s, a, c
     Parameters params(param_d, param_ds, param_s, param_a, param_c);
@@ -50,7 +50,7 @@ int main() {
     Flock bd_flock{params, 170, 120., {video_x, video_y}, obstacles};
     // inizializzo vettore di predatori
     std::vector<Predator> predators = random_predators(
-        obstacles, 0, {video_x, video_y}, 150., 30., 1., 70., 0.7);
+        obstacles, 2, {video_x, video_y}, 150., 30., 1., 70., 0.7);
     // predators.push_back(predator);
 
     /*sf::Texture backg;
