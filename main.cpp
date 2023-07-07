@@ -28,27 +28,29 @@ int main() {
     bool mode = false;
 
     std::cout << "Insert number of boids ( > 0 ): ";
-    double number_of_boids{0};
+    int number_of_boids{0};
     std::cin >> number_of_boids;
     if (number_of_boids <= 0) {
       throw std::runtime_error("Number of boids must be larger than one!");
     }
 
-    std::cout << "Insert parameter d ( >= 20 && <= 100 ) (Recommended 50): ";
+    std::cout
+        << "\n\nInsert parameter d ( >= 20 && <= 100 ) (Recommended 50): ";
     double param_d{};
     std::cin >> param_d;
     if (param_d <= 20 || param_d > 100.) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert parameter d_s ( >= 10 && <= 25 ) (Recommended 20): ";
+    std::cout
+        << "\n\nInsert parameter d_s ( >= 10 && <= 25 ) (Recommended 20): ";
     double param_ds{};
     std::cin >> param_ds;
-    if (param_ds < 10 || param_ds > 25. || param_ds < param_d) {
+    if (param_ds < 10 || param_ds > 25. || param_ds > param_d) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert parameter s ( > 0 && <= 1.5 ) (Recommended 1.2): ";
+    std::cout << "\n\nInsert parameter s ( > 0 && <= 1.5 ) (Recommended 1.2): ";
 
     double param_s{};
     std::cin >> param_s;
@@ -56,14 +58,16 @@ int main() {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert parameter a ( >= 0.1 && <= 0.5 ) (Recommended 0.1): ";
+    std::cout
+        << "\n\nInsert parameter a ( >= 0.1 && <= 0.5 ) (Recommended 0.1): ";
     double param_a{};
     std::cin >> param_a;
     if (param_a < 0.1 || param_a > 0.5) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert parameter c ( >= 0 && <= 0.1 ) (Recommended 0.01): ";
+    std::cout
+        << "\n\nInsert parameter c ( >= 0 && <= 0.1 ) (Recommended 0.01): ";
     double param_c{};
     std::cin >> param_c;
     if (param_c < 0 || param_c > 0.1) {
@@ -75,42 +79,42 @@ int main() {
 
     fk::Parameters params(param_d, param_ds, param_s, param_a, param_c);
 
-    std::cout << "Insert boids' view_angle ( >= 0 && <= 180 ): ";
+    std::cout << "\n\nInsert boids' view_angle ( >= 0 && <= 180 ): ";
     double boids_view_angle;
     std::cin >> boids_view_angle;
     if (boids_view_angle < 0 || boids_view_angle > 180.) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert number of obstacles ( >= 0 ): ";
-    double number_of_obstacles;
+    std::cout << "\n\nInsert number of obstacles ( >= 0 ): ";
+    int number_of_obstacles;
     std::cin >> number_of_obstacles;
     if (number_of_obstacles < 0) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert obstacles' maximum size ( > 15 && <= 70. ): ";
+    std::cout << "\n\nInsert obstacles' maximum size ( > 15 && <= 70. ): ";
     double obstacles_max_size;
     std::cin >> obstacles_max_size;
     if (obstacles_max_size <= 15. || obstacles_max_size > 70.) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert number of predators( >= 0 ): ";
-    double number_of_predators;
+    std::cout << "\n\nInsert number of predators( >= 0 ): ";
+    int number_of_predators;
     std::cin >> number_of_predators;
     if (number_of_predators < 0) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert predators' view_angle( >= 0 and <= 180.): ";
+    std::cout << "\n\nInsert predators' view_angle( >= 0 and <= 180.): ";
     double preds_view_angle;
     std::cin >> preds_view_angle;
     if (preds_view_angle < 0 || preds_view_angle > 180.) {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert predators' parameter ds ( > 0  && <= 40.) "
+    std::cout << "\n\nInsert predators' parameter ds ( > 0  && <= 40.) "
                  "(Recommended 30): ";
     double preds_ds;
     std::cin >> preds_ds;
@@ -118,7 +122,7 @@ int main() {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert predators' parameter s ( > 0 && <= 1.5) "
+    std::cout << "\n\nInsert predators' parameter s ( > 0 && <= 1.5) "
                  "(Recommended 1): ";
     double preds_s;
     std::cin >> preds_s;
@@ -126,7 +130,7 @@ int main() {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert predators' range to detect preys ( > 0 && <= 90 ) "
+    std::cout << "\n\nInsert predators' range to detect preys ( > 0 && <= 90 ) "
                  "(Recommended 70): ";
     double preds_range;
     std::cin >> preds_range;
@@ -134,7 +138,7 @@ int main() {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Insert predators' parameter hunger ( > 0 && <= 1.5 "
+    std::cout << "\n\nInsert predators' parameter hunger ( > 0 && <= 1.5 "
                  ")(Recommended 1.2): ";
     double preds_hunger;
     std::cin >> preds_hunger;
@@ -142,7 +146,7 @@ int main() {
       throw std::runtime_error("Invalid parameter");
     }
 
-    std::cout << "Simulation mode (insert number 0 or 1): \n";
+    std::cout << "\n\nSimulation mode (insert number 0 or 1): \n";
     std::cout << "0 : Periodic conditions (When boids reaches border, its "
                  "moved to the opposide side of the screen) '\n";
     std::cout << "1 : Border repulsion \n";
@@ -161,12 +165,14 @@ int main() {
     // fitted onto screen properties for better portability
 
     // window dimensions
-    float window_x = sf::VideoMode::getFullscreenModes()[0].width;
-    float window_y = sf::VideoMode::getFullscreenModes()[0].height * 0.92;
+    float window_x =
+        static_cast<float>(sf::VideoMode::getFullscreenModes()[0].width);
+    float window_y = static_cast<float>(
+        sf::VideoMode::getFullscreenModes()[0].height * 0.92);
 
     // simulation space dimensions
-    float video_x = window_x * 0.75;
-    float video_y = window_y * 0.96;
+    float video_x = window_x * 0.75f;
+    float video_y = window_y * 0.96f;
 
     // margin value, also fitted onto screen
     float margin = (window_y - video_y) / 2;
@@ -336,16 +342,12 @@ int main() {
     std::transform(
         obstacles.begin(), obstacles.end(), std::back_inserter(graph_obs),
         [&margin, &obs_texture, &mode](ob::Obstacle b) -> sf::CircleShape {
-          sf::CircleShape ob_circ(b.get_size());
-          switch (mode) {
-            case false:
-              ob_circ.setFillColor(sf::Color(210, 210, 210));
-              break;
-            case true:
-              ob_circ.setTexture(&obs_texture);
-              break;
-            default:
-              break;
+          sf::CircleShape ob_circ(static_cast<float>(b.get_size()));
+
+          if (mode == false) {
+            ob_circ.setFillColor(sf::Color(210, 210, 210));
+          } else {
+            ob_circ.setTexture(&obs_texture);
           }
           ob_circ.setOrigin(ob_circ.getRadius(), ob_circ.getRadius());
           ob_circ.setPosition(b.get_pos()[0] + margin, b.get_pos()[1] + margin);
@@ -357,28 +359,24 @@ int main() {
     settings.antialiasingLevel = 8;
 
     // window initialization
-    sf::RenderWindow window(sf::VideoMode(static_cast<float>(window_x),
-                                          static_cast<float>(window_y)),
+    sf::RenderWindow window(sf::VideoMode(static_cast<unsigned int>(window_x),
+                                          static_cast<unsigned int>(window_y)),
                             "Boids simulation", sf::Style::Default, settings);
     if (mode == true) window.setTitle("STAR BOIDS");
     window.setFramerateLimit(60);
     // places window in top left corner, taking into account titlebar height
-    window.setPosition(sf::Vector2i(0, window_x * 0.022));
+    window.setPosition(sf::Vector2i(0., static_cast<int>(window_x * 0.022f)));
     // framerate optimization (if supported)
     window.setVerticalSyncEnabled(true);
 
     // riquadro simulazione
     sf::RectangleShape rec_sim(sf::Vector2f(video_x, video_y));
-    switch (mode) {
-      case false:
-        rec_sim.setFillColor(sf::Color::Blue);
-        break;
-      case true:
-        rec_sim.setTexture(&backg);
-        break;
-      default:
-        break;
+    if (mode == false) {
+      rec_sim.setFillColor(sf::Color::Blue);
+    } else {
+      rec_sim.setTexture(&backg);
     }
+
     rec_sim.setOutlineColor(palette[1]);
     rec_sim.setOutlineThickness(2);
     rec_sim.setPosition(margin, margin);
@@ -386,8 +384,8 @@ int main() {
     // defines parameters for COM tracker
     float com_ratio = (window_x - 4 * margin - video_x) / video_x;
 
-    float pos_com_x = bd_flock.get_com().get_pos()[0];
-    float pos_com_y = bd_flock.get_com().get_pos()[1];
+    float pos_com_x = static_cast<float>(bd_flock.get_com().get_pos()[0]);
+    float pos_com_y = static_cast<float>(bd_flock.get_com().get_pos()[1]);
     float com_angle = static_cast<float>(
         mt::compute_angle<double>(bd_flock.get_com().get_vel()));
     float tracker_x = window_x - video_x * com_ratio - 2 * margin;
@@ -566,34 +564,30 @@ int main() {
 
       // update graphic obstacles
       if (graph_obs.size() != obstacles.size()) {
-        std::transform(obstacles.begin() + graph_obs.size(), obstacles.end(),
-                       std::back_inserter(graph_obs),
-                       [&margin, &obs_texture,
-                        &mode](ob::Obstacle const& b) -> sf::CircleShape {
-                         sf::CircleShape ob_circ(b.get_size());
-                         switch (mode) {
-                           case false:
-                             ob_circ.setFillColor(sf::Color(210, 210, 210));
-                             break;
-                           case true:
-                             ob_circ.setTexture(&obs_texture);
-                             break;
-                           default:
-                             break;
-                         }
-                         ob_circ.setOrigin(ob_circ.getRadius(),
-                                           ob_circ.getRadius());
-                         ob_circ.setPosition(b.get_pos()[0] + margin,
-                                             b.get_pos()[1] + margin);
-                         return ob_circ;
-                       });
+        std::transform(
+            obstacles.begin() + graph_obs.size(), obstacles.end(),
+            std::back_inserter(graph_obs),
+            [&margin, &obs_texture,
+             &mode](ob::Obstacle const& b) -> sf::CircleShape {
+              sf::CircleShape ob_circ(static_cast<float>(b.get_size()));
+              if (mode == false) {
+                ob_circ.setFillColor(sf::Color(210, 210, 210));
+              } else {
+                ob_circ.setTexture(&obs_texture);
+              }
+
+              ob_circ.setOrigin(ob_circ.getRadius(), ob_circ.getRadius());
+              ob_circ.setPosition(b.get_pos()[0] + margin,
+                                  b.get_pos()[1] + margin);
+              return ob_circ;
+            });
       }
 
       assert(graph_obs.size() == obstacles.size());
       // update COM tracker at discrete rate
       if (counter % 4 == 0) {  // every four frames
-        pos_com_x = bd_flock.get_com().get_pos()[0];
-        pos_com_y = bd_flock.get_com().get_pos()[1];
+        pos_com_x = static_cast<float>(bd_flock.get_com().get_pos()[0]);
+        pos_com_y = static_cast<float>(bd_flock.get_com().get_pos()[1]);
         com_tracker.update_pos({pos_com_x, pos_com_y});
         com_angle = static_cast<float>(
             mt::compute_angle<double>(bd_flock.get_com().get_vel()));
@@ -603,7 +597,7 @@ int main() {
         bd_flock.update_stats();
         flock_stats = bd_flock.get_stats();
         // update status bar
-        speed_bar.update_value(flock_stats.av_vel);
+        speed_bar.update_value(static_cast<float>(flock_stats.av_vel));
         values_ss.str("");
         // update mean distance & RMS
         values_ss << "Mean distance (px): " << std::setw(5)

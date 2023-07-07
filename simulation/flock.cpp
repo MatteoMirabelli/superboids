@@ -8,6 +8,27 @@
 #include <random>
 #include <utility>
 
+// Statistics constructor
+fk::Statistics::Statistics(double mean_dist, double rms_dist, double mean_vel,
+                           double rms_vel) {
+  assert(mean_dist >= 0 && rms_dist >= 0 && mean_vel > 0 && rms_vel > 0);
+  av_dist = mean_dist;
+  dist_RMS = rms_dist;
+  av_vel = mean_vel;
+  vel_RMS = rms_vel;
+}
+
+// Parameters constructor
+fk::Parameters::Parameters(double p_d, double p_ds, double p_s, double p_a,
+                           double p_c) {
+  assert(p_d >= 0 && p_ds >= 0 && p_s >= 0 && p_a >= 0 && p_c >= 0);
+  d = p_d;
+  d_s = p_ds;
+  s = p_s;
+  a = p_a;
+  c = p_c;
+}
+
 // Flock constructor with centre_of_mass... no more used in the simulation, but
 // used in many tests!
 fk::Flock::Flock(fk::Parameters const& params, int bd_n, bd::Boid const& com,
@@ -341,7 +362,7 @@ void fk::Flock::update_com() {
 }
 
 std::vector<bd::Boid> fk::Flock::get_neighbours(
-    std::vector<bd::Boid>::iterator it) {
+    std::vector<bd::Boid>::iterator it) const {
   return get_vector_neighbours(f_flock, it, f_params.d);
 }
 
@@ -349,7 +370,7 @@ std::vector<bd::Boid> fk::Flock::get_neighbours(
 std::valarray<double> fk::Flock::avoid_pred(bd::Boid const& bd,
                                             pr::Predator const& pred,
                                             double boid_pred_detection,
-                                            double boid_pred_repulsion) {
+                                            double boid_pred_repulsion) const {
   std::valarray<double> delta_vel = {0., 0.};
   // Determines wheter to apply or not separation from predator
   (bd::boid_dist(pred, bd) < boid_pred_detection * f_params.d)
@@ -360,7 +381,7 @@ std::valarray<double> fk::Flock::avoid_pred(bd::Boid const& bd,
 }
 
 std::valarray<double> fk::Flock::avoid_pred(bd::Boid const& bd,
-                                            pr::Predator const& pred) {
+                                            pr::Predator const& pred) const {
   std::valarray<double> delta_vel = {0., 0.};
   // Determines wheter to apply or not separation from predator
   (bd::boid_dist(pred, bd) < 1.2 * f_params.d)
@@ -494,13 +515,12 @@ void fk::Flock::update_global_state(double delta_t, bool brd_bhv,
   auto last = std::remove_if(std::execution::par, f_flock.begin(),
                              f_flock.end(), bd_eaten);
   f_flock.erase(last, f_flock.end());
-  // sort();
 
   //  Duplicates f_flock in copy_flock to keep track of states before updating
   //  it
   std::vector<bd::Boid> copy_flock = f_flock;
 
-  // It initialises a vector of ints
+  // It initialises a vector of ints, that enables us to parallelize the update
   std::vector<int> indexes;
 
   for (int i = 0; static_cast<unsigned int>(i) < f_flock.size(); ++i) {
@@ -512,6 +532,9 @@ void fk::Flock::update_global_state(double delta_t, bool brd_bhv,
                       &obs](int const& index, bd::Boid const& bd) -> bd::Boid {
     // aggiorna lo stato del boid con o senza percezione predatore
     std::valarray<double> corr = {0., 0.};
+    // For each boid, it calculates it vel_correction to avoid predators and
+    // check wheter it's a prey or not. In case, its pushed back in the preys
+    // vector, together with an int indicated whose predator it's a prey
     for (int idx = 0; static_cast<long unsigned int>(idx) < preds.size();
          ++idx) {
       corr += avoid_pred(bd, preds[static_cast<unsigned int>(idx)]);
@@ -523,6 +546,8 @@ void fk::Flock::update_global_state(double delta_t, bool brd_bhv,
         preys.push_back({bd, idx});
       }
     }
+
+    // Updates the boid state
     f_flock[static_cast<unsigned int>(index)].update_state(
         delta_t,
         vel_correction(copy_flock, copy_flock.begin() + index) +
@@ -531,18 +556,21 @@ void fk::Flock::update_global_state(double delta_t, bool brd_bhv,
     return f_flock[static_cast<long unsigned int>(index)];
   };
 
-  // modo più efficiente che sono riuscito a implementare: in questo modo non
-  // bisogna fare copie ma viene direttamente scritto su f_flock
+  // For each boid (from index.begin() == 1 to index.end() == end) updates its
+  // state using lambda boid_update
   std::transform(std::execution::par, indexes.begin(), indexes.end(),
                  copy_flock.begin(), f_flock.begin(), boid_update);
 
   update_com();
   sort();
-  // aggiorna stato del vettore di predatori
+
+  // Using the vector of preys, it updates the state of all predators
   update_predators_state(preds, delta_t, brd_bhv, preys, obs);
 }
 
 // Update_global_state used during development in order to find correct values
+// Its the same as the one previously defines, except for parameters regarding
+// pred-pred repulsion, border and obstacle avoidance behavour
 void fk::Flock::update_global_state(
     double delta_t, bool brd_bhv, std::vector<pr::Predator>& preds,
     std::vector<ob::Obstacle> const& obs, double border_detection,
@@ -552,53 +580,38 @@ void fk::Flock::update_global_state(
   // boid su cui applica caccia = prede
   std::vector<std::pair<bd::Boid, int>> preys;
 
-  // il mutex è necessario per evitare problemi in race condition
-  // ovvero prevenire l'accesso simultaneo da parte dei thread paralleli
-  // alle medesime risorse (in questo caso, il vettore delle prede)
   std::mutex mtx;
 
-  // rimuove le vittime
   auto bd_eaten = [this, &preds](bd::Boid const& bd) {
-    // valuta se è mangiato da (almeno) un predatore
     auto above = [this, &bd](pr::Predator const& pred) -> bool {
       return bd::boid_dist(pred, bd) < 0.3 * f_params.d_s;
     };
     return std::any_of(preds.begin(), preds.end(), above);
   };
 
-  // rimuove le prede mangiate
   auto last = std::remove_if(std::execution::par, f_flock.begin(),
                              f_flock.end(), bd_eaten);
   f_flock.erase(last, f_flock.end());
-  // sort();
 
-  //  duplica il vettore per poter aggiornare tutti i boid in parallelo
-  //  in base allo stato al frame precedente
   std::vector<bd::Boid> copy_flock = f_flock;
 
-  // utilizza il vettore di indici per accedere ai corrispondenti boid di
-  // f_flock ed in tal modo poter applicare la ricerca dei vicini tramite
-  // iteratore
   std::vector<int> indexes;
 
   for (int i = 0; i < f_flock.size(); ++i) {
     indexes.push_back(i);
   }
 
-  // lambda per aggiornare lo stato
   auto boid_update = [&mtx, &preds, &preys, this, delta_t, brd_bhv, &copy_flock,
                       &obs, border_detection, border_repulsion,
                       boid_pred_detection, boid_pred_repulsion,
                       boid_obs_detection, boid_obs_repulsion](
                          int const& index, bd::Boid const& bd) -> bd::Boid {
-    // aggiorna lo stato del boid con o senza percezione predatore
     std::valarray<double> corr = {0., 0.};
     for (int idx = 0; idx < preds.size(); ++idx) {
       corr +=
           avoid_pred(bd, preds[idx], boid_pred_detection, boid_pred_repulsion);
       if (is_visible(bd, preds[idx]) &&
           bd::boid_dist(preds[idx], bd) < preds[idx].get_range()) {
-        // blocca il mutex prima della modifica di preys
         std::lock_guard<std::mutex> lck(mtx);
         preys.push_back({bd, idx});
       }
@@ -608,17 +621,15 @@ void fk::Flock::update_global_state(
         vel_correction(copy_flock, copy_flock.begin() + index) +
             bd.avoid_obs(obs, boid_obs_detection, boid_obs_repulsion) + corr,
         brd_bhv, border_detection, border_repulsion);
-    return f_flock[index];
+    return f_flock[static_cast<long unsigned int>(index)];
   };
 
-  // modo più efficiente che sono riuscito a implementare: in questo modo non
-  // bisogna fare copie ma viene direttamente scritto su f_flock
   std::transform(std::execution::par, indexes.begin(), indexes.end(),
                  copy_flock.begin(), f_flock.begin(), boid_update);
 
   update_com();
   sort();
-  // aggiorna stato del vettore di predatori
+
   update_predators_state(preds, delta_t, brd_bhv, preys, obs,
                          pred_pred_repulsion, boid_obs_detection,
                          boid_obs_repulsion, border_detection,
@@ -653,6 +664,11 @@ void fk::Flock::update_stats() {
     double square_mean_vel{0};
     int number_of_couples{0};
 
+    // For each boid, it checks all other boids. If the distance between them is
+    // less than d, it considers it as a neighbour and adds the distance to the
+    // average_distance. Variable number_couples takes count of, as the name
+    // says, the number of couples counted
+
     for (auto it = f_flock.begin(); it < f_flock.end(); ++it) {
       mean_vel += mt::vec_norm<double>(it->get_vel());
       square_mean_vel += (mt::vec_norm<double>(it->get_vel()) *
@@ -679,6 +695,7 @@ void fk::Flock::update_stats() {
     f_stats.av_vel = mean_vel;
     f_stats.vel_RMS = vel_RMS;
 
+    // If no couples are founded, average distance and its RMS are 0
     if (number_of_couples == 0) {
       f_stats.av_dist = 0;
       f_stats.dist_RMS = 0;

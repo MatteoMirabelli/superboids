@@ -7,7 +7,7 @@
 namespace mt {
 // It return the norm of a vector
 template <typename T>
-T vec_norm(std::valarray<T> vec) {
+T vec_norm(std::valarray<T> const& vec) {
   return std::sqrt(std::pow(vec, {2., 2.}).sum());
 }
 

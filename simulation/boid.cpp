@@ -131,21 +131,21 @@ void bd::Boid::update_state(double delta_t, std::valarray<double> delta_vel,
   } else {
     // Border repulsion
     double rep = 2.4 * mt::vec_norm<double>(b_vel) + 10;
-    (b_pos[0] > b_space[0] - 30. - 18. * b_param_ds)
+    (b_pos[0] > b_space[0] - 20. - 9. * b_param_ds)
         ? b_vel[0] -= rep * b_param_s /
-                      std::abs(b_pos[0] - b_space[0] + 30. + 2.5 * b_param_ds)
+                      std::abs(b_pos[0] - b_space[0] + 20. + 2.5 * b_param_ds)
         : b_vel[0];
-    (b_pos[0] < 18. * b_param_ds + 30.)
+    (b_pos[0] < 9. * b_param_ds + 20.)
         ? b_vel[0] +=
-          rep * b_param_s / std::abs(2.5 * b_param_ds + 30. - b_pos[0])
+          rep * b_param_s / std::abs(2.5 * b_param_ds + 20. - b_pos[0])
         : b_vel[0];
-    (b_pos[1] > b_space[1] - 30. - 18. * b_param_ds)
+    (b_pos[1] > b_space[1] - 20. - 9. * b_param_ds)
         ? b_vel[1] -= rep * b_param_s /
-                      std::abs(b_pos[1] - b_space[1] + 30. + 2.5 * b_param_ds)
+                      std::abs(b_pos[1] - b_space[1] + 20. + 2.5 * b_param_ds)
         : b_vel[1];
-    (b_pos[1] < 18. * b_param_ds + 30.)
+    (b_pos[1] < 9. * b_param_ds + 20.)
         ? b_vel[1] +=
-          rep * b_param_s / std::abs(2.5 * b_param_ds + 30. - b_pos[1])
+          rep * b_param_s / std::abs(2.5 * b_param_ds + 20. - b_pos[1])
         : b_vel[1];
   }
 
@@ -157,7 +157,7 @@ void bd::Boid::update_state(double delta_t, std::valarray<double> delta_vel,
       ? b_vel *= (350. / mt::vec_norm<double>(b_vel))
       : b_vel;
   (mt::vec_norm<double>(b_vel) < 70.)
-      ? b_vel *= (70. / mt::vec_norm<double>(b_vel))
+      ? b_vel *= (90. / mt::vec_norm<double>(b_vel))
       : b_vel;
 }
 
@@ -254,6 +254,11 @@ void bd::Boid::set_par_ds(double new_ds) { b_param_ds = new_ds; }
 
 void bd::Boid::set_par_s(double new_s) { b_param_s = new_s; }
 
+
+double bd::boid_dist(bd::Boid const& bd_1, bd::Boid const& bd_2) {
+  return mt::vec_norm<double>(bd_1.get_pos() - bd_2.get_pos());
+}
+
 // If bd_1 is visible by bd_2, it returns true
 bool bd::is_visible(bd::Boid const& bd_1, bd::Boid const& bd_2) {
   double view_angle = bd_2.get_view_angle();
@@ -285,9 +290,6 @@ bool bd::is_obs_visible(ob::Obstacle const& obs, bd::Boid const& bd) {
   }
 }
 
-double bd::boid_dist(bd::Boid const& bd_1, bd::Boid const& bd_2) {
-  return mt::vec_norm<double>(bd_1.get_pos() - bd_2.get_pos());
-}
 
 // Given a vector and an iterator, it finds all of its neighbours, with the
 // condition that the vector is SORTED

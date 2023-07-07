@@ -16,14 +16,7 @@ struct Statistics {
 
   Statistics() = default;
 
-  Statistics(double mean_dist, double rms_dist, double mean_vel,
-             double rms_vel) {
-    assert(mean_dist >= 0 && rms_dist >= 0 && mean_vel > 0 && rms_vel > 0);
-    av_dist = mean_dist;
-    dist_RMS = rms_dist;
-    av_vel = mean_vel;
-    vel_RMS = rms_vel;
-  }
+  Statistics(double, double, double, double);
 };
 
 struct Parameters {
@@ -33,14 +26,7 @@ struct Parameters {
   double a;
   double c;
 
-  Parameters(double p_d, double p_ds, double p_s, double p_a, double p_c) {
-    assert(p_d >= 0 && p_ds >= 0 && p_s >= 0 && p_a >= 0 && p_c >= 0);
-    d = p_d;
-    d_s = p_ds;
-    s = p_s;
-    a = p_a;
-    c = p_c;
-  }
+  Parameters(double, double, double, double, double);
 };
 
 class Flock {
@@ -72,12 +58,12 @@ class Flock {
   void erase(std::vector<bd::Boid>::iterator);
   void update_com();
 
-  std::vector<bd::Boid> get_neighbours(std::vector<bd::Boid>::iterator);
+  std::vector<bd::Boid> get_neighbours(std::vector<bd::Boid>::iterator) const;
 
   // Avoid_pred for tests
   std::valarray<double> avoid_pred(bd::Boid const&, pr::Predator const&, double,
-                                   double);
-  std::valarray<double> avoid_pred(bd::Boid const&, pr::Predator const&);
+                                   double) const;
+  std::valarray<double> avoid_pred(bd::Boid const&, pr::Predator const&) const;
 
   // Vel_correction for tests
   std::valarray<double> vel_correction(std::vector<bd::Boid>::iterator);
