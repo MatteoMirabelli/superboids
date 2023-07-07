@@ -106,7 +106,7 @@ int main() {
 
     // initialization of obstacles
     std::vector<Obstacle> obstacles =
-        generate_obstacles(5, 30., {video_x, video_y});
+        generate_obstacles(0, 30., {video_x, video_y});
 
     // flock initialization
     Flock bd_flock{params, 100, 120., {video_x, video_y}, obstacles};
@@ -133,24 +133,28 @@ int main() {
     // load textures
     sf::Texture backg;
     if (!backg.loadFromFile("textures/wowo.jpg")) {
+      std::cout << "Unable to load texture";
       return 0;
     }
     backg.setSmooth(true);
 
     sf::Texture boid_texture_normal;
     if (!boid_texture_normal.loadFromFile("textures/xwing.png")) {
+      std::cout << "Unable to load texture";
       return 0;
     }
     boid_texture_normal.setSmooth(true);
 
     sf::Texture boid_texture_sped;
     if (!boid_texture_sped.loadFromFile("textures/xwing_speed.png")) {
+      std::cout << "Unable to load texture";
       return 0;
     }
 
     sf::Texture pred_texture_normal;
     if (mode == true) {
       if (!pred_texture_normal.loadFromFile("textures/falcon.png")) {
+        std::cout << "Unable to load texture";
         return 0;
       }
       pred_texture_normal.setSmooth(true);
@@ -159,6 +163,7 @@ int main() {
     sf::Texture pred_texture_sped;
     if (mode == true) {
       if (!pred_texture_sped.loadFromFile("textures/falcon_speed.png")) {
+        std::cout << "Unable to load texture";
         return 0;
       }
       pred_texture_sped.setSmooth(true);
@@ -167,6 +172,7 @@ int main() {
     sf::Texture obs_texture;
     if (mode == true) {
       if (!obs_texture.loadFromFile("textures/obstar-cle.png")) {
+        std::cout << "Unable to load texture";
         return 0;
       }
       obs_texture.setSmooth(true);
@@ -175,6 +181,7 @@ int main() {
     // loads font
     sf::Font font;
     if (!font.loadFromFile("cmunsx.ttf")) {
+      std::cout << "Unable to load texture";
       return 0;
     }
 
@@ -232,7 +239,7 @@ int main() {
     // places window in top left corner, taking into account titlebar height
     window.setPosition(sf::Vector2i(0, window_x * 0.022));
     // framerate optimization (if supported)
-    window.setVerticalSyncEnabled(true);
+    // window.setVerticalSyncEnabled(false);
 
     // riquadro simulazione
     sf::RectangleShape rec_sim(sf::Vector2f(video_x, video_y));
