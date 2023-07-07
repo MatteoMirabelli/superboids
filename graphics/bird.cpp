@@ -31,6 +31,10 @@ gf::Bird::Bird(float b_size, sf::Color const& color) : size(), bird_shape() {
   bird_shape.setOrigin(b_size / 2, b_size / 2);
 }
 
+void gf::Bird::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+  target.draw(bird_shape, states);
+}
+
 void gf::Bird::setSize(float new_size) {
   assert(new_size > 0.);
   // sets triangle size by scaling

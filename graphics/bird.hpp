@@ -9,11 +9,11 @@
 namespace gf {
 
 class Bird : public sf::Drawable, public sf::Transformable {
-  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const {
-    target.draw(bird_shape, states);
-  }
   float size;
   sf::ConvexShape bird_shape;
+
+ protected:
+  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
  public:
   Bird(float);
