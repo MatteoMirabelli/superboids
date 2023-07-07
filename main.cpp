@@ -106,7 +106,7 @@ int main() {
 
     // initialization of obstacles
     std::vector<Obstacle> obstacles =
-        generate_obstacles(20, 20., {video_x, video_y});
+        generate_obstacles(5, 30., {video_x, video_y});
 
     // flock initialization
     Flock bd_flock{params, 100, 120., {video_x, video_y}, obstacles};
@@ -683,6 +683,7 @@ int main() {
       init = std::chrono::steady_clock::now();
       // update flock & predators state if not paused
       if (!pause)
+
         bd_flock.update_global_state(0.0166, behaviour, predators, obstacles);
       // stop computation time 'cronometer'
       step_cmpt += std::chrono::steady_clock::now() - init;

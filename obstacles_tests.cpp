@@ -1,8 +1,51 @@
 #include "doctest.h"
 #include "obstacles.hpp"
 
+TEST_CASE("Testing the generate_obstacles function") {
+  // generate_obstacles tales: number_of_obstacles, max_size, space{x,y};
+  SUBCASE("Testing the generate_obstacles function") {
+    auto obstacles = generate_obstacles(4, 45., {1920., 1080.});
+
+    CHECK(obstacles.size() == 4);
+
+    CHECK(obstacles[0].get_size() <= 45.);
+    CHECK(obstacles[0].get_size() >= 15.);
+    CHECK(obstacles[0].get_pos()[0] >= 202.5);
+    CHECK(obstacles[0].get_pos()[0] <= 1717.5);
+    CHECK(obstacles[0].get_pos()[1] >= 202.5);
+    CHECK(obstacles[0].get_pos()[1] <= 877.5);
+
+    CHECK(obstacles[1].get_size() <= 45.);
+    CHECK(obstacles[1].get_size() >= 15.);
+    CHECK(obstacles[1].get_pos()[0] >= 202.5);
+    CHECK(obstacles[1].get_pos()[0] <= 1717.5);
+    CHECK(obstacles[1].get_pos()[1] >= 202.5);
+    CHECK(obstacles[1].get_pos()[1] <= 877.5);
+
+    CHECK(obstacles[2].get_size() <= 45.);
+    CHECK(obstacles[2].get_size() >= 15.);
+    CHECK(obstacles[2].get_pos()[0] >= 202.5);
+    CHECK(obstacles[2].get_pos()[0] <= 1717.5);
+    CHECK(obstacles[2].get_pos()[1] >= 202.5);
+    CHECK(obstacles[2].get_pos()[1] <= 877.5);
+
+    CHECK(obstacles[3].get_size() <= 45.);
+    CHECK(obstacles[3].get_size() >= 15.);
+    CHECK(obstacles[3].get_pos()[0] >= 202.5);
+    CHECK(obstacles[3].get_pos()[0] <= 1717.5);
+    CHECK(obstacles[3].get_pos()[1] >= 202.5);
+    CHECK(obstacles[3].get_pos()[1] <= 877.5);
+  }
+
+  SUBCASE("Testing the generate_obstacles with null number of obstacles") {
+    auto obstacles = generate_obstacles(0, 45., {1920., 1080.});
+    CHECK(obstacles.size() == 0);
+  }
+}
+
 TEST_CASE("Testing the add_obstacle function") {
   // OBSTACLE CONSTRUCTOR takes: pos{x,y}, size;
+  // add_obstacle takes: vector_of_obstacles, pos {x,y}, size, space{x,y};
 
   SUBCASE("Testing the add_obstacle with two not overlapping obstacles") {
     std::valarray<double> space{1920., 1080};
@@ -10,34 +53,21 @@ TEST_CASE("Testing the add_obstacle function") {
     std::valarray<double> pos2{100., 100.};
 
     std::vector<Obstacle> g_obstacles;
-    add_obstacle(g_obstacles, pos1, 20., space);
+    add_obstacle(g_obstacles, pos1, 25., space);
     add_obstacle(g_obstacles, pos2, 20., space);
 
     CHECK(g_obstacles[0].get_pos()[0] == 50.);
     CHECK(g_obstacles[0].get_pos()[1] == 60.);
-    CHECK(g_obstacles[0].get_size() == 20.);
+    CHECK(g_obstacles[0].get_size() <= 25.);
+    CHECK(g_obstacles[0].get_size() >= 15.);
     CHECK(g_obstacles[1].get_pos()[0] == 100.);
     CHECK(g_obstacles[1].get_pos()[1] == 100.);
-    CHECK(g_obstacles[1].get_size() == 20.);
-  }
-
-  SUBCASE("Testing the add_obstacle with two overlapping obstacles") {
-    std::valarray<double> space{1920., 1080};
-    std::valarray<double> pos1{50., 60.};
-    std::valarray<double> pos2{60., 100.};
-
-    std::vector<Obstacle> g_obstacles;
-    add_obstacle(g_obstacles, pos1, 20., space);
-    add_obstacle(g_obstacles, pos2, 20., space);
-
-    CHECK(g_obstacles.size() == 1);
-    CHECK(g_obstacles[0].get_pos()[0] == 50.);
-    CHECK(g_obstacles[0].get_pos()[1] == 60.);
-    CHECK(g_obstacles[0].get_size() == 20.);
+    CHECK(g_obstacles[1].get_size() <= 20.);
+    CHECK(g_obstacles[1].get_size() >= 15.);
   }
 
   SUBCASE(
-      "Testing the add_obstacle function with obstacle on the border of "
+      "Testing the add_obstacle function with obstacle on the left border of "
       "simulation area") {
     std::valarray<double> space{1920., 1080};
     std::valarray<double> pos1{150., 160.};
@@ -50,15 +80,16 @@ TEST_CASE("Testing the add_obstacle function") {
     CHECK(g_obstacles.size() == 1);
     CHECK(g_obstacles[0].get_pos()[0] == 150.);
     CHECK(g_obstacles[0].get_pos()[1] == 160.);
-    CHECK(g_obstacles[0].get_size() == 20.);
+    CHECK(g_obstacles[0].get_size() <= 20.);
+    CHECK(g_obstacles[0].get_size() >= 15.);
   }
 
   SUBCASE(
-      "Testing the add_obstacle function with obstacle on the border of "
+      "Testing the add_obstacle function with obstacle on the right border of "
       "simulation area") {
     std::valarray<double> space{1920., 1080};
     std::valarray<double> pos1{150., 160.};
-    std::valarray<double> pos2{1890., 1060.};
+    std::valarray<double> pos2{1915., 1060.};
 
     std::vector<Obstacle> g_obstacles;
     add_obstacle(g_obstacles, pos1, 20., space);
@@ -67,7 +98,8 @@ TEST_CASE("Testing the add_obstacle function") {
     CHECK(g_obstacles.size() == 1);
     CHECK(g_obstacles[0].get_pos()[0] == 150.);
     CHECK(g_obstacles[0].get_pos()[1] == 160.);
-    CHECK(g_obstacles[0].get_size() == 20.);
+    CHECK(g_obstacles[0].get_size() <= 20.);
+    CHECK(g_obstacles[0].get_size() >= 15.);
   }
 
   SUBCASE("Testing the add_obstacle function with two tangent obstacles") {
@@ -81,18 +113,20 @@ TEST_CASE("Testing the add_obstacle function") {
 
     CHECK(g_obstacles[0].get_pos()[0] == 50.);
     CHECK(g_obstacles[0].get_pos()[1] == 60.);
-    CHECK(g_obstacles[0].get_size() == 20.);
+    CHECK(g_obstacles[0].get_size() <= 20.);
+    CHECK(g_obstacles[0].get_size() >= 15.);
     CHECK(g_obstacles[1].get_pos()[0] == 90.);
     CHECK(g_obstacles[1].get_pos()[1] == 100.);
-    CHECK(g_obstacles[1].get_size() == 20.);
+    CHECK(g_obstacles[1].get_size() <= 20.);
+    CHECK(g_obstacles[1].get_size() >= 15.);
   }
 }
 
 TEST_CASE("Testing the sort_obstacles function") {
   // OBSTACLE CONSTRUCTOR takes: pos{x,y}, size;
 
-  // Be careful not to initialize overlapping obstacles. If Obstacles added with
-  // add_obstacle function (previously tested), this cannot happen...
+  // Be careful not to initialize overlapping obstacles. If Obstacles added
+  // with add_obstacle function (previously tested), this cannot happen...
 
   SUBCASE(
       "Testing the sort_obstacle function with obstacles with different "

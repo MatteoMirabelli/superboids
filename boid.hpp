@@ -40,15 +40,15 @@ class Boid {
   void set_par_ds(double);
   void set_par_s(double);
 
-  void update_state(double, std::valarray<double>);
-  void update_state(double, std::valarray<double>, bool);
-  // update_state for tests
-  void update_state(double, std::valarray<double>, bool, double, double);
-
   // Avoid_obs for tests
   std::valarray<double> avoid_obs(std::vector<Obstacle> const&, double,
                                   double) const;
   std::valarray<double> avoid_obs(std::vector<Obstacle> const&) const;
+
+  void update_state(double, std::valarray<double>);
+  void update_state(double, std::valarray<double>, bool);
+  // update_state for tests
+  void update_state(double, std::valarray<double>, bool, double, double);
 };
 
 double boid_dist(Boid const& bd_1, Boid const& bd_2);

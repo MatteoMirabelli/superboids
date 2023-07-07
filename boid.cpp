@@ -62,6 +62,43 @@ void Boid::set_space(double sx, double sy) {
 
 void Boid::set_space(std::valarray<double> const& space) { b_space = space; }
 
+// Avoid_obs for tests
+std::valarray<double> Boid::avoid_obs(std::vector<Obstacle> const& obstacles,
+                                      double d, double k) const {
+  if (obstacles.size() == 0) {
+    return std::valarray<double>{0., 0.};
+  } else {
+    std::valarray<double> delta_vel{0., 0.};
+    for (auto const& ob : obstacles) {
+      std::valarray<double> dist = ob.get_pos() - b_pos;
+      if (vec_norm(dist) < ob.get_size() + d * b_param_ds &&
+          is_obs_visible(ob, *this)) {
+        delta_vel -= k * b_param_s * (ob.get_pos() - b_pos);
+      }
+    }
+    return delta_vel;
+  }
+}
+
+std::valarray<double> Boid::avoid_obs(
+    std::vector<Obstacle> const& obstacles) const {
+  if (obstacles.size() == 0) {
+    return std::valarray<double>{0., 0.};
+  } else {
+    std::valarray<double> delta_vel{0., 0.};
+    for (auto const& ob : obstacles) {
+      std::valarray<double> dist = ob.get_pos() - b_pos;
+      if (vec_norm(dist) < ob.get_size() + b_param_ds &&
+          is_obs_visible(ob, *this) && vec_norm(dist) > ob.get_size()) {
+        delta_vel -= 1.5 * b_param_s * (ob.get_pos() - b_pos);
+      } else if (vec_norm(dist) <= ob.get_size()) {
+        delta_vel -= 5. * b_param_s * (ob.get_pos() - b_pos);
+      }
+    }
+    return delta_vel;
+  }
+}
+
 void Boid::update_state(double delta_t, std::valarray<double> delta_vel) {
   b_vel += delta_vel;
   b_pos += (b_vel * delta_t);
@@ -130,43 +167,6 @@ void Boid::update_state(double delta_t, std::valarray<double> delta_vel,
   // velocità massima e minima:
   (vec_norm(b_vel) > 350.) ? b_vel *= (350. / vec_norm(b_vel)) : b_vel;
   (vec_norm(b_vel) < 70.) ? b_vel *= (70. / vec_norm(b_vel)) : b_vel;
-}
-
-// Avoid_obs for tests
-std::valarray<double> Boid::avoid_obs(std::vector<Obstacle> const& obstacles,
-                                      double d, double k) const {
-  if (obstacles.size() == 0) {
-    return std::valarray<double>{0., 0.};
-  } else {
-    std::valarray<double> delta_vel{0., 0.};
-    for (auto const& ob : obstacles) {
-      std::valarray<double> dist = ob.get_pos() - b_pos;
-      if (vec_norm(dist) < ob.get_size() + d * b_param_ds &&
-          is_obs_visible(ob, *this)) {
-        delta_vel -= k * b_param_s * (ob.get_pos() - b_pos);
-      }
-    }
-    return delta_vel;
-  }
-}
-
-std::valarray<double> Boid::avoid_obs(
-    std::vector<Obstacle> const& obstacles) const {
-  if (obstacles.size() == 0) {
-    return std::valarray<double>{0., 0.};
-  } else {
-    std::valarray<double> delta_vel{0., 0.};
-    for (auto const& ob : obstacles) {
-      std::valarray<double> dist = ob.get_pos() - b_pos;
-      if (vec_norm(dist) < ob.get_size() + b_param_ds &&
-          is_obs_visible(ob, *this) && vec_norm(dist) > ob.get_size()) {
-        delta_vel -= 1.5 * b_param_s * (ob.get_pos() - b_pos);
-      } else if (vec_norm(dist) <= ob.get_size()) {
-        delta_vel -= 5. * b_param_s * (ob.get_pos() - b_pos);
-      }
-    }
-    return delta_vel;
-  }
 }
 
 double Boid::get_par_ds() const { return b_param_ds; }

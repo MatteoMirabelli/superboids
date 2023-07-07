@@ -233,3 +233,57 @@ void update_predators_state(std::vector<Predator>& predators, double delta_t,
 
   std::sort(predators.begin(), predators.end(), sort_pred);
 }
+
+// update_predators_state for tests
+void update_predators_state(
+    std::vector<Predator>& predators, double delta_t, bool bhv,
+    std::vector<std::pair<Boid, int>> const& preys,
+    std::vector<Obstacle> const& obstacles, double pred_pred_repulsion,
+    double pred_obs_detection, double pred_obstacle_separation,
+    double pred_brd_detection, double pred_brd_repulsion) {
+  std::vector<Predator> copy_predators = predators;
+  bool predation = (preys.size() > 0);
+  for (auto idx = predators.begin(); idx != predators.end(); ++idx) {
+    std::valarray<double> pred_separation = {0., 0.};
+
+    for (auto neighbour_pred : get_vector_neighbours(
+             copy_predators, copy_predators.begin() + (idx - predators.begin()),
+             idx->get_par_ds())) {
+      pred_separation -= pred_pred_repulsion * idx->get_par_s() *
+                         (neighbour_pred.get_pos() - idx->get_pos());
+    }
+
+    if (predation) {
+      // trova le prede di questo predatore nel vettore di (prede, indici)
+      // valutando che l'indice corrisponda all'indice del predatore
+      std::vector<Boid> own_preys;
+      for (auto prey : preys) {
+        // valuta se l'indice della preda è uguale all'indice del predatore
+        if (prey.second == idx - predators.begin())
+          own_preys.push_back(prey.first);
+      }
+
+      idx->update_state(delta_t,
+                        pred_separation + idx->predate(own_preys) +
+                            idx->avoid_obs(obstacles, pred_obs_detection,
+                                           pred_obstacle_separation),
+                        bhv, pred_brd_detection, pred_brd_repulsion);
+    } else {
+      idx->update_state(
+          delta_t,
+          pred_separation + idx->avoid_obs(obstacles, pred_obs_detection,
+                                           pred_obstacle_separation),
+          bhv, pred_brd_detection, pred_brd_repulsion);
+    }
+  }
+
+  auto sort_pred = [](Predator const& pred1, Predator const& pred2) {
+    if (pred1.get_pos()[0] == pred2.get_pos()[0]) {
+      return pred1.get_pos()[1] < pred2.get_pos()[1];
+    } else {
+      return pred1.get_pos()[0] < pred2.get_pos()[0];
+    }
+  };
+
+  std::sort(predators.begin(), predators.end(), sort_pred);
+}
