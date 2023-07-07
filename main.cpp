@@ -303,22 +303,22 @@ int main() {
     }
 
     // boids graphical objects:
-    std::vector<Bird> graph_boids_tr;
-    std::vector<Animate> graph_boids_sp;
+    std::vector<gf::Bird> graph_boids_tr;
+    std::vector<gf::Animate> graph_boids_sp;
     if (mode == false) {
-      graph_boids_tr = create_birds(bd_flock, sf::Color::White, margin);
+      graph_boids_tr = gf::create_birds(bd_flock, sf::Color::White, margin);
     } else {
-      graph_boids_sp = create_animates(
+      graph_boids_sp = gf::create_animates(
           bd_flock, {boid_texture_normal, boid_texture_sped}, margin);
     }
 
     // predators graphical objects
-    std::vector<Bird> graph_preds_tr;
-    std::vector<Animate> graph_preds_sp;
+    std::vector<gf::Bird> graph_preds_tr;
+    std::vector<gf::Animate> graph_preds_sp;
     if (mode == false) {
-      graph_preds_tr = create_birds(predators, sf::Color::Red, margin);
+      graph_preds_tr = gf::create_birds(predators, sf::Color::Red, margin);
     } else {
-      graph_preds_sp = create_animates(
+      graph_preds_sp = gf::create_animates(
           predators, {pred_texture_normal, pred_texture_sped}, margin);
     }
 
@@ -385,8 +385,8 @@ int main() {
     float tracker_y = margin;
 
     // initializes COM tracker
-    Tracker com_tracker(std::valarray<float>{video_x, video_y},
-                        {pos_com_x, pos_com_y}, com_ratio, margin / 2);
+    gf::Tracker com_tracker(std::valarray<float>{video_x, video_y},
+                            {pos_com_x, pos_com_y}, com_ratio, margin / 2);
     com_tracker.setPosition(sf::Vector2f{tracker_x, tracker_y});
     com_tracker.setFillColors(sf::Color::White, sf::Color(210, 210, 210),
                               sf::Color::Black);
@@ -403,9 +403,9 @@ int main() {
                           video_y * com_ratio + 3 * margin);
 
     // mean speed status bar initialization
-    StatusBar speed_bar("Mean distance (px): \nMean speed (px/s): ", font,
-                        com_tracker.getOuter().getGlobalBounds().width, 20.,
-                        {0., 350.});
+    gf::StatusBar speed_bar("Mean distance (px): \nMean speed (px/s): ", font,
+                            com_tracker.getOuter().getGlobalBounds().width, 20.,
+                            {0., 350.});
     speed_bar.setColors(palette[1], palette[1]);
     speed_bar.setPosition(sf::Vector2f{
         video_x + 2 * margin,
@@ -499,8 +499,8 @@ int main() {
       init = std::chrono::steady_clock::now();
       if (mode == false) {
         // update birds in classic mode
-        update_birds(graph_boids_tr, bd_flock, margin);
-        update_birds(graph_preds_tr, predators, margin);
+        gf::update_birds(graph_boids_tr, bd_flock, margin);
+        gf::update_birds(graph_preds_tr, predators, margin);
       } else {
         // update animates in SW mode
 
@@ -508,9 +508,10 @@ int main() {
         int diff = bd_flock.size() - static_cast<int>(graph_boids_sp.size());
         if (diff > 0) {
           for (int i = 0; i < diff; ++i) {
-            Animate an_boid(static_cast<float>(bd_flock.get_params().d_s * 0.6 /
-                                               boid_texture_normal.getSize().x),
-                            {boid_texture_normal, boid_texture_sped});
+            gf::Animate an_boid(
+                static_cast<float>(0.5 * margin /
+                                   boid_texture_normal.getSize().x),
+                {boid_texture_normal, boid_texture_sped});
             graph_boids_sp.push_back(an_boid);
           }
         } else if (diff < 0) {
@@ -526,7 +527,7 @@ int main() {
           indx->setPosition(bd_indx->get_pos()[0] + margin,
                             bd_indx->get_pos()[1] + margin);
           indx->setRotation(180. - bd_indx->get_angle());
-          (mt::vec_norm<double>(bd_indx->get_vel()) > 150.) ? indx->setState(1)
+          (mt::vec_norm<double>(bd_indx->get_vel()) > 120.) ? indx->setState(1)
                                                             : indx->setState(0);
         }
 
@@ -534,10 +535,8 @@ int main() {
         for (int i = 0;
              i < static_cast<int>(predators.size() - graph_preds_sp.size());
              ++i) {
-          Animate tr_predator(
-              0.9 * predators[static_cast<unsigned int>(i)].get_par_ds() /
-                  pred_texture_normal.getSize().x,
-              {pred_texture_normal, pred_texture_sped});
+          gf::Animate tr_predator(margin / pred_texture_normal.getSize().x,
+                                  {pred_texture_normal, pred_texture_sped});
           graph_preds_sp.push_back(tr_predator);
         }
         assert(graph_preds_sp.size() == predators.size());
@@ -550,7 +549,7 @@ int main() {
           graph_preds_sp[static_cast<unsigned int>(indx)].setRotation(
               180. - predators[static_cast<unsigned int>(indx)].get_angle());
           (mt::vec_norm<double>(
-               predators[static_cast<unsigned int>(indx)].get_vel()) > 150.)
+               predators[static_cast<unsigned int>(indx)].get_vel()) > 120.)
               ? graph_preds_sp[static_cast<unsigned int>(indx)].setState(1)
               : graph_preds_sp[static_cast<unsigned int>(indx)].setState(0);
         }
@@ -766,18 +765,19 @@ int main() {
       window.draw(rec_sim);
       if (mode == false) {
         // draw flock
-        for (Bird& tr_boid : graph_boids_tr) {
+        for (gf::Bird& tr_boid : graph_boids_tr) {
           window.draw(tr_boid);
         }
         // draw predators
-        for (Bird& tr_predator : graph_preds_tr) window.draw(tr_predator);
+        for (gf::Bird& tr_predator : graph_preds_tr) window.draw(tr_predator);
       } else {
         // draw flock
-        for (Animate& sp_boid : graph_boids_sp) {
+        for (gf::Animate& sp_boid : graph_boids_sp) {
           window.draw(sp_boid);
         }
         // draw predators
-        for (Animate& sp_predator : graph_preds_sp) window.draw(sp_predator);
+        for (gf::Animate& sp_predator : graph_preds_sp)
+          window.draw(sp_predator);
       }
       // draw obstacles
       for (sf::CircleShape& obs : graph_obs) {
@@ -805,7 +805,6 @@ int main() {
       init = std::chrono::steady_clock::now();
       // update flock & predators state if not paused
       if (!pause)
-
         bd_flock.update_global_state(0.0166, behaviour, predators, obstacles);
       // stop computation time 'cronometer'
       step_cmpt += std::chrono::steady_clock::now() - init;

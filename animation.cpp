@@ -8,14 +8,14 @@
 
 // constructor, draw and methods for Animate class
 
-Animate::Animate(sf::Texture const& texture)
+gf::Animate::Animate(sf::Texture const& texture)
     : a_scale(10.), a_state(0), a_textures(), a_sprite(texture) {
   a_textures.push_back(texture);
   a_sprite.setOrigin(sf::Vector2f(a_sprite.getGlobalBounds().width / 2,
                                   a_sprite.getGlobalBounds().height / 2));
 }
 
-Animate::Animate(float scale, sf::Texture const& texture)
+gf::Animate::Animate(float scale, sf::Texture const& texture)
     : a_scale(), a_state(0), a_textures(), a_sprite(texture) {
   assert(scale > 0.);
   a_scale = scale;
@@ -25,7 +25,7 @@ Animate::Animate(float scale, sf::Texture const& texture)
                                   a_sprite.getGlobalBounds().height / 2));
 }
 
-Animate::Animate(float scale, std::vector<sf::Texture> const& textures)
+gf::Animate::Animate(float scale, std::vector<sf::Texture> const& textures)
     : a_scale(), a_state(0), a_textures(textures), a_sprite(textures[0]) {
   assert(scale > 0.);
   a_scale = scale;
@@ -35,21 +35,21 @@ Animate::Animate(float scale, std::vector<sf::Texture> const& textures)
                                   a_sprite.getGlobalBounds().height / 2));
 }
 
-void Animate::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+void gf::Animate::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   target.draw(a_sprite, states);
 }
 
-void Animate::addTexture(sf::Texture const& texture) {
+void gf::Animate::addTexture(sf::Texture const& texture) {
   a_textures.push_back(texture);
 }
 
-void Animate::addTextures(std::vector<sf::Texture> const& textures) {
+void gf::Animate::addTextures(std::vector<sf::Texture> const& textures) {
   for (auto& texture : textures) {
     a_textures.push_back(texture);
   }
 }
 
-void Animate::addTextures(std::string const& path) {
+void gf::Animate::addTextures(std::string const& path) {
   for (auto const& entry :
        std::filesystem::recursive_directory_iterator(path)) {
     sf::Texture texture;
@@ -63,27 +63,27 @@ void Animate::addTextures(std::string const& path) {
   }
 }
 
-std::vector<sf::Texture> const& Animate::getTextures() const {
+std::vector<sf::Texture> const& gf::Animate::getTextures() const {
   return a_textures;
 }
 
-void Animate::setPosition(float x, float y) {
+void gf::Animate::setPosition(float x, float y) {
   // for movement
   sf::Vector2f position(x, y);
   a_sprite.setPosition(position);
 }
 
-void Animate::setPosition(sf::Vector2f const& position) {
+void gf::Animate::setPosition(sf::Vector2f const& position) {
   // for movement (overload)
   a_sprite.setPosition(position);
 }
 
-void Animate::setRotation(float angle) {
+void gf::Animate::setRotation(float angle) {
   // for rotation
   a_sprite.setRotation(angle);
 }
 
-void Animate::setScale(float scale) {
+void gf::Animate::setScale(float scale) {
   // for scaling
   assert(scale > 0);
   a_scale = scale;
@@ -92,27 +92,27 @@ void Animate::setScale(float scale) {
                                   a_sprite.getGlobalBounds().height / 2));
 }
 
-void Animate::setState(int state) {
+void gf::Animate::setState(int state) {
   assert(state >= 0);
   int state_ = state % (a_textures.size() - 1);
   a_state = state_;
   a_sprite.setTexture(a_textures[state_]);
 }
 
-void Animate::animate() { setState(a_state + 1); }
+void gf::Animate::animate() { setState(a_state + 1); }
 
-std::vector<Animate> create_animates(fk::Flock& flock,
+std::vector<gf::Animate> gf::create_animates(fk::Flock& flock,
                                      std::vector<sf::Texture> const& textures,
                                      float margin) {
-  std::vector<Animate> animates;
+  std::vector<gf::Animate> animates;
   std::transform(
       flock.begin(), flock.end(), std::back_inserter(animates),
-      [&margin, &textures](bd::Boid& b) -> Animate {
-        Animate sp_boid(
-            static_cast<float>(0.6 * b.get_par_ds() / textures[0].getSize().x),
+      [&margin, &textures](bd::Boid& b) -> gf::Animate {
+        gf::Animate sp_boid(
+            static_cast<float>(0.5 * margin / textures[0].getSize().x),
             textures);
         (mt::vec_norm<double>(b.get_vel()) > 200.) ? sp_boid.setState(1)
-                                       : sp_boid.setState(0);
+                                                   : sp_boid.setState(0);
         sp_boid.setPosition(b.get_pos()[0] + margin, b.get_pos()[1] + margin);
         sp_boid.setRotation(180. - b.get_angle());
         return sp_boid;
@@ -121,28 +121,30 @@ std::vector<Animate> create_animates(fk::Flock& flock,
   return animates;
 }
 
-std::vector<Animate> create_animates(std::vector<pr::Predator> const& preds,
+std::vector<gf::Animate> gf::create_animates(std::vector<pr::Predator> const& preds,
                                      std::vector<sf::Texture> const& textures,
                                      float margin) {
-  std::vector<Animate> animates;
-  std::transform(
-      preds.begin(), preds.end(), std::back_inserter(animates),
-      [&margin, &textures](pr::Predator const& pred) -> Animate {
-        Animate sp_pred(static_cast<float>(0.9 * pred.get_par_ds() / textures[0].getSize().x),
-                        textures);
-        (mt::vec_norm<double>(pred.get_vel()) > 200.) ? sp_pred.setState(1)
-                                       : sp_pred.setState(0);
-        sp_pred.setPosition(pred.get_pos()[0] + margin, pred.get_pos()[1] + margin);
-        sp_pred.setRotation(180. - pred.get_angle());
-        return sp_pred;
-      });
+  std::vector<gf::Animate> animates;
+  std::transform(preds.begin(), preds.end(), std::back_inserter(animates),
+                 [&margin, &textures](pr::Predator const& pred) -> gf::Animate {
+                   gf::Animate sp_pred(static_cast<float>(margin /
+                                                      textures[0].getSize().x),
+                                   textures);
+                   (mt::vec_norm<double>(pred.get_vel()) > 200.)
+                       ? sp_pred.setState(1)
+                       : sp_pred.setState(0);
+                   sp_pred.setPosition(pred.get_pos()[0] + margin,
+                                       pred.get_pos()[1] + margin);
+                   sp_pred.setRotation(180. - pred.get_angle());
+                   return sp_pred;
+                 });
   assert(animates.size() == preds.size());
   return animates;
 }
 
 // constructor, draw and methods of Tracker
 
-Tracker::Tracker(std::valarray<float> const& range,
+gf::Tracker::Tracker(std::valarray<float> const& range,
                  std::valarray<float> const& pos, float scale, float margin)
     : t_outer(),
       t_inner(),
@@ -161,7 +163,7 @@ Tracker::Tracker(std::valarray<float> const& range,
   t_bird.setPosition(t_pos[0] * scale + margin, t_pos[1] * scale + margin);
 }
 
-void Tracker::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+void gf::Tracker::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   target.draw(t_outer, states);
   target.draw(t_inner, states);
   target.draw(t_path, states);
@@ -170,14 +172,14 @@ void Tracker::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   }
 }
 
-void Tracker::setPosition(sf::Vector2f const& position) {
+void gf::Tracker::setPosition(sf::Vector2f const& position) {
   sf::Vector2f displacement = position - t_outer.getPosition();
   t_outer.setPosition(position);
   t_inner.move(displacement);
   t_bird.move(displacement);
 }
 
-void Tracker::setFillColors(sf::Color const& outer, sf::Color const& inner,
+void gf::Tracker::setFillColors(sf::Color const& outer, sf::Color const& inner,
                             sf::Color const& circle) {
   t_outer.setFillColor(outer);
   t_inner.setFillColor(inner);
@@ -188,20 +190,21 @@ void Tracker::setFillColors(sf::Color const& outer, sf::Color const& inner,
   }
 }
 
-void Tracker::setOutlineColors(sf::Color const& outer, sf::Color const& inner,
+void gf::Tracker::setOutlineColors(sf::Color const& outer, sf::Color const& inner,
                                sf::Color const& circle) {
   t_outer.setOutlineColor(outer);
   t_inner.setOutlineColor(inner);
-  t_bird.getShape().setOutlineColor(circle);
+  t_bird.setOutlineColor(circle);
 }
 
-void Tracker::setOutlineThickness(float outer, float inner, float circle) {
+void gf::Tracker::setOutlineThickness(float outer, float inner, float circle) {
+  assert(circle >= 0.);
   t_outer.setOutlineThickness(outer);
   t_inner.setOutlineThickness(inner);
-  t_bird.getShape().setOutlineThickness(circle);
+  t_bird.setOutlineThickness(circle);
 }
 
-void Tracker::update_pos(std::valarray<float> const& position) {
+void gf::Tracker::update_pos(std::valarray<float> const& position) {
   assert(position.size() == 2);
   t_pos = position;
   t_bird.setPosition(
@@ -227,13 +230,13 @@ void Tracker::update_pos(std::valarray<float> const& position) {
   }
 }
 
-void Tracker::update_angle(float angle) { t_bird.setRotation(angle); }
+void gf::Tracker::update_angle(float angle) { t_bird.setRotation(angle); }
 
-sf::RectangleShape const& Tracker::getOuter() const { return t_outer; }
+sf::RectangleShape const& gf::Tracker::getOuter() const { return t_outer; }
 
 // constructor, draw and methods of StatusBar
 
-StatusBar::StatusBar(std::string const& title, sf::Font const& font,
+gf::StatusBar::StatusBar(std::string const& title, sf::Font const& font,
                      float width, float height,
                      std::valarray<float> const& range)
     : s_text(title, font) {
@@ -271,7 +274,7 @@ StatusBar::StatusBar(std::string const& title, sf::Font const& font,
                         s_max.getCharacterSize() / 7);
 }
 
-void StatusBar::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+void gf::StatusBar::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   target.draw(s_text, states);
   target.draw(s_bar, states);
   target.draw(s_outer, states);
@@ -279,7 +282,7 @@ void StatusBar::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   target.draw(s_max, states);
 }
 
-void StatusBar::setPosition(sf::Vector2f const& position) {
+void gf::StatusBar::setPosition(sf::Vector2f const& position) {
   sf::Vector2f displacement = position - s_text.getPosition();
   s_text.setPosition(position);
   s_outer.move(displacement);
@@ -288,7 +291,7 @@ void StatusBar::setPosition(sf::Vector2f const& position) {
   s_max.move(displacement);
 }
 
-void StatusBar::setColors(sf::Color const& text_color,
+void gf::StatusBar::setColors(sf::Color const& text_color,
                           sf::Color const& bar_color) {
   s_text.setFillColor(text_color);
   s_min.setFillColor(text_color);
@@ -296,10 +299,10 @@ void StatusBar::setColors(sf::Color const& text_color,
   s_bar.setFillColor(bar_color);
   s_outer.setOutlineColor(text_color);
 }
-void StatusBar::setOutlineThickness(float thickness) {
+void gf::StatusBar::setOutlineThickness(float thickness) {
   s_outer.setOutlineThickness(thickness);
 }
-void StatusBar::setRange(std::valarray<float> const& new_range) {
+void gf::StatusBar::setRange(std::valarray<float> const& new_range) {
   assert(new_range.size() == 2 && new_range[0] < new_range[1]);
   s_range = new_range;
   std::ostringstream s_min_max;
@@ -311,12 +314,12 @@ void StatusBar::setRange(std::valarray<float> const& new_range) {
   s_min_max.str("");
 }
 
-void StatusBar::update_value(float new_value) {
+void gf::StatusBar::update_value(float new_value) {
   assert(new_value >= s_range[0] && new_value <= s_range[1]);
   s_value = new_value;
   s_bar.setScale(s_value / (s_range[1] - s_range[0]), 1);
 }
-void StatusBar::set_text(std::string const& new_text) {
+void gf::StatusBar::set_text(std::string const& new_text) {
   s_text.setString(new_text);
   s_outer.setPosition(s_text.getGlobalBounds().left,
                       s_text.getGlobalBounds().top +

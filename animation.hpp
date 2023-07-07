@@ -7,6 +7,8 @@
 
 #include "bird.hpp"
 
+namespace gf {
+
 class Animate : public sf::Drawable, public sf::Transformable {
   float a_scale;
   int a_state;
@@ -33,8 +35,8 @@ class Animate : public sf::Drawable, public sf::Transformable {
   void animate();
 };
 
-std::vector<Animate> create_animates(fk::Flock&, std::vector<sf::Texture> const&,
-                                     float);
+std::vector<Animate> create_animates(fk::Flock&,
+                                     std::vector<sf::Texture> const&, float);
 std::vector<Animate> create_animates(std::vector<pr::Predator> const&,
                                      std::vector<sf::Texture> const&, float);
 
@@ -84,5 +86,7 @@ class StatusBar : public sf::Drawable, public sf::Transformable {
   void update_value(float);
   void set_text(std::string const&);
 };
+
+}  // namespace gf
 
 #endif

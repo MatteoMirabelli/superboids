@@ -6,6 +6,8 @@
 
 #include "flock.hpp"
 
+namespace gf {
+
 class Bird : public sf::Drawable {
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const {
     target.draw(bird_shape, states);
@@ -23,14 +25,19 @@ class Bird : public sf::Drawable {
   void setRotation(float);
   void setFillColor(sf::Color const&);
   sf::Color const& getFillColor() const;
+  void setOutlineColor(sf::Color const&);
+  sf::Color const& getOutlineColor() const;
+  void setOutlineThickness(float);
+  float getOutlineThickness() const;
   void move(sf::Vector2f const&);
-  sf::ConvexShape& getShape();
 };
 
 std::vector<Bird> create_birds(fk::Flock&, sf::Color const&, float);
-std::vector<Bird> create_birds(std::vector<pr::Predator> const&, sf::Color const&,
-                               float);
+std::vector<Bird> create_birds(std::vector<pr::Predator> const&,
+                               sf::Color const&, float);
 void update_birds(std::vector<Bird>&, fk::Flock&, float);
 void update_birds(std::vector<Bird>&, std::vector<pr::Predator> const&, float);
+
+}  // namespace gf
 
 #endif
