@@ -15,7 +15,6 @@ class Predator : public Boid {
   Predator(double, double, double, double, double, double, double, double,
            double, double, double);
   Predator() = default;
-  double get_angle() const;
   double get_range() const;
   double get_hunger() const;
   std::valarray<double> predate(std::vector<Boid>&);

@@ -19,8 +19,6 @@ Predator::Predator(double x, double y, double vx, double vy, double view_ang,
       p_range(range),
       p_hunger(hunger) {}
 
-double Predator::get_angle() const { return Boid::get_angle(); }
-
 double Predator::get_range() const { return p_range; }
 
 double Predator::get_hunger() const { return p_hunger; }

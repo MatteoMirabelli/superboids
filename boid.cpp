@@ -282,8 +282,8 @@ bool is_visible(Boid const& bd_1, Boid const& bd_2) {
 
 bool is_obs_visible(Obstacle const& obs, Boid const& bd) {
   double view_angle = bd.get_view_angle();
-  double angle = bd.get_view_angle();
-  assert(angle >= 0. && angle <= 180.);
+
+  assert(view_angle >= 0. && view_angle <= 180.);
   double relative_angle = compute_angle<double>(obs.get_pos() - bd.get_pos());
 
   if (std::abs(relative_angle - bd.get_angle()) <= 180.) {
