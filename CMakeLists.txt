@@ -25,12 +25,12 @@ string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " -fsanitize=address,-fsanitize=threa
 find_package(X11 REQUIRED)
 find_package(SFML 2.5 COMPONENTS graphics REQUIRED)
 find_package(OpenGL 1.1 REQUIRED)
-
+find_package(TBB REQUIRED)
 
 # link_directories(${X11_LIBRARIES})
 
 add_executable(Boids_engine main.cpp simulation/boid.cpp simulation/flock.cpp graphics/bird.cpp simulation/predator.cpp graphics/animation.cpp simulation/obstacles.cpp)
-target_link_libraries(Boids_engine PRIVATE sfml-graphics)
+target_link_libraries(Boids_engine PRIVATE sfml-graphics TBB::tbb)
 target_link_libraries(Boids_engine PRIVATE ${OPENGL_LIBRARIES} ${X11_LIBRARIES})
 
 # se il testing e' abilitato...
@@ -39,7 +39,7 @@ if (BUILD_TESTING)
 
   # aggiungi l'eseguibile Boids.t
   add_executable(Boids.t tests/all_tests.cpp tests/boids_tests.cpp tests/flock_tests.cpp tests/predator_tests.cpp simulation/boid.cpp simulation/flock.cpp simulation/predator.cpp simulation/obstacles.cpp)
-  target_link_libraries(Boids.t PRIVATE sfml-graphics)
+  target_link_libraries(Boids.t PRIVATE sfml-graphics TBB::tbb)
   #aggiungi l'eseguibile Boids.t alla lista dei test
   add_test(NAME Boids.t COMMAND Boids.t)
 

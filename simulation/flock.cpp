@@ -641,36 +641,37 @@ void fk::Flock::sort() {
 }
 
 void fk::Flock::update_stats() {
-  double mean_dist{0};
-  double square_mean_dist{0};
-  double mean_vel{0};
-  double square_mean_vel{0};
-  int number_of_couples{0};
-
-  for (auto it = f_flock.begin(); it < f_flock.end(); ++it) {
-    mean_vel += mt::vec_norm<double>(it->get_vel());
-    square_mean_vel += (mt::vec_norm<double>(it->get_vel()) *
-                        mt::vec_norm<double>(it->get_vel()));
-
-    for (auto ut = it;
-         ut < f_flock.end() &&
-         std::abs(it->get_pos()[0] - ut->get_pos()[0]) < f_params.d;
-         ++ut) {
-      if (bd::boid_dist(*it, *ut) <= f_params.d &&
-          bd::boid_dist(*it, *ut) > 0) {
-        mean_dist += bd::boid_dist(*it, *ut);
-        square_mean_dist += (bd::boid_dist(*it, *ut) * bd::boid_dist(*it, *ut));
-        ++number_of_couples;
-      }
-    }
-  }
-
-  if (this->size() == 0) {
+  if (this->size() <= 1) {
     f_stats.av_dist = 0.;
     f_stats.dist_RMS = 0.;
     f_stats.av_vel = 0.;
     f_stats.vel_RMS = 0.;
   } else {
+    double mean_dist{0};
+    double square_mean_dist{0};
+    double mean_vel{0};
+    double square_mean_vel{0};
+    int number_of_couples{0};
+
+    for (auto it = f_flock.begin(); it < f_flock.end(); ++it) {
+      mean_vel += mt::vec_norm<double>(it->get_vel());
+      square_mean_vel += (mt::vec_norm<double>(it->get_vel()) *
+                          mt::vec_norm<double>(it->get_vel()));
+
+      for (auto ut = it;
+           ut < f_flock.end() &&
+           std::abs(it->get_pos()[0] - ut->get_pos()[0]) < f_params.d;
+           ++ut) {
+        if (bd::boid_dist(*it, *ut) <= f_params.d &&
+            bd::boid_dist(*it, *ut) > 0) {
+          mean_dist += bd::boid_dist(*it, *ut);
+          square_mean_dist +=
+              (bd::boid_dist(*it, *ut) * bd::boid_dist(*it, *ut));
+          ++number_of_couples;
+        }
+      }
+    }
+
     mean_vel /= static_cast<double>(this->size());
     square_mean_vel /= static_cast<double>(this->size());
     double vel_RMS = sqrt(square_mean_vel - mean_vel * mean_vel);
