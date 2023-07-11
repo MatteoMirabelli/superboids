@@ -31,21 +31,22 @@ int main() {
     int number_of_boids{0};
     std::cin >> number_of_boids;
     if (number_of_boids <= 0) {
-      throw std::runtime_error("Number of boids must be larger than one!");
+      throw std::runtime_error("Number of boids must be larger than one! \n");
     }
 
     std::cout << "\nInsert parameter d ( >= 20 && <= 100 ) (Recommended 50): ";
     double param_d{};
     std::cin >> param_d;
     if (param_d <= 20 || param_d > 100.) {
-      throw std::runtime_error("Invalid parameter");
+      throw std::runtime_error("Invalid parameter \n");
     }
 
-    std::cout << "\nInsert parameter d_s ( >= 10 && <= 25 ) (Recommended 20): ";
+    std::cout << "\nInsert parameter d_s ( >= 10 && <= 25 && <= parameter d ) "
+                 "(Recommended 20): ";
     double param_ds{};
     std::cin >> param_ds;
     if (param_ds < 10 || param_ds > 25. || param_ds > param_d) {
-      throw std::runtime_error("Invalid parameter");
+      throw std::runtime_error("Invalid parameter \n");
     }
 
     std::cout << "\nInsert parameter s ( > 0 && <= 1.5 ) (Recommended 1.2): ";
@@ -53,7 +54,7 @@ int main() {
     double param_s{};
     std::cin >> param_s;
     if (param_s <= 0 || param_s > 1.5) {
-      throw std::runtime_error("Invalid parameter");
+      throw std::runtime_error("Invalid parameter \n");
     }
 
     std::cout
@@ -61,14 +62,14 @@ int main() {
     double param_a{};
     std::cin >> param_a;
     if (param_a < 0.1 || param_a > 0.5) {
-      throw std::runtime_error("Invalid parameter");
+      throw std::runtime_error("Invalid parameter \n");
     }
 
     std::cout << "\nInsert parameter c ( >= 0 && <= 0.1 ) (Recommended 0.01): ";
     double param_c{};
     std::cin >> param_c;
     if (param_c < 0 || param_c > 0.1) {
-      throw std::runtime_error("Invalid parameter");
+      throw std::runtime_error("Invalid parameter \n");
     }
 
     // initialization of flock parameters
@@ -77,40 +78,41 @@ int main() {
     fk::Parameters params(param_d, param_ds, param_s, param_a, param_c);
 
     std::cout
-        << "\nInsert boids' view_angle ( >= 0 && <= 180 ) (recommended 120): ";
+        << "\nInsert boids' view_angle ( >= 0 && <= 180 ) (Recommended 120): ";
     double boids_view_angle;
     std::cin >> boids_view_angle;
     if (boids_view_angle < 0 || boids_view_angle > 180.) {
-      throw std::runtime_error("Invalid parameter");
+      throw std::runtime_error("Invalid parameter \n");
     }
 
     std::cout << "\nInsert number of obstacles ( >= 0 ): ";
     int number_of_obstacles;
     std::cin >> number_of_obstacles;
     if (number_of_obstacles < 0) {
-      throw std::runtime_error("Invalid parameter");
+      throw std::runtime_error("Invalid parameter \n");
     }
 
-    std::cout << "\nInsert obstacles' maximum size ( > 15 && <= 70. ): ";
+    std::cout << "\nInsert obstacles' maximum size ( > 15 && <= 70. ) "
+                 "(Recommended 20): ";
     double obstacles_max_size;
     std::cin >> obstacles_max_size;
     if (obstacles_max_size <= 15. || obstacles_max_size > 70.) {
-      throw std::runtime_error("Invalid parameter");
+      throw std::runtime_error("Invalid parameter \n");
     }
 
-    std::cout << "\nInsert number of predators( >= 0 ): ";
+    std::cout << "\nInsert number of predators ( > 0 ): ";
     int number_of_predators;
     std::cin >> number_of_predators;
-    if (number_of_predators < 0) {
-      throw std::runtime_error("Invalid parameter");
+    if (number_of_predators <= 0) {
+      throw std::runtime_error("Invalid parameter \n");
     }
 
-    std::cout << "\nInsert predators' view_angle( >= 0 and <= 180.) "
+    std::cout << "\nInsert predators' view_angle ( >= 0 and <= 180.) "
                  "(recommended 140): ";
     double preds_view_angle;
     std::cin >> preds_view_angle;
     if (preds_view_angle < 0 || preds_view_angle > 180.) {
-      throw std::runtime_error("Invalid parameter");
+      throw std::runtime_error("Invalid parameter \n");
     }
 
     std::cout << "\nInsert predators' parameter ds ( > 0  && <= 40.) "
@@ -118,7 +120,7 @@ int main() {
     double preds_ds;
     std::cin >> preds_ds;
     if (preds_ds <= 0 && preds_ds > 50.) {
-      throw std::runtime_error("Invalid parameter");
+      throw std::runtime_error("Invalid parameter \n");
     }
 
     std::cout << "\nInsert predators' parameter s ( > 0 && <= 1.5) "
@@ -126,7 +128,7 @@ int main() {
     double preds_s;
     std::cin >> preds_s;
     if (preds_s <= 0 || preds_s > 2) {
-      throw std::runtime_error("Invalid parameter");
+      throw std::runtime_error("Invalid parameter \n");
     }
 
     std::cout << "\nInsert predators' range to detect preys ( > 0 && <= 90 ) "
@@ -134,15 +136,15 @@ int main() {
     double preds_range;
     std::cin >> preds_range;
     if (preds_range <= 0 && preds_range > 90.) {
-      throw std::runtime_error("Invalid parameter");
+      throw std::runtime_error("Invalid parameter \n");
     }
 
     std::cout << "\nInsert predators' parameter hunger ( > 0 && <= 1.5 "
-                 ")(Recommended 1.2): ";
+                 ") (Recommended 1.2): ";
     double preds_hunger;
     std::cin >> preds_hunger;
     if (preds_hunger <= 0 && preds_hunger > 2) {
-      throw std::runtime_error("Invalid parameter");
+      throw std::runtime_error("Invalid parameter \n");
     }
 
     std::cout << "\nSimulation mode (insert number 0 or 1): \n";
@@ -153,7 +155,7 @@ int main() {
     bool behaviour{};
     std::cin >> bhrv;
     if (bhrv != 0 && bhrv != 1) {
-      throw std::runtime_error("Invalid parameter");
+      throw std::runtime_error("Invalid parameter \n");
     };
 
     (bhrv == 0) ? behaviour = true : behaviour = false;
@@ -263,7 +265,7 @@ int main() {
 
     // load textures
     sf::Texture backg;
-    if (!backg.loadFromFile("textures/wowo.jpg")) {
+    if (!backg.loadFromFile("textures/background.jpg")) {
       return 0;
     }
     backg.setSmooth(true);
@@ -402,13 +404,13 @@ int main() {
                           video_y * com_ratio + 3 * margin);
 
     // mean speed status bar initialization
-    gf::StatusBar speed_bar("Mean distance (px): \nMean speed (px/s): ", font,
-                            com_tracker.getOuter().getGlobalBounds().width, 20.,
-                            {0., 350.});
+    gf::StatusBar speed_bar(
+        "Number of boids: \nMean distance (px): \nMean speed (px/s): ", font,
+        com_tracker.getOuter().getGlobalBounds().width, 20., {0., 350.});
     speed_bar.setColors(palette[1], palette[1]);
     speed_bar.setPosition(sf::Vector2f{
         video_x + 2 * margin,
-        video_y * com_ratio + 3 * margin + 5.5 * comp_text.getCharacterSize()});
+        video_y * com_ratio + 3 * margin + 7.5 * comp_text.getCharacterSize()});
     // declares and initializes object for stats tracking
     fk::Statistics flock_stats = bd_flock.get_stats();
 
@@ -438,8 +440,7 @@ int main() {
         " > CTRL + P : generate predator\n"
         " > CTRL + O : toggle place obst.\n"
         "    (place with left click)\n"
-        " > CTRL + A : pause / resume sim\n"
-        " > esc : close program");
+        " > CTRL + A : pause / resume sim");
     commands_text.setOrigin(0, commands_text.getLocalBounds().height);
     commands_text.setPosition(message_rect.getPosition().x,
                               message_rect.getPosition().y -
@@ -483,10 +484,11 @@ int main() {
       throw std::runtime_error("Cannot open output file");
     }
     values_ss.str("");
-    output_file << "Data printed each second \n\nMean distance + / - Mean d "
-                   "RMS  ||  Mean speed + / - "
-                   "Mean s RMS\n"
-                << "--------------------------------||---------------------"
+    output_file << "Data printed each second \n\n"
+                << "Number of boids || Mean distance + / - Mean d RMS  ||  "
+                   "Mean speed + / - Mean s RMS\n"
+                << "----------------||---------------------------------||------"
+                   "---------------"
                    "--------\n";
 
     // -- GAME LOOP --
@@ -591,6 +593,8 @@ int main() {
         // update status bar
         speed_bar.update_value(static_cast<float>(flock_stats.av_vel));
         values_ss.str("");
+        // update number of boids
+        values_ss << "Number of boids: " << bd_flock.size() << '\n';
         // update mean distance & RMS
         values_ss << "Mean distance (px): " << std::setw(5)
                   << std::setprecision(1) << std::fixed << flock_stats.av_dist
@@ -601,11 +605,13 @@ int main() {
                   << std::setprecision(1) << std::fixed << flock_stats.av_vel
                   << " +/- " << std::setprecision(1) << std::fixed
                   << flock_stats.vel_RMS;
+
         speed_bar.set_text(values_ss.str());
       }
       if (counter % 60 == 0) {  // every second
         // print mean distance and speed with own RMSs on text file
-        output_file << std::setw(13) << std::setprecision(3) << std::fixed
+        output_file << std::setw(14) << bd_flock.size() << "  ||  "
+                    << std::setw(12) << std::setprecision(3) << std::fixed
                     << flock_stats.av_dist << "       " << std::setw(10)
                     << std::setprecision(3) << std::fixed
                     << flock_stats.dist_RMS << "  ||  " << std::setw(10)
