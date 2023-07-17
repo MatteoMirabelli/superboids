@@ -4,7 +4,7 @@
 #include <cmath>
 
 gf::Bird::Bird(float b_size) : size(), bird_shape() {
-  assert(b_size > 0.);
+  assert(b_size > 0.f);
   size = b_size;
   // creates triangle
   bird_shape.setPointCount(3);
@@ -18,7 +18,7 @@ gf::Bird::Bird(float b_size) : size(), bird_shape() {
 }
 
 gf::Bird::Bird(float b_size, sf::Color const& color) : size(), bird_shape() {
-  assert(b_size > 0.);
+  assert(b_size > 0.f);
   size = b_size;
   // creates triangle
   bird_shape.setPointCount(3);
@@ -36,7 +36,7 @@ void gf::Bird::draw(sf::RenderTarget& target, sf::RenderStates states) const {
 }
 
 void gf::Bird::setSize(float new_size) {
-  assert(new_size > 0.);
+  assert(new_size > 0.f);
   // sets triangle size by scaling
   bird_shape.scale(new_size / size, new_size / size);
   size = new_size;
@@ -92,10 +92,11 @@ std::vector<gf::Bird> gf::create_birds(fk::Flock& flock, sf::Color const& color,
   std::vector<gf::Bird> birds;
   std::transform(flock.begin(), flock.end(), std::back_inserter(birds),
                  [&margin, &color](bd::Boid& b) -> gf::Bird {
-                   gf::Bird tr_boid(margin / 2, color);
-                   tr_boid.setPosition(b.get_pos()[0] + margin,
-                                       b.get_pos()[1] + margin);
-                   tr_boid.setRotation(b.get_angle());
+                   gf::Bird tr_boid(margin / 2.f, color);
+                   tr_boid.setPosition(
+                       static_cast<float>(b.get_pos()[0]) + margin,
+                       static_cast<float>(b.get_pos()[1]) + margin);
+                   tr_boid.setRotation(-static_cast<float>(b.get_angle()));
                    return tr_boid;
                  });
   return birds;
@@ -107,9 +108,10 @@ std::vector<gf::Bird> gf::create_birds(std::vector<pr::Predator> const& preds,
   std::transform(preds.begin(), preds.end(), std::back_inserter(birds),
                  [&margin, &color](pr::Predator const& b) -> gf::Bird {
                    gf::Bird tr_boid(margin, color);
-                   tr_boid.setPosition(b.get_pos()[0] + margin,
-                                       b.get_pos()[1] + margin);
-                   tr_boid.setRotation(b.get_angle());
+                   tr_boid.setPosition(
+                       static_cast<float>(b.get_pos()[0]) + margin,
+                       static_cast<float>(b.get_pos()[1]) + margin);
+                   tr_boid.setRotation(-static_cast<float>(b.get_angle()));
                    return tr_boid;
                  });
   return birds;
@@ -117,11 +119,11 @@ std::vector<gf::Bird> gf::create_birds(std::vector<pr::Predator> const& preds,
 
 void gf::update_birds(std::vector<gf::Bird>& birds, fk::Flock& flock,
                       float margin) {
-  int diff = flock.size() - birds.size();
+  int diff = flock.size() - static_cast<int>(birds.size());
   if (diff > 0) {
     auto color = birds[0].getFillColor();
     for (int i = 0; i < diff; ++i) {
-      gf::Bird tr_bird(margin / 2, color);
+      gf::Bird tr_bird(margin / 2.f, color);
       birds.push_back(tr_bird);
     }
   } else if (diff < 0) {
@@ -136,16 +138,17 @@ void gf::update_birds(std::vector<gf::Bird>& birds, fk::Flock& flock,
   }
   std::transform(flock.begin(), flock.end(), birds.begin(), birds.begin(),
                  [&margin](bd::Boid& b, gf::Bird& tr_boid) -> gf::Bird {
-                   tr_boid.setPosition(b.get_pos()[0] + margin,
-                                       b.get_pos()[1] + margin);
-                   tr_boid.setRotation(-b.get_angle());
+                   tr_boid.setPosition(
+                       static_cast<float>(b.get_pos()[0]) + margin,
+                       static_cast<float>(b.get_pos()[1]) + margin);
+                   tr_boid.setRotation(-static_cast<float>(b.get_angle()));
                    return tr_boid;
                  });
 }
 
 void gf::update_birds(std::vector<gf::Bird>& birds,
                       std::vector<pr::Predator> const& flock, float margin) {
-  int diff = flock.size() - birds.size();
+  int diff = static_cast<int>(flock.size()) - static_cast<int>(birds.size());
   if (diff > 0) {
     auto color = birds[0].getFillColor();
     for (int i = 0; i < diff; ++i) {
@@ -165,8 +168,9 @@ void gf::update_birds(std::vector<gf::Bird>& birds,
   std::transform(
       flock.begin(), flock.end(), birds.begin(), birds.begin(),
       [&margin](pr::Predator const& b, gf::Bird& tr_boid) -> gf::Bird {
-        tr_boid.setPosition(b.get_pos()[0] + margin, b.get_pos()[1] + margin);
-        tr_boid.setRotation(-b.get_angle());
+        tr_boid.setPosition(static_cast<float>(b.get_pos()[0]) + margin,
+                            static_cast<float>(b.get_pos()[1]) + margin);
+        tr_boid.setRotation(-static_cast<float>(b.get_angle()));
         return tr_boid;
       });
 }

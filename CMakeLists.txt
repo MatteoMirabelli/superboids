@@ -42,7 +42,7 @@ if (BUILD_TESTING)
   # aggiungi l'eseguibile Boids.t
   add_executable(Boids.t tests/all_tests.cpp tests/boids_tests.cpp tests/flock_tests.cpp tests/predator_tests.cpp tests/obstacles_tests.cpp tests/math_tests.cpp simulation/boid.cpp simulation/flock.cpp simulation/predator.cpp simulation/obstacles.cpp )
   target_link_libraries(Boids.t PRIVATE sfml-graphics)
-  #target_link_libraries(Boids_engine PRIVATE TBB::tbb)
+  #target_link_libraries(Boids.t PRIVATE TBB::tbb)
   #aggiungi l'eseguibile Boids.t alla lista dei test
   add_test(NAME Boids.t COMMAND Boids.t)
 

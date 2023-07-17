@@ -3,7 +3,7 @@
 
 TEST_CASE("Testing the generate_obstacles function") {
   // generate_obstacles takes: number_of_obstacles, max_size, space{x,y};
-  
+
   SUBCASE("Testing the generate_obstacles function") {
     auto obstacles = ob::generate_obstacles(4, 45., {1920., 1080.});
 

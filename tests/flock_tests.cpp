@@ -1,5 +1,5 @@
-#include "../simulation/boid.hpp"
 #include "../doctest.h"
+#include "../simulation/boid.hpp"
 #include "../simulation/flock.hpp"
 #include "../simulation/obstacles.hpp"
 #include "../simulation/predator.hpp"
@@ -470,7 +470,8 @@ TEST_CASE("Testing the Flock::vel_correction method with predator") {
   }
 
   SUBCASE(
-      "Testing the Flock::vel_correction method with four boids and pr::Predator "
+      "Testing the Flock::vel_correction method with four boids and "
+      "pr::Predator "
       "out of range for three of them") {
     bd::Boid bd_1(1, 4, 5, 0, 120., 1920, 1080, 4, 1);  // pd out of range
     bd::Boid bd_2(3, 3, 5, 9, 120., 1920, 1080, 4, 1);  // pd out of range

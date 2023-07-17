@@ -254,7 +254,6 @@ void bd::Boid::set_par_ds(double new_ds) { b_param_ds = new_ds; }
 
 void bd::Boid::set_par_s(double new_s) { b_param_s = new_s; }
 
-
 double bd::boid_dist(bd::Boid const& bd_1, bd::Boid const& bd_2) {
   return mt::vec_norm<double>(bd_1.get_pos() - bd_2.get_pos());
 }
@@ -289,7 +288,6 @@ bool bd::is_obs_visible(ob::Obstacle const& obs, bd::Boid const& bd) {
     return (360. - std::abs(relative_angle - bd.get_angle())) <= view_angle;
   }
 }
-
 
 // Given a vector and an iterator, it finds all of its neighbours, with the
 // condition that the vector is SORTED

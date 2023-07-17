@@ -33,7 +33,7 @@ fk::Parameters::Parameters(double p_d, double p_ds, double p_s, double p_a,
 // used in many tests!
 fk::Flock::Flock(fk::Parameters const& params, int bd_n, bd::Boid const& com,
                  double view_ang, std::valarray<double> const& space)
-    : f_com{com}, f_flock{}, f_params{params}, f_stats{} {
+    : f_flock{}, f_com{com}, f_params{params}, f_stats{} {
   // Generates randomly boids around centre of masss
   assert(bd_n >= 0);
 
@@ -66,8 +66,8 @@ fk::Flock::Flock(fk::Parameters const& params, int bd_n, bd::Boid const& com,
                                  space,
                                  params.d_s,
                                  params.s});
-      final_pos += f_flock[n].get_pos();
-      final_vel += f_flock[n].get_vel();
+      final_pos += f_flock[static_cast<unsigned int>(n)].get_pos();
+      final_vel += f_flock[static_cast<unsigned int>(n)].get_vel();
     }
     f_flock.push_back(bd::Boid{bd_n * com.get_pos() - final_pos,
                                bd_n * com.get_vel() - final_vel, view_ang,
@@ -96,8 +96,9 @@ fk::Flock::Flock(fk::Parameters const& params, int bd_n, double view_ang,
   f_com = bd::Boid{{0., 0.}, {0., 0.}, 0., space, params.d_s, params.s};
 
   auto generator = [&]() -> bd::Boid {
-    std::valarray<double> pos = {dist_pos_x(rd) * 0.4 * (params.d_s) + 20.,
-                                 dist_pos_y(rd) * 0.4 * (params.d_s) + 20.};
+    std::valarray<double> pos = {
+        static_cast<double>(dist_pos_x(rd)) * 0.4 * (params.d_s) + 20.,
+        static_cast<double>(dist_pos_y(rd)) * 0.4 * (params.d_s) + 20.};
     std::valarray<double> vel = {dist_vel_x(rd), dist_vel_y(rd)};
     return bd::Boid{pos, vel, view_ang, space, params.d_s, params.s};
   };
@@ -137,8 +138,8 @@ fk::Flock::Flock(fk::Parameters const& params, int bd_n, double view_ang,
   f_com = bd::Boid{{0., 0.}, {0., 0.}, view_ang, space, params.d_s, params.s};
   if (bd_n > 0) {
     std::random_device rd;
-    int x_max = 2.5 * (space[0] - 40.) / params.d_s;
-    int y_max = 2.5 * (space[1] - 40.) / params.d_s;
+    int x_max = static_cast<int>(2.5 * (space[0] - 40.) / params.d_s);
+    int y_max = static_cast<int>(2.5 * (space[1] - 40.) / params.d_s);
 
     std::uniform_int_distribution<> dist_pos_x(0, x_max);
     std::uniform_int_distribution<> dist_pos_y(0, y_max);
@@ -149,8 +150,9 @@ fk::Flock::Flock(fk::Parameters const& params, int bd_n, double view_ang,
     auto generator = [&dist_pos_x, &dist_pos_y, &dist_vel_x, &dist_vel_y, &rd,
                       &params, &space, &view_ang, &obs]() -> bd::Boid {
       // Generates position
-      std::valarray<double> pos = {dist_pos_x(rd) * 0.4 * (params.d_s) + 20.,
-                                   dist_pos_y(rd) * 0.4 * (params.d_s) + 20.};
+      std::valarray<double> pos = {
+          static_cast<double>(dist_pos_x(rd)) * 0.4 * (params.d_s) + 20.,
+          static_cast<double>(dist_pos_y(rd)) * 0.4 * (params.d_s) + 20.};
       // Checks wheter it overlaps or not with obstacles
       auto overlap = [&pos, &params](ob::Obstacle const& obstacle) -> bool {
         std::valarray<double> dist = pos - obstacle.get_pos();
@@ -160,8 +162,8 @@ fk::Flock::Flock(fk::Parameters const& params, int bd_n, double view_ang,
 
       while (std::any_of(obs.begin(), obs.end(), overlap)) {
         // As long as it overlaps with obstacles, it regenerates
-        pos = {dist_pos_x(rd) * 0.4 * (params.d_s) + 20.,
-               dist_pos_y(rd) * 0.4 * (params.d_s) + 20.};
+        pos = {static_cast<double>(dist_pos_x(rd)) * 0.4 * (params.d_s) + 20.,
+               static_cast<double>(dist_pos_y(rd)) * 0.4 * (params.d_s) + 20.};
       }
 
       // If it doesn't overlap, it returns a boidd with random position and
@@ -216,8 +218,9 @@ void fk::Flock::add_boid() {
   std::uniform_real_distribution<> dist_vel_x(-150., 150.);
   std::uniform_real_distribution<> dist_vel_y(-150., 150.);
 
-  std::valarray<double> pos = {dist_pos_x(rd) * 0.4 * (f_params.d_s) + 20.,
-                               dist_pos_y(rd) * 0.4 * (f_params.d_s) + 20.};
+  std::valarray<double> pos = {
+      static_cast<double>(dist_pos_x(rd)) * 0.4 * (f_params.d_s) + 20.,
+      static_cast<double>(dist_pos_y(rd)) * 0.4 * (f_params.d_s) + 20.};
 
   // Checks wheter a boid coincide with another
 
@@ -228,8 +231,8 @@ void fk::Flock::add_boid() {
   // Until there are no coinciding boids, it regenerates positions
   while (std::any_of(std::execution::par, f_flock.begin(), f_flock.end(),
                      find_clone)) {
-    pos = {dist_pos_x(rd) * 0.4 * (f_params.d_s) + 20.,
-           dist_pos_y(rd) * 0.4 * (f_params.d_s) + 20.};
+    pos = {static_cast<double>(dist_pos_x(rd)) * 0.4 * (f_params.d_s) + 20.,
+           static_cast<double>(dist_pos_y(rd)) * 0.4 * (f_params.d_s) + 20.};
   }
 
   // It generates its speed and adds it to the flock
@@ -256,8 +259,9 @@ void fk::Flock::add_boid(std::vector<ob::Obstacle> const& obstacles) {
   std::uniform_real_distribution<> dist_vel_x(-150., 150.);
   std::uniform_real_distribution<> dist_vel_y(-150., 150.);
 
-  std::valarray<double> pos = {dist_pos_x(rd) * 0.4 * (f_params.d_s) + 20.,
-                               dist_pos_y(rd) * 0.4 * (f_params.d_s) + 20.};
+  std::valarray<double> pos = {
+      static_cast<double>(dist_pos_x(rd)) * 0.4 * (f_params.d_s) + 20.,
+      static_cast<double>(dist_pos_y(rd)) * 0.4 * (f_params.d_s) + 20.};
 
   // Checks wheter a boid coincide with another or it overlaps with an obstacle
 
@@ -275,8 +279,8 @@ void fk::Flock::add_boid(std::vector<ob::Obstacle> const& obstacles) {
   while (std::any_of(std::execution::par, f_flock.begin(), f_flock.end(),
                      find_clone) ||
          std::any_of(obstacles.begin(), obstacles.end(), overlap)) {
-    pos = {dist_pos_x(rd) * 0.4 * (f_params.d_s) + 20.,
-           dist_pos_y(rd) * 0.4 * (f_params.d_s) + 20.};
+    pos = {static_cast<double>(dist_pos_x(rd)) * 0.4 * (f_params.d_s) + 20.,
+           static_cast<double>(dist_pos_y(rd)) * 0.4 * (f_params.d_s) + 20.};
   }
 
   // It generates its speed and adds it to the flock
@@ -303,8 +307,8 @@ void fk::Flock::push_back(bd::Boid const& boid) {
 std::vector<bd::Boid> const& fk::Flock::get_flock() const { return f_flock; }
 
 bd::Boid const& fk::Flock::get_boid(int n) const {
-  assert(n >= 1 && n <= f_flock.size());
-  return f_flock[static_cast<unsigned int>(n - 1)];
+  assert(n >= 1 && static_cast<unsigned int>(n) <= f_flock.size());
+  return f_flock[static_cast<unsigned int>(n) - 1];
 }
 
 bd::Boid const& fk::Flock::get_com() const { return f_com; }
@@ -341,7 +345,7 @@ void fk::Flock::set_parameter(int index, double value) {
 }
 
 void fk::Flock::set_space(double sx, double sy) {
-  assert(sx > 0 && sy > 0);
+  assert(sx > 0. && sy > 0.);
   f_com.set_space(sx, sy);
   for (auto& bd : f_flock) {
     bd.set_space(sx, sy);
@@ -597,7 +601,7 @@ void fk::Flock::update_global_state(
 
   std::vector<int> indexes;
 
-  for (int i = 0; i < f_flock.size(); ++i) {
+  for (int i = 0; static_cast<unsigned int>(i) < f_flock.size(); ++i) {
     indexes.push_back(i);
   }
 
@@ -607,16 +611,17 @@ void fk::Flock::update_global_state(
                       boid_obs_detection, boid_obs_repulsion](
                          int const& index, bd::Boid const& bd) -> bd::Boid {
     std::valarray<double> corr = {0., 0.};
-    for (int idx = 0; idx < preds.size(); ++idx) {
-      corr +=
-          avoid_pred(bd, preds[idx], boid_pred_detection, boid_pred_repulsion);
-      if (is_visible(bd, preds[idx]) &&
-          bd::boid_dist(preds[idx], bd) < preds[idx].get_range()) {
+    for (int idx = 0; static_cast<unsigned int>(idx) < preds.size(); ++idx) {
+      corr += avoid_pred(bd, preds[static_cast<unsigned int>(idx)],
+                         boid_pred_detection, boid_pred_repulsion);
+      if (is_visible(bd, preds[static_cast<unsigned int>(idx)]) &&
+          bd::boid_dist(preds[static_cast<unsigned int>(idx)], bd) <
+              preds[static_cast<unsigned int>(idx)].get_range()) {
         std::lock_guard<std::mutex> lck(mtx);
         preys.push_back({bd, idx});
       }
     }
-    f_flock[index].update_state(
+    f_flock[static_cast<unsigned int>(index)].update_state(
         delta_t,
         vel_correction(copy_flock, copy_flock.begin() + index) +
             bd.avoid_obs(obs, boid_obs_detection, boid_obs_repulsion) + corr,
@@ -697,8 +702,8 @@ void fk::Flock::update_stats() {
 
     // If no couples are founded, average distance and its RMS are 0
     if (number_of_couples == 0) {
-      f_stats.av_dist = 0;
-      f_stats.dist_RMS = 0;
+      f_stats.av_dist = 0.;
+      f_stats.dist_RMS = 0.;
     } else {
       mean_dist /= static_cast<double>(number_of_couples);
       square_mean_dist /= static_cast<double>(number_of_couples);

@@ -23,8 +23,8 @@ double ob::Obstacle::get_size() const { return o_size; }
 
 // VECTOR OF OBSTACLES
 
-std::vector<ob::Obstacle> ob::generate_obstacles(int n_obstacles, double max_size,
-                                         std::valarray<double> const& space) {
+std::vector<ob::Obstacle> ob::generate_obstacles(
+    int n_obstacles, double max_size, std::valarray<double> const& space) {
   // Generates randomly the positions of the obstacles
   assert(n_obstacles >= 0);
   std::vector<ob::Obstacle> g_obstacles;
@@ -69,8 +69,8 @@ std::vector<ob::Obstacle> ob::generate_obstacles(int n_obstacles, double max_siz
 }
 
 bool ob::add_obstacle(std::vector<ob::Obstacle>& g_obstacles,
-                  std::valarray<double> const& pos, double max_size,
-                  std::valarray<double> const& space) {
+                      std::valarray<double> const& pos, double max_size,
+                      std::valarray<double> const& space) {
   std::random_device rd;
   std::uniform_real_distribution<> ran_size(15., max_size);
   double size = ran_size(rd);
@@ -94,8 +94,8 @@ bool ob::add_obstacle(std::vector<ob::Obstacle>& g_obstacles,
 }
 
 void ob::add_fixed_obstacle(std::vector<ob::Obstacle>& g_obstacles,
-                        std::valarray<double> const& pos, double size,
-                        std::valarray<double> const& space) {
+                            std::valarray<double> const& pos, double size,
+                            std::valarray<double> const& space) {
   ob::sort_obstacles(g_obstacles);
 
   // Checks if it overlaps with another obstacle or with borders

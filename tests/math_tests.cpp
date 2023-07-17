@@ -1,5 +1,5 @@
-#include "../simulation/boid.hpp"
 #include "../doctest.h"
+#include "../simulation/boid.hpp"
 #include "../simulation/flock.hpp"
 #include "../simulation/obstacles.hpp"
 #include "../simulation/predator.hpp"

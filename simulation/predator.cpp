@@ -60,8 +60,8 @@ std::vector<pr::Predator> pr::random_predators(
          pred_range > 0. && pred_hunger > 0.);
   if (pred_num == 0) return predators;
   std::random_device rd;
-  int x_max = 2.5 * (pred_space[0] - 40.) / pred_ds;
-  int y_max = 2.5 * (pred_space[1] - 40.) / pred_ds;
+  int x_max = static_cast<int>(2.5 * (pred_space[0] - 40.) / pred_ds);
+  int y_max = static_cast<int>(2.5 * (pred_space[1] - 40.) / pred_ds);
 
   std::uniform_int_distribution<> dist_pos_x(0, x_max);
   std::uniform_int_distribution<> dist_pos_y(0, y_max);
@@ -73,8 +73,9 @@ std::vector<pr::Predator> pr::random_predators(
                     &pred_space, &pred_view_ang, &pred_ds, &pred_s, &pred_range,
                     &pred_hunger, &obs]() -> pr::Predator {
     // It generates the positons
-    std::valarray<double> pos = {dist_pos_x(rd) * 0.4 * (pred_ds) + 20.,
-                                 dist_pos_y(rd) * 0.4 * (pred_ds) + 20.};
+    std::valarray<double> pos = {
+        static_cast<double>(dist_pos_x(rd)) * 0.4 * (pred_ds) + 20.,
+        static_cast<double>(dist_pos_y(rd)) * 0.4 * (pred_ds) + 20.};
 
     // Checks wheter there're are no oveerlapping obstacles
     auto overlap = [&pos, &pred_ds](ob::Obstacle const& obstacle) -> bool {
@@ -84,8 +85,8 @@ std::vector<pr::Predator> pr::random_predators(
 
     while (std::any_of(obs.begin(), obs.end(), overlap)) {
       // As long as predators overlap with obstacle, it regenerates them
-      pos = {dist_pos_x(rd) * 0.4 * (pred_ds) + 20.,
-             dist_pos_y(rd) * 0.4 * (pred_ds) + 20.};
+      pos = {static_cast<double>(dist_pos_x(rd)) * 0.4 * (pred_ds) + 20.,
+             static_cast<double>(dist_pos_y(rd)) * 0.4 * (pred_ds) + 20.};
     }
     // If there are no predators overlapping with obstacles, it returns the
     // predator
@@ -141,8 +142,9 @@ void pr::add_predator(std::vector<pr::Predator>& predators,
   std::uniform_real_distribution<> dist_vel_x(-150., 150.);
   std::uniform_real_distribution<> dist_vel_y(-150., 150.);
 
-  std::valarray<double> pos = {dist_pos_x(rd) * 0.4 * (pred_ds) + 20.,
-                               dist_pos_y(rd) * 0.4 * (pred_ds) + 20.};
+  std::valarray<double> pos = {
+      static_cast<double>(dist_pos_x(rd)) * 0.4 * (pred_ds) + 20.,
+      static_cast<double>(dist_pos_y(rd)) * 0.4 * (pred_ds) + 20.};
 
   auto overlap_pred = [&pos, &pred_ds](pr::Predator& p1) -> bool {
     return mt::vec_norm<double>(static_cast<std::valarray<double>>(
@@ -156,8 +158,8 @@ void pr::add_predator(std::vector<pr::Predator>& predators,
   // Until predator overlaps with obstacles or other predators, it regenerates
   while (std::any_of(predators.begin(), predators.end(), overlap_pred) ||
          std::any_of(obstacles.begin(), obstacles.end(), overlap_obs)) {
-    pos = {dist_pos_x(rd) * 0.4 * (pred_ds) + 20.,
-           dist_pos_y(rd) * 0.4 * (pred_ds) + 20.};
+    pos = {static_cast<double>(dist_pos_x(rd)) * 0.4 * (pred_ds) + 20.,
+           static_cast<double>(dist_pos_y(rd)) * 0.4 * (pred_ds) + 20.};
   }
 
   // Adds predator
@@ -233,7 +235,7 @@ void pr::update_predators_state(
       // Checks wheter a prey is its, and, in case, add to its "own_preys"
       std::vector<bd::Boid> own_preys;
       for (auto prey : preys)
-        if (prey.second == idx - predators.begin())
+        if (prey.second == static_cast<int>(idx - predators.begin()))
           own_preys.push_back(prey.first);
 
       // Updates states of predator with vel correction due to obstacles, preys
@@ -286,7 +288,7 @@ void pr::update_predators_state(
     if (predation) {
       std::vector<bd::Boid> own_preys;
       for (auto prey : preys) {
-        if (prey.second == idx - predators.begin())
+        if (prey.second == static_cast<int>(idx - predators.begin()))
           own_preys.push_back(prey.first);
       }
 

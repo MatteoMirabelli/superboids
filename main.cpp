@@ -73,7 +73,6 @@ int main() {
     }
 
     // initialization of flock parameters
-    //  fk::Parameters params(50., 25., 1.2, 0.1, 0.01);
 
     fk::Parameters params(param_d, param_ds, param_s, param_a, param_c);
 
@@ -176,25 +175,28 @@ int main() {
     float video_y = window_y * 0.96f;
 
     // margin value, also fitted onto screen
-    float margin = (window_y - video_y) / 2;
+    float margin = (window_y - video_y) / 2.f;
 
     // -- SIMULATION OBJECTS --
 
     // initialization of obstacles
     std::vector<ob::Obstacle> obstacles = ob::generate_obstacles(
-        number_of_obstacles, obstacles_max_size, {video_x, video_y});
+        number_of_obstacles, obstacles_max_size,
+        {static_cast<double>(video_x), static_cast<double>(video_y)});
 
     // flock initialization
-    fk::Flock bd_flock{params,
-                       number_of_boids,
-                       boids_view_angle,
-                       {video_x, video_y},
-                       obstacles};
+    fk::Flock bd_flock{
+        params,
+        number_of_boids,
+        boids_view_angle,
+        {static_cast<double>(video_x), static_cast<double>(video_y)},
+        obstacles};
 
     // predators initialization
     std::vector<pr::Predator> predators = pr::random_predators(
-        obstacles, number_of_predators, {video_x, video_y}, preds_view_angle,
-        preds_ds, preds_s, preds_range, preds_hunger);
+        obstacles, number_of_predators,
+        {static_cast<double>(video_x), static_cast<double>(video_y)},
+        preds_view_angle, preds_ds, preds_s, preds_range, preds_hunger);
 
     // -- USER INPUT --
 
@@ -344,7 +346,8 @@ int main() {
             ob_circ.setTexture(&obs_texture);
           }
           ob_circ.setOrigin(ob_circ.getRadius(), ob_circ.getRadius());
-          ob_circ.setPosition(b.get_pos()[0] + margin, b.get_pos()[1] + margin);
+          ob_circ.setPosition(static_cast<float>(b.get_pos()[0]) + margin,
+                              static_cast<float>(b.get_pos()[1]) + margin);
           return ob_circ;
         });
 
@@ -359,7 +362,7 @@ int main() {
     if (mode == true) window.setTitle("STAR BOIDS");
     window.setFramerateLimit(60);
     // places window in top left corner, taking into account titlebar height
-    window.setPosition(sf::Vector2i(0., static_cast<int>(window_x * 0.022f)));
+    window.setPosition(sf::Vector2i(0, static_cast<int>(window_x * 0.022f)));
     // framerate optimization (if supported)
     window.setVerticalSyncEnabled(true);
 
@@ -376,18 +379,18 @@ int main() {
     rec_sim.setPosition(margin, margin);
 
     // defines parameters for COM tracker
-    float com_ratio = (window_x - 4 * margin - video_x) / video_x;
+    float com_ratio = (window_x - 4.f * margin - video_x) / video_x;
 
     float pos_com_x = static_cast<float>(bd_flock.get_com().get_pos()[0]);
     float pos_com_y = static_cast<float>(bd_flock.get_com().get_pos()[1]);
     float com_angle = static_cast<float>(
         mt::compute_angle<double>(bd_flock.get_com().get_vel()));
-    float tracker_x = window_x - video_x * com_ratio - 2 * margin;
+    float tracker_x = window_x - video_x * com_ratio - 2.f * margin;
     float tracker_y = margin;
 
     // initializes COM tracker
     gf::Tracker com_tracker(std::valarray<float>{video_x, video_y},
-                            {pos_com_x, pos_com_y}, com_ratio, margin / 2);
+                            {pos_com_x, pos_com_y}, com_ratio, margin / 2.f);
     com_tracker.setPosition(sf::Vector2f{tracker_x, tracker_y});
     com_tracker.setFillColors(sf::Color::White, sf::Color(210, 210, 210),
                               sf::Color::Black);
@@ -400,17 +403,18 @@ int main() {
     sf::Text comp_text("Computation time: \nUpdate time: \nDraw time: ", font,
                        20);
     comp_text.setFillColor(palette[1]);
-    comp_text.setPosition(video_x + 2 * margin,
-                          video_y * com_ratio + 3 * margin);
+    comp_text.setPosition(video_x + 2.f * margin,
+                          video_y * com_ratio + 3.f * margin);
 
     // mean speed status bar initialization
     gf::StatusBar speed_bar(
         "Number of boids: \nMean distance (px): \nMean speed (px/s): ", font,
-        com_tracker.getOuter().getGlobalBounds().width, 20., {0., 350.});
+        com_tracker.getOuter().getGlobalBounds().width, 20.f, {0.f, 350.f});
     speed_bar.setColors(palette[1], palette[1]);
-    speed_bar.setPosition(sf::Vector2f{
-        video_x + 2 * margin,
-        video_y * com_ratio + 3 * margin + 7.5 * comp_text.getCharacterSize()});
+    speed_bar.setPosition(sf::Vector2f(
+        video_x + 2.f * margin,
+        video_y * com_ratio + 3.f * margin +
+            7.5f * static_cast<float>(comp_text.getCharacterSize())));
     // declares and initializes object for stats tracking
     fk::Statistics flock_stats = bd_flock.get_stats();
 
@@ -424,11 +428,11 @@ int main() {
         sf::Vector2f(video_x * com_ratio + margin,
                      message_text.getGlobalBounds().height + margin));
     message_rect.setFillColor(palette[1]);
-    message_rect.setOrigin(0, message_rect.getLocalBounds().height);
-    message_rect.setPosition(video_x + 2 * margin, window_y - margin);
+    message_rect.setOrigin(0.f, message_rect.getLocalBounds().height);
+    message_rect.setPosition(video_x + 2.f * margin, window_y - margin);
     message_text.setPosition(
-        video_x + 2.5 * margin,
-        window_y - margin - 0.4 * message_rect.getGlobalBounds().height);
+        video_x + 2.5f * margin,
+        window_y - margin - 0.4f * message_rect.getGlobalBounds().height);
 
     // text for user commands guide
     sf::Text commands_text("", font, 20);
@@ -441,11 +445,11 @@ int main() {
         " > CTRL + O : toggle place obst.\n"
         "    (place with left click)\n"
         " > CTRL + A : pause / resume sim");
-    commands_text.setOrigin(0, commands_text.getLocalBounds().height);
-    commands_text.setPosition(message_rect.getPosition().x,
-                              message_rect.getPosition().y -
-                                  message_rect.getGlobalBounds().height -
-                                  0.7 * commands_text.getCharacterSize());
+    commands_text.setOrigin(0.f, commands_text.getLocalBounds().height);
+    commands_text.setPosition(
+        message_rect.getPosition().x,
+        message_rect.getPosition().y - message_rect.getGlobalBounds().height -
+            0.7f * static_cast<float>(commands_text.getCharacterSize()));
 
     // -- TIME MEASUREMENTS --
 
@@ -510,8 +514,9 @@ int main() {
         if (diff > 0) {
           for (int i = 0; i < diff; ++i) {
             gf::Animate an_boid(
-                static_cast<float>(0.5 * margin /
-                                   boid_texture_normal.getSize().x),
+                static_cast<float>(
+                    0.5f * margin /
+                    static_cast<float>(boid_texture_normal.getSize().x)),
                 {boid_texture_normal, boid_texture_sped});
             graph_boids_sp.push_back(an_boid);
           }
@@ -520,14 +525,15 @@ int main() {
                                graph_boids_sp.end());
         }
         // update graphic boids properties
-        assert(graph_boids_sp.size() == bd_flock.size());
+        assert(graph_boids_sp.size() ==
+               static_cast<unsigned int>(bd_flock.size()));
         auto bd_indx = bd_flock.begin();
         for (auto indx = graph_boids_sp.begin(); indx != graph_boids_sp.end();
              ++indx) {
           bd_indx = bd_flock.begin() + (indx - graph_boids_sp.begin());
-          indx->setPosition(bd_indx->get_pos()[0] + margin,
-                            bd_indx->get_pos()[1] + margin);
-          indx->setRotation(180. - bd_indx->get_angle());
+          indx->setPosition(static_cast<float>(bd_indx->get_pos()[0]) + margin,
+                            static_cast<float>(bd_indx->get_pos()[1]) + margin);
+          indx->setRotation(180.f - static_cast<float>(bd_indx->get_angle()));
           (mt::vec_norm<double>(bd_indx->get_vel()) > 120.) ? indx->setState(1)
                                                             : indx->setState(0);
         }
@@ -536,8 +542,9 @@ int main() {
         for (int i = 0;
              i < static_cast<int>(predators.size() - graph_preds_sp.size());
              ++i) {
-          gf::Animate tr_predator(margin / pred_texture_normal.getSize().x,
-                                  {pred_texture_normal, pred_texture_sped});
+          gf::Animate tr_predator(
+              margin / static_cast<float>(pred_texture_normal.getSize().x),
+              {pred_texture_normal, pred_texture_sped});
           graph_preds_sp.push_back(tr_predator);
         }
         assert(graph_preds_sp.size() == predators.size());
@@ -545,10 +552,16 @@ int main() {
         for (int indx = 0; static_cast<unsigned int>(indx) < predators.size();
              ++indx) {
           graph_preds_sp[static_cast<unsigned int>(indx)].setPosition(
-              predators[indx].get_pos()[0] + margin,
-              predators[static_cast<unsigned int>(indx)].get_pos()[1] + margin);
+              static_cast<float>(
+                  predators[static_cast<unsigned int>(indx)].get_pos()[0]) +
+                  margin,
+              static_cast<float>(
+                  predators[static_cast<unsigned int>(indx)].get_pos()[1]) +
+                  margin);
           graph_preds_sp[static_cast<unsigned int>(indx)].setRotation(
-              180. - predators[static_cast<unsigned int>(indx)].get_angle());
+              180.f -
+              static_cast<float>(
+                  predators[static_cast<unsigned int>(indx)].get_angle()));
           (mt::vec_norm<double>(
                predators[static_cast<unsigned int>(indx)].get_vel()) > 120.)
               ? graph_preds_sp[static_cast<unsigned int>(indx)].setState(1)
@@ -559,8 +572,8 @@ int main() {
       // update graphic obstacles
       if (graph_obs.size() != obstacles.size()) {
         std::transform(
-            obstacles.begin() + graph_obs.size(), obstacles.end(),
-            std::back_inserter(graph_obs),
+            obstacles.begin() + static_cast<int>(graph_obs.size()),
+            obstacles.end(), std::back_inserter(graph_obs),
             [&margin, &obs_texture,
              &mode](ob::Obstacle const& b) -> sf::CircleShape {
               sf::CircleShape ob_circ(static_cast<float>(b.get_size()));
@@ -571,8 +584,8 @@ int main() {
               }
 
               ob_circ.setOrigin(ob_circ.getRadius(), ob_circ.getRadius());
-              ob_circ.setPosition(b.get_pos()[0] + margin,
-                                  b.get_pos()[1] + margin);
+              ob_circ.setPosition(static_cast<float>(b.get_pos()[0]) + margin,
+                                  static_cast<float>(b.get_pos()[1]) + margin);
               return ob_circ;
             });
       }
@@ -584,7 +597,7 @@ int main() {
         pos_com_y = static_cast<float>(bd_flock.get_com().get_pos()[1]);
         com_tracker.update_pos({pos_com_x, pos_com_y});
         com_angle = static_cast<float>(
-            mt::compute_angle<double>(bd_flock.get_com().get_vel()));
+            -mt::compute_angle<double>(bd_flock.get_com().get_vel()));
         com_tracker.update_angle(com_angle);
 
         // update stats
@@ -711,7 +724,9 @@ int main() {
                            static_cast<double>(margin),
                        static_cast<double>(sf::Mouse::getPosition(window).y) -
                            static_cast<double>(margin)},
-                      20., {video_x, video_y})) {
+                      20.,
+                      {static_cast<double>(video_x),
+                       static_cast<double>(video_y)})) {
                 // set appropriate message
                 message_text.setString("Obstacle added");
                 step_cmpt += std::chrono::steady_clock::now() - init;

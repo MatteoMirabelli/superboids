@@ -1,5 +1,5 @@
-#include "../simulation/boid.hpp"
 #include "../doctest.h"
+#include "../simulation/boid.hpp"
 #include "../simulation/flock.hpp"
 #include "../simulation/obstacles.hpp"
 #include "../simulation/predator.hpp"
@@ -68,7 +68,7 @@ TEST_CASE("Testing the Boid::update_state method with borders") {
   // border_repulsion
   void update_state(double, std::valarray<double>, bool, double, double);
   SUBCASE("Testing the update_state with left border") {
-    bd::Boid bd({20., 700}, {-5., 70.}, 120., {1080., 1080.}, 5., 4.);
+    bd::Boid bd({20., 700.}, {-5., 70.}, 120., {1080., 1080.}, 5., 4.);
     std::valarray<double> vel_corr{0., 0.};
 
     bd.update_state(1., vel_corr, false, 1., 1.);
@@ -81,7 +81,7 @@ TEST_CASE("Testing the Boid::update_state method with borders") {
   SUBCASE(
       "Testing the update_state with borders on the edge of border detecion "
       "area (expected no correction)") {
-    bd::Boid bd({40., 700}, {-7., 80.}, 120., {1080., 1080.}, 5., 4.);
+    bd::Boid bd({40., 700.}, {-7., 80.}, 120., {1080., 1080.}, 5., 4.);
     std::valarray<double> vel_corr{2., -1.};
 
     bd.update_state(1., vel_corr, false, 1., 1.);
@@ -92,7 +92,7 @@ TEST_CASE("Testing the Boid::update_state method with borders") {
   }
 
   SUBCASE("Testing the update_state with right border ") {
-    bd::Boid bd({1045., 700}, {5., 76.}, 120., {1080., 1080.}, 5., 4.);
+    bd::Boid bd({1045., 700.}, {5., 76.}, 120., {1080., 1080.}, 5., 4.);
     std::valarray<double> vel_corr{2., -4.};
 
     bd.update_state(1., vel_corr, false, 2., 1.);
@@ -103,7 +103,7 @@ TEST_CASE("Testing the Boid::update_state method with borders") {
   }
 
   SUBCASE("Testing the update_state with top border ") {
-    bd::Boid bd({600., 40}, {75., 6.}, 120., {1080., 1080.}, 5., 4.);
+    bd::Boid bd({600., 40.}, {75., 6.}, 120., {1080., 1080.}, 5., 4.);
     std::valarray<double> vel_corr{-4., -4.};
 
     bd.update_state(1., vel_corr, false, 3., 1.);
@@ -114,7 +114,7 @@ TEST_CASE("Testing the Boid::update_state method with borders") {
   }
 
   SUBCASE("Testing the update_state with bottom border ") {
-    bd::Boid bd({100., 1040}, {75., 6.}, 120., {1920., 1080.}, 5., 4.);
+    bd::Boid bd({100., 1040.}, {75., 6.}, 120., {1920., 1080.}, 5., 4.);
     std::valarray<double> vel_corr{-4., -4.};
 
     bd.update_state(1., vel_corr, false, 3., 1.);
@@ -138,7 +138,7 @@ TEST_CASE("Testing the Boid::update_state method with periodic conditions") {
   SUBCASE(
       "Testing the Boid::update_state method with periodic conditions on left "
       "border") {
-    std::valarray<double> space{1920, 1080};
+    std::valarray<double> space{1920., 1080.};
     std::valarray<double> init_pos{100., 100.};
     std::valarray<double> init_vel{-75., 75.};
     std::valarray<double> delta_vel{-30., +4.};
@@ -154,7 +154,7 @@ TEST_CASE("Testing the Boid::update_state method with periodic conditions") {
   SUBCASE(
       "Testing the Boid::update_state method with periodic conditions on right "
       "border") {
-    std::valarray<double> space{1920, 1080};
+    std::valarray<double> space{1920., 1080.};
     std::valarray<double> init_pos{1880., 100.};
     std::valarray<double> init_vel{75., 75.};
     std::valarray<double> delta_vel{30., +4.};
@@ -170,7 +170,7 @@ TEST_CASE("Testing the Boid::update_state method with periodic conditions") {
   SUBCASE(
       "Testing the Boid::update_state method with periodic conditions on top "
       "border") {
-    std::valarray<double> space{1920, 1080};
+    std::valarray<double> space{1920., 1080.};
     std::valarray<double> init_pos{500., 25.};
     std::valarray<double> init_vel{100., 7.};
     std::valarray<double> delta_vel{30., -15.};
@@ -186,7 +186,7 @@ TEST_CASE("Testing the Boid::update_state method with periodic conditions") {
   SUBCASE(
       "Testing the Boid::update_state method with periodic conditions on "
       "bottom border") {
-    std::valarray<double> space{1920, 1080};
+    std::valarray<double> space{1920., 1080.};
     std::valarray<double> init_pos{500., 1050.};
     std::valarray<double> init_vel{100., 7.};
     std::valarray<double> delta_vel{30., 15.};
@@ -202,7 +202,7 @@ TEST_CASE("Testing the Boid::update_state method with periodic conditions") {
   SUBCASE(
       "Testing the Boid::update_state method with periodic conditions on top "
       "left corner") {
-    std::valarray<double> space{1920, 1080};
+    std::valarray<double> space{1920., 1080.};
     std::valarray<double> init_pos{1880., 100.};
     std::valarray<double> init_vel{20., -70.};
     std::valarray<double> delta_vel{30., -15.};
@@ -218,7 +218,7 @@ TEST_CASE("Testing the Boid::update_state method with periodic conditions") {
   SUBCASE(
       "Testing the Boid::update_state method with periodic conditions: boid "
       "exactly on top left corner, no correction needed") {
-    std::valarray<double> space{1920, 1080};
+    std::valarray<double> space{1920., 1080.};
     std::valarray<double> init_pos{1880., 100.};
     std::valarray<double> init_vel{20., -70.};
     std::valarray<double> delta_vel{0., -10.};
@@ -546,7 +546,7 @@ TEST_CASE("Testing the is_visible function") {
 TEST_CASE("Testing the is_obs_visible") {
   // OBSTACLE CONSTRUCTOR takes: pos{x,y}, size;
   // BOID CONSTRUCTOR takes:
-  
+
   // Pos {x,y}, Vel{x,y}, view_angle, window_space{1920, 1080}, param_ds_,
   // param_s
 
