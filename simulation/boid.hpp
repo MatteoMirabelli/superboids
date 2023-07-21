@@ -2,11 +2,11 @@
 #define BOID_HPP
 
 #include <cassert>
-#include <cmath>
-#include <valarray>
 
+#include "math.hpp"
 #include "obstacles.hpp"
 
+namespace bd {
 class Boid {
   std::valarray<double> b_pos;
   std::valarray<double> b_vel;
@@ -29,7 +29,6 @@ class Boid {
   std::valarray<double> const& get_vel() const;
 
   double get_angle() const;
-
   double get_view_angle() const;
 
   std::valarray<double> const& get_space() const;
@@ -41,28 +40,23 @@ class Boid {
   void set_par_ds(double);
   void set_par_s(double);
 
+  // Avoid_obs for tests
+  std::valarray<double> avoid_obs(std::vector<ob::Obstacle> const&, double,
+                                  double) const;
+  std::valarray<double> avoid_obs(std::vector<ob::Obstacle> const&) const;
+
   void update_state(double, std::valarray<double>);
   void update_state(double, std::valarray<double>, bool);
   // update_state for tests
   void update_state(double, std::valarray<double>, bool, double, double);
-
-  // Avoid_obs for tests
-  std::valarray<double> avoid_obs(std::vector<Obstacle> const&, double,
-                                  double) const;
-  std::valarray<double> avoid_obs(std::vector<Obstacle> const&) const;
 };
-
-template <typename T>
-T vec_norm(std::valarray<T> vec);
 
 double boid_dist(Boid const& bd_1, Boid const& bd_2);
 
-template <typename T>
-T compute_angle(std::valarray<T> const&);
-
 bool is_visible(Boid const&, Boid const&);
-bool is_obs_visible(Obstacle const& obs, Boid const& bd);
+bool is_obs_visible(ob::Obstacle const& obs, Boid const& bd);
 
 std::vector<Boid> get_vector_neighbours(std::vector<Boid> const&,
                                         std::vector<Boid>::iterator, double);
+}  // namespace bd
 #endif

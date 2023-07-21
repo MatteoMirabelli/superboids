@@ -1,0 +1,5 @@
+Data printed each second 
+
+Number of boids || Mean distance + / - Mean d RMS  ||  Mean speed + / - Mean s RMS
+----------------||---------------------------------||-----------------------------
+          6700  ||        33.209           11.439  ||     114.792           42.305

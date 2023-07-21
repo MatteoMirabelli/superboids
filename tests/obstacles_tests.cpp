@@ -1,10 +1,11 @@
-#include "doctest.h"
-#include "obstacles.hpp"
+#include "../doctest.h"
+#include "../simulation/obstacles.hpp"
 
 TEST_CASE("Testing the generate_obstacles function") {
-  // generate_obstacles tales: number_of_obstacles, max_size, space{x,y};
+  // generate_obstacles takes: number_of_obstacles, max_size, space{x,y};
+
   SUBCASE("Testing the generate_obstacles function") {
-    auto obstacles = generate_obstacles(4, 45., {1920., 1080.});
+    auto obstacles = ob::generate_obstacles(4, 45., {1920., 1080.});
 
     CHECK(obstacles.size() == 4);
 
@@ -38,23 +39,23 @@ TEST_CASE("Testing the generate_obstacles function") {
   }
 
   SUBCASE("Testing the generate_obstacles with null number of obstacles") {
-    auto obstacles = generate_obstacles(0, 45., {1920., 1080.});
+    auto obstacles = ob::generate_obstacles(0, 45., {1920., 1080.});
     CHECK(obstacles.size() == 0);
   }
 }
 
-TEST_CASE("Testing the add_obstacle function") {
+TEST_CASE("Testing the add_fixed_obstacle function") {
   // OBSTACLE CONSTRUCTOR takes: pos{x,y}, size;
-  // add_obstacle takes: vector_of_obstacles, pos {x,y}, size, space{x,y};
+  // add_fixed_obstacle takes: vector_of_obstacles, pos {x,y}, size, space{x,y};
 
-  SUBCASE("Testing the add_obstacle with two not overlapping obstacles") {
+  SUBCASE("Testing the add_fixed_obstacle with two not overlapping obstacles") {
     std::valarray<double> space{1920., 1080};
     std::valarray<double> pos1{50., 60.};
     std::valarray<double> pos2{100., 100.};
 
-    std::vector<Obstacle> g_obstacles;
-    add_obstacle(g_obstacles, pos1, 20., space);
-    add_obstacle(g_obstacles, pos2, 20., space);
+    std::vector<ob::Obstacle> g_obstacles;
+    ob::add_fixed_obstacle(g_obstacles, pos1, 20., space);
+    ob::add_fixed_obstacle(g_obstacles, pos2, 20., space);
 
     CHECK(g_obstacles[0].get_pos()[0] == 50.);
     CHECK(g_obstacles[0].get_pos()[1] == 60.);
@@ -64,14 +65,14 @@ TEST_CASE("Testing the add_obstacle function") {
     CHECK(g_obstacles[1].get_size() == 20.);
   }
 
-  SUBCASE("Testing the add_obstacle with two overlapping obstacles") {
+  SUBCASE("Testing the add_fixed_obstacle with two overlapping obstacles") {
     std::valarray<double> space{1920., 1080};
     std::valarray<double> pos1{50., 60.};
     std::valarray<double> pos2{60., 100.};
 
-    std::vector<Obstacle> g_obstacles;
-    add_obstacle(g_obstacles, pos1, 20., space);
-    add_obstacle(g_obstacles, pos2, 20., space);
+    std::vector<ob::Obstacle> g_obstacles;
+    ob::add_fixed_obstacle(g_obstacles, pos1, 20., space);
+    ob::add_fixed_obstacle(g_obstacles, pos2, 20., space);
 
     CHECK(g_obstacles.size() == 1);
     CHECK(g_obstacles[0].get_pos()[0] == 50.);
@@ -80,15 +81,15 @@ TEST_CASE("Testing the add_obstacle function") {
   }
 
   SUBCASE(
-      "Testing the add_obstacle function with obstacle on the border of "
+      "Testing the add_fixed_obstacle function with obstacle on the border of "
       "simulation area") {
     std::valarray<double> space{1920., 1080};
     std::valarray<double> pos1{150., 160.};
     std::valarray<double> pos2{10., 100.};
 
-    std::vector<Obstacle> g_obstacles;
-    add_obstacle(g_obstacles, pos1, 20., space);
-    add_obstacle(g_obstacles, pos2, 20., space);
+    std::vector<ob::Obstacle> g_obstacles;
+    ob::add_fixed_obstacle(g_obstacles, pos1, 20., space);
+    ob::add_fixed_obstacle(g_obstacles, pos2, 20., space);
 
     CHECK(g_obstacles.size() == 1);
     CHECK(g_obstacles[0].get_pos()[0] == 150.);
@@ -97,15 +98,15 @@ TEST_CASE("Testing the add_obstacle function") {
   }
 
   SUBCASE(
-      "Testing the add_obstacle function with obstacle on the border of "
+      "Testing the add_fixed_obstacle function with obstacle on the border of "
       "simulation area") {
     std::valarray<double> space{1920., 1080};
     std::valarray<double> pos1{150., 160.};
     std::valarray<double> pos2{1890., 1060.};
 
-    std::vector<Obstacle> g_obstacles;
-    add_obstacle(g_obstacles, pos1, 20., space);
-    add_obstacle(g_obstacles, pos2, 40., space);
+    std::vector<ob::Obstacle> g_obstacles;
+    ob::add_fixed_obstacle(g_obstacles, pos1, 20., space);
+    ob::add_fixed_obstacle(g_obstacles, pos2, 40., space);
 
     CHECK(g_obstacles.size() == 1);
     CHECK(g_obstacles[0].get_pos()[0] == 150.);
@@ -113,14 +114,15 @@ TEST_CASE("Testing the add_obstacle function") {
     CHECK(g_obstacles[0].get_size() == 20.);
   }
 
-  SUBCASE("Testing the add_obstacle function with two tangent obstacles") {
+  SUBCASE(
+      "Testing the add_fixed_obstacle function with two tangent obstacles") {
     std::valarray<double> space{1920., 1080};
     std::valarray<double> pos1{50., 60.};
     std::valarray<double> pos2{90., 100.};
 
-    std::vector<Obstacle> g_obstacles;
-    add_obstacle(g_obstacles, pos1, 20., space);
-    add_obstacle(g_obstacles, pos2, 20., space);
+    std::vector<ob::Obstacle> g_obstacles;
+    ob::add_fixed_obstacle(g_obstacles, pos1, 20., space);
+    ob::add_fixed_obstacle(g_obstacles, pos2, 20., space);
 
     CHECK(g_obstacles[0].get_pos()[0] == 50.);
     CHECK(g_obstacles[0].get_pos()[1] == 60.);
@@ -140,18 +142,18 @@ TEST_CASE("Testing the sort_obstacles function") {
   SUBCASE(
       "Testing the sort_obstacle function with obstacles with different "
       "x_positions and y_positions") {
-    Obstacle ob1({100., 150.}, 20.);
-    Obstacle ob2({1760., 1430}, 40.);
-    Obstacle ob3({900., 1467.}, 35);
-    Obstacle ob4({400., 500.}, 20.);
+    ob::Obstacle ob1({100., 150.}, 20.);
+    ob::Obstacle ob2({1760., 1430}, 40.);
+    ob::Obstacle ob3({900., 1467.}, 35);
+    ob::Obstacle ob4({400., 500.}, 20.);
 
-    std::vector<Obstacle> g_obstacles;
+    std::vector<ob::Obstacle> g_obstacles;
     g_obstacles.push_back(ob1);
     g_obstacles.push_back(ob2);
     g_obstacles.push_back(ob3);
     g_obstacles.push_back(ob4);
 
-    sort_obstacles(g_obstacles);
+    ob::sort_obstacles(g_obstacles);
 
     CHECK(g_obstacles[0].get_pos()[0] == 100.);
     CHECK(g_obstacles[0].get_pos()[1] == 150.);
@@ -166,18 +168,18 @@ TEST_CASE("Testing the sort_obstacles function") {
   SUBCASE(
       "Testing the sort_obstacle function with obstacles with same "
       "x_positions (but with different y_positions)") {
-    Obstacle ob1({100., 150.}, 20.);
-    Obstacle ob2({900., 1467.}, 35);
-    Obstacle ob3({100., 1430}, 40.);
-    Obstacle ob4({900., 500.}, 20.);
+    ob::Obstacle ob1({100., 150.}, 20.);
+    ob::Obstacle ob2({900., 1467.}, 35);
+    ob::Obstacle ob3({100., 1430}, 40.);
+    ob::Obstacle ob4({900., 500.}, 20.);
 
-    std::vector<Obstacle> g_obstacles;
+    std::vector<ob::Obstacle> g_obstacles;
     g_obstacles.push_back(ob1);
     g_obstacles.push_back(ob2);
     g_obstacles.push_back(ob3);
     g_obstacles.push_back(ob4);
 
-    sort_obstacles(g_obstacles);
+    ob::sort_obstacles(g_obstacles);
 
     CHECK(g_obstacles[0].get_pos()[0] == 100.);
     CHECK(g_obstacles[0].get_pos()[1] == 150.);
@@ -193,15 +195,15 @@ TEST_CASE("Testing the sort_obstacles function") {
       "Testing the sort_obstacle function with both obstacles with same "
       "x_positions (but with different y_positions) and different "
       "x_positions") {
-    Obstacle ob1({100., 150.}, 20.);
-    Obstacle ob2({900., 1467.}, 35);
-    Obstacle ob3({100., 1430}, 40.);
-    Obstacle ob4({1200., 900.}, 25.);
-    Obstacle ob5({800., 500.}, 20.);
-    Obstacle ob6({400., 1220}, 15.);
-    Obstacle ob7({1200., 670.}, 10.);
+    ob::Obstacle ob1({100., 150.}, 20.);
+    ob::Obstacle ob2({900., 1467.}, 35);
+    ob::Obstacle ob3({100., 1430}, 40.);
+    ob::Obstacle ob4({1200., 900.}, 25.);
+    ob::Obstacle ob5({800., 500.}, 20.);
+    ob::Obstacle ob6({400., 1220}, 15.);
+    ob::Obstacle ob7({1200., 670.}, 10.);
 
-    std::vector<Obstacle> g_obstacles;
+    std::vector<ob::Obstacle> g_obstacles;
     g_obstacles.push_back(ob1);
     g_obstacles.push_back(ob2);
     g_obstacles.push_back(ob3);
@@ -210,7 +212,7 @@ TEST_CASE("Testing the sort_obstacles function") {
     g_obstacles.push_back(ob6);
     g_obstacles.push_back(ob7);
 
-    sort_obstacles(g_obstacles);
+    ob::sort_obstacles(g_obstacles);
 
     CHECK(g_obstacles[0].get_pos()[0] == 100.);
     CHECK(g_obstacles[0].get_pos()[1] == 150.);
